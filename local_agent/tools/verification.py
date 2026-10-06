@@ -87,6 +87,8 @@ def verify_tool_result(tool_name: str, result: Dict[str, Any]) -> Dict[str, Any]
                 name_candidates.extend(["explorer"])
             elif "edge" in app_low:
                 name_candidates.extend(["msedge"])
+            elif "spotify" in app_low:
+                name_candidates.extend(["spotify"])
             elif "terminal" in app_low:
                 name_candidates.extend(["windowsterminal", "wt"])
 

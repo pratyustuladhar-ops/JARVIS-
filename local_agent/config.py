@@ -35,6 +35,7 @@ ALLOWED_APPLICATIONS: Dict[str, str] = {
     "edge": "msedge.exe",
     "msedge": "msedge.exe",
     "microsoft edge": "msedge.exe",
+    "spotify": "spotify.exe",
     "terminal": "wt.exe",
     "windows terminal": "wt.exe",
 }
@@ -82,6 +83,14 @@ APPLICATION_CANDIDATE_PATHS: Dict[str, list] = {
         os.path.expandvars(r"%LOCALAPPDATA%\Microsoft\WindowsApps\wt.exe"),
         "wt.exe",
     ],
+    "spotify.exe": [
+        os.path.expandvars(r"%LOCALAPPDATA%\Microsoft\WindowsApps\Spotify.exe"),
+        os.path.expandvars(r"%APPDATA%\Spotify\Spotify.exe"),
+        r"C:\Program Files\Spotify\Spotify.exe",
+        r"C:\Program Files (x86)\Spotify\Spotify.exe",
+        "spotify.exe",
+        "spotify",
+    ],
 }
 
 # Expected running process image names for process table verification
@@ -92,6 +101,7 @@ APPLICATION_PROCESS_NAMES: Dict[str, list] = {
     "calc.exe": ["calculatorapp.exe", "calc.exe", "calculator.exe"],
     "explorer.exe": ["explorer.exe"],
     "msedge.exe": ["msedge.exe"],
+    "spotify.exe": ["spotify.exe"],
     "wt.exe": ["windowsterminal.exe", "wt.exe"],
 }
 

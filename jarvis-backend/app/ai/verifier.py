@@ -106,15 +106,43 @@ class VerificationEngine:
         # Verify Windows Local Agent tools
         if tool_name == "local_open_application":
             app = requested_params.get("application", "Application")
-            if isinstance(output, dict) and (output.get("status") == "failed" or output.get("verified") is False or output.get("success") is False):
+            if not isinstance(output, dict):
                 return VerificationResult(
                     status="FAILED",
                     tool=tool_name,
                     entity_id=None,
-                    detail=output.get("message") or output.get("error") or f"{app.title()} could not be opened."
+                    detail=f"{app.title()} could not be opened."
                 )
-            pid = output.get("pid") if isinstance(output, dict) else None
-            already_running = output.get("already_running") if isinstance(output, dict) else False
+
+            # Explicit failure signals
+            if output.get("status") in ["failed", "denied", "error"] or output.get("verified") is False or output.get("success") is False:
+                err_msg = output.get("message") or output.get("error")
+                if not err_msg:
+                    if output.get("error_code") == "APPLICATION_NOT_FOUND":
+                        err_msg = f"{app.title()} isn't installed or couldn't be safely located."
+                    elif output.get("verified") is False:
+                        err_msg = f"I tried to open {app.title()}, but I couldn't verify that it opened."
+                    else:
+                        err_msg = f"{app.title()} could not be opened."
+                return VerificationResult(
+                    status="FAILED",
+                    tool=tool_name,
+                    entity_id=None,
+                    detail=err_msg
+                )
+
+            pid = output.get("pid")
+            already_running = output.get("already_running") is True
+            # Require evidence (pid or already_running or established success status)
+            has_evidence = bool(pid is not None or already_running or output.get("status") in ["launched", "running", "success"])
+            if not has_evidence:
+                return VerificationResult(
+                    status="FAILED",
+                    tool=tool_name,
+                    entity_id=None,
+                    detail=f"I tried to open {app.title()}, but I couldn't verify that it opened."
+                )
+
             detail_msg = f"{app.title()} is already running." if already_running else f"{app.title()} process confirmed launched."
             return VerificationResult(
                 status="VERIFIED",

@@ -471,3 +471,57 @@ def test_vscode_resolution_prefers_code_exe():
         assert resolved.lower().endswith("code.exe")
 
 
+def test_spotify_allowlist_and_resolution():
+    """Verify that Spotify is allowlisted and candidate paths are checked."""
+    from unittest.mock import patch
+    from local_agent.permissions import validate_application, resolve_executable_path
+
+    ok, exe, err = validate_application("spotify")
+    assert ok is True
+    assert exe == "spotify.exe"
+
+    with patch("os.path.isfile", side_effect=lambda p: "Spotify.exe" in p):
+        resolved = resolve_executable_path("spotify.exe")
+        assert resolved is not None
+        assert resolved.lower().endswith("spotify.exe")
+
+
+def test_edge_allowlist_and_resolution():
+    """Verify that Microsoft Edge is allowlisted and resolved."""
+    from local_agent.permissions import validate_application
+    ok, exe, err = validate_application("microsoft edge")
+    assert ok is True
+    assert exe == "msedge.exe"
+
+
+def test_strict_backend_verifier_rejection():
+    """Verify that backend verifier rejects success=True if verified=False or evidence is missing."""
+    from app.ai.verifier import VerificationEngine
+    from app.ai.planner import PlanStep
+    from app.ai.executor import ExecutionResult
+
+    engine = VerificationEngine()
+
+    # Case 1: verified is False
+    exec_res1 = ExecutionResult(tool_name="local_open_application", status="SUCCESS", output={"status": "success", "success": True, "verified": False, "pid": 1234})
+    res1 = engine.verify(None, exec_res1, {"application": "chrome"})
+    assert res1.status == "FAILED"
+
+    # Case 2: missing pid and not already_running
+    exec_res2 = ExecutionResult(tool_name="local_open_application", status="SUCCESS", output={"status": "other", "success": True, "verified": True, "pid": None, "already_running": False})
+    res2 = engine.verify(None, exec_res2, {"application": "chrome"})
+    assert res2.status == "FAILED"
+
+    # Case 3: valid with pid
+    exec_res3 = ExecutionResult(tool_name="local_open_application", status="SUCCESS", output={"status": "success", "success": True, "verified": True, "pid": 1234, "already_running": False})
+    res3 = engine.verify(None, exec_res3, {"application": "chrome"})
+    assert res3.status == "VERIFIED"
+
+    # Case 4: valid already_running
+    exec_res4 = ExecutionResult(tool_name="local_open_application", status="SUCCESS", output={"status": "success", "success": True, "verified": True, "pid": 1234, "already_running": True})
+    res4 = engine.verify(None, exec_res4, {"application": "chrome"})
+    assert res4.status == "VERIFIED"
+    assert "already running" in res4.detail.lower()
+
+
+

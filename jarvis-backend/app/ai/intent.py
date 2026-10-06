@@ -95,7 +95,7 @@ class IntentDetector:
             (re.compile(r"^(?:jarvis,?\s*)?(?:open|view)\s+(?:my\s+)?(downloads|documents|desktop)\s+folder[\s?!.]*$", re.I), "OPEN_FOLDER", 0.98),
 
             # Windows Local Agent: Open Application (Allowlisted & candidate apps)
-            (re.compile(r"^(?:jarvis,?\s*)?(?:open|launch|start|run|take me to|bring me to|switch to)\s+(?:the\s+)?(?:application\s+|app\s+|program\s+)?(vscode|vs code|visual studio code|code|chrome|google chrome|notepad|calculator|calc|explorer|file explorer|terminal|edge|microsoft edge)$", re.I), "OPEN_APPLICATION", 0.98),
+            (re.compile(r"^(?:jarvis,?\s*)?(?:open|launch|start|run|take me to|bring me to|switch to)\s+(?:the\s+)?(?:application\s+|app\s+|program\s+)?(vscode|vs code|visual studio code|code|chrome|google chrome|notepad|calculator|calc|explorer|file explorer|terminal|windows terminal|edge|microsoft edge|spotify)$", re.I), "OPEN_APPLICATION", 0.98),
             (re.compile(r"^(?:jarvis,?\s*)?(?:open|launch|start)\s+(?:my\s+)?browser[\s?!.]*$", re.I), "OPEN_APPLICATION", 0.98),
             (re.compile(r"^(?:jarvis,?\s*)?(?:open|launch|start|run|take me to|bring me to|switch to)\s+(?:the\s+)?(?:application\s+|app\s+|program\s+)?([a-zA-Z0-9_\-\.]+(?:\.exe)?)$", re.I), "OPEN_APPLICATION", 0.95),
             (re.compile(r"^(?:jarvis,?\s*)?(?:open|launch|start|run|take me to)\s+application:?\s+(.+)$", re.I), "OPEN_APPLICATION", 0.98),
@@ -237,6 +237,10 @@ class IntentDetector:
                     entities["application"] = "vscode"
                 elif "chrome" in app_raw:
                     entities["application"] = "chrome"
+                elif "edge" in app_raw:
+                    entities["application"] = "edge"
+                elif "spotify" in app_raw:
+                    entities["application"] = "spotify"
                 elif "notepad" in app_raw:
                     entities["application"] = "notepad"
                 elif "calc" in app_raw:

@@ -35,11 +35,11 @@ class ResponseGenerator:
             if res.status != "SUCCESS":
                 err_str = str(res.error).lower()
                 if "allowlist" in err_str or "not in the approved allowlist" in err_str:
-                    return "I don't have permission to open that application. Only pre-approved applications (VS Code, Chrome, Notepad, Calculator, Explorer, Terminal) can be launched."
+                    return "I don't have permission to open that application. Only pre-approved applications (Chrome, Edge, VS Code, Spotify, Notepad, Calculator, Explorer, Terminal) can be launched."
                 if "traversal" in err_str or "outside approved" in err_str:
                     return "Access denied. Path traversal and access outside approved user directories (Desktop, Documents, Downloads) is strictly prohibited."
-                if "application_not_found" in err_str or "not found on this system" in err_str or "not found" in err_str:
-                    return "The requested application could not be found on this Windows system."
+                if "not installed" in err_str or "could not be safely resolved" in err_str or "application_not_found" in err_str or "not found on this system" in err_str:
+                    return str(res.error)
                 if "ocr" in err_str or "unreadable" in err_str:
                     return "I couldn't reliably read the text in that image."
                 if "vision" in err_str or "capture" in err_str:
@@ -52,7 +52,7 @@ class ResponseGenerator:
         for v in verification_results:
             if v.status == "FAILED":
                 if v.tool == "local_open_application":
-                    return v.detail if "could not be opened" in v.detail.lower() else f"The requested application could not be opened: {v.detail}"
+                    return v.detail
                 if "text" in v.detail.lower() or "read" in v.detail.lower():
                     return "I couldn't reliably read the text in that image."
                 return f"Action executed, but database verification failed: {v.detail}"

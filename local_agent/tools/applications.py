@@ -37,34 +37,52 @@ def is_process_running(process_names: List[str]) -> Tuple[bool, Optional[int]]:
     return False, None
 
 
-def focus_existing_window(pid: int) -> bool:
+def focus_existing_window(pid: int, expected_process_names: Optional[List[str]] = None) -> bool:
     """
     Attempts to safely bring an existing application window to focus.
+    Enumerates top-level visible windows across the user's interactive desktop.
     """
     try:
         import ctypes
         from ctypes import wintypes
+        import psutil
         user32 = ctypes.windll.user32
         target_hwnd = None
 
+        allowed_pids = {pid}
+        if expected_process_names:
+            exp_low = [x.lower() for x in expected_process_names]
+            for p in psutil.process_iter(['pid', 'name']):
+                p_name = (p.info.get('name') or '').lower()
+                if any(exp in p_name for exp in exp_low):
+                    allowed_pids.add(p.info['pid'])
+
         def enum_cb(hwnd, lparam):
             nonlocal target_hwnd
-            w_pid = wintypes.DWORD()
-            user32.GetWindowThreadProcessId(hwnd, ctypes.byref(w_pid))
-            if w_pid.value == pid and user32.IsWindowVisible(hwnd):
-                length = user32.GetWindowTextLengthW(hwnd)
-                if length > 0:
-                    target_hwnd = hwnd
-                    return False
+            if user32.IsWindowVisible(hwnd):
+                w_pid = wintypes.DWORD()
+                user32.GetWindowThreadProcessId(hwnd, ctypes.byref(w_pid))
+                if w_pid.value in allowed_pids:
+                    length = user32.GetWindowTextLengthW(hwnd)
+                    if length > 0:
+                        target_hwnd = hwnd
+                        return False
             return True
 
-        user32.EnumWindows(ctypes.WINFUNCTYPE(wintypes.BOOL, wintypes.HWND, wintypes.LPARAM)(enum_cb), 0)
+        cb = ctypes.WINFUNCTYPE(wintypes.BOOL, wintypes.HWND, wintypes.LPARAM)(enum_cb)
+        h_input = user32.OpenInputDesktop(0, False, 0x0100)
+        if h_input:
+            user32.EnumDesktopWindows(h_input, cb, 0)
+            user32.CloseDesktop(h_input)
+        if not target_hwnd:
+            user32.EnumWindows(cb, 0)
+
         if target_hwnd:
             user32.ShowWindow(target_hwnd, 9)  # SW_RESTORE
             user32.SetForegroundWindow(target_hwnd)
             return True
-    except Exception:
-        pass
+    except Exception as e:
+        logger.debug(f"Focus window exception: {e}")
     return False
 
 
@@ -138,31 +156,37 @@ def open_application(application: str) -> Dict[str, Any]:
             "executable": executable,
             "resolved_path": None,
             "pid": None,
+            "already_running": False,
+            "running": False,
             "verified": False,
+            "verification_method": "executable_resolution_check",
             "error_code": "APPLICATION_NOT_FOUND",
             "reason": "APPLICATION_NOT_FOUND",
-            "error": f"Application '{application}' was not found on this system.",
-            "message": f"Application '{application}' was not found on this system."
+            "error": f"{norm_app.title()} is not installed or could not be safely resolved",
+            "message": f"{norm_app.title()} is not installed or could not be safely resolved"
         }
 
     # 3. Check if already running
     expected_process_names = APPLICATION_PROCESS_NAMES.get(executable, [os.path.basename(resolved_path).lower()])
-    already_running, existing_pid = is_process_running(expected_process_names)
-    if already_running:
-        logger.info(f"Application '{norm_app}' is already running (PID: {existing_pid}). Safe focus triggered.")
-        focus_existing_window(existing_pid)
-        return {
-            "status": "success",
-            "success": True,
-            "application": norm_app,
-            "executable": executable,
-            "resolved_path": resolved_path,
-            "pid": existing_pid,
-            "already_running": True,
-            "running": True,
-            "verified": True,
-            "message": f"{norm_app.title()} is already running."
-        }
+    if executable != "explorer.exe":
+        already_running, existing_pid = is_process_running(expected_process_names)
+        if already_running:
+            logger.info(f"Application '{norm_app}' is already running (PID: {existing_pid}). Safe focus triggered.")
+            focus_existing_window(existing_pid, expected_process_names)
+            return {
+                "status": "success",
+                "success": True,
+                "application": norm_app,
+                "executable": executable,
+                "resolved_path": resolved_path,
+                "pid": existing_pid,
+                "already_running": True,
+                "running": True,
+                "verified": True,
+                "verification_method": "process_and_application_check",
+                "error": None,
+                "message": f"{norm_app.title()} is already running."
+            }
 
     # 4. Safe launch attempt
     try:
@@ -200,7 +224,10 @@ def open_application(application: str) -> Dict[str, Any]:
                 "executable": executable,
                 "resolved_path": resolved_path,
                 "pid": None,
+                "already_running": False,
+                "running": False,
                 "verified": False,
+                "verification_method": "process_and_application_check",
                 "error_code": "APPLICATION_LAUNCH_FAILED",
                 "reason": "APPLICATION_LAUNCH_FAILED",
                 "error": f"{norm_app.title()} could not be opened.",
@@ -217,6 +244,8 @@ def open_application(application: str) -> Dict[str, Any]:
             "already_running": False,
             "running": True,
             "verified": True,
+            "verification_method": "process_and_application_check",
+            "error": None,
             "message": f"{norm_app.title()} launched successfully."
         }
 
@@ -229,7 +258,10 @@ def open_application(application: str) -> Dict[str, Any]:
             "executable": executable,
             "resolved_path": resolved_path,
             "pid": None,
+            "already_running": False,
+            "running": False,
             "verified": False,
+            "verification_method": "process_and_application_check",
             "error_code": "APPLICATION_LAUNCH_FAILED",
             "reason": "APPLICATION_LAUNCH_FAILED",
             "error": f"Failed to launch application '{application}': {e}",
