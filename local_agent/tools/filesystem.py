@@ -5,6 +5,7 @@ from typing import Dict, Any, List
 from local_agent.permissions import (
     validate_directory_path,
     validate_file_path,
+    validate_folder_path,
     PermissionDeniedError
 )
 
@@ -77,3 +78,26 @@ def open_file(file_path: str) -> Dict[str, Any]:
         }
     except Exception as e:
         raise RuntimeError(f"Failed opening file '{file_path}': {e}")
+
+
+def open_folder(folder_path: str = "Desktop") -> Dict[str, Any]:
+    """
+    Opens an approved directory (Desktop, Documents, Downloads) in Windows File Explorer.
+    Rejects directory traversal (..) and access to system folders.
+    """
+    is_allowed, safe_path, error_msg = validate_folder_path(folder_path)
+    if not is_allowed or not safe_path:
+        raise PermissionDeniedError(error_msg or f"Opening folder '{folder_path}' is denied.")
+
+    try:
+        os.startfile(safe_path)
+        return {
+            "status": "success",
+            "folder": os.path.basename(safe_path),
+            "path": safe_path,
+            "verified": True,
+            "message": f"Opened folder '{os.path.basename(safe_path)}' in File Explorer."
+        }
+    except Exception as e:
+        raise RuntimeError(f"Failed opening folder '{folder_path}': {e}")
+

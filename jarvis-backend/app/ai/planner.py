@@ -175,6 +175,23 @@ class AgentPlanner:
 
         elif intent == "OPEN_APPLICATION":
             app_target = entities.get("application") or goal
+            # Check user preference memory (e.g. "open my browser" -> resolve to stored preferred browser)
+            app_low = str(app_target).lower().strip().rstrip(".?!,:;")
+            if app_low in ["my browser", "browser", "the browser", "default browser", "web browser"]:
+                preferred_browser = "chrome"
+                if context and context.relevant_memories:
+                    for mem in context.relevant_memories:
+                        m_text = str(mem.get("content", "")).lower()
+                        if "chrome" in m_text:
+                            preferred_browser = "chrome"
+                            break
+                        elif "edge" in m_text:
+                            preferred_browser = "edge"
+                            break
+                app_target = preferred_browser
+            else:
+                app_target = app_low
+
             steps.append(PlanStep(
                 step_number=1,
                 tool_name="local_open_application",
@@ -222,6 +239,15 @@ class AgentPlanner:
                 step_number=1,
                 tool_name="local_open_file",
                 parameters={"file_path": file_target},
+                risk_level="MEDIUM_RISK"
+            ))
+
+        elif intent == "OPEN_FOLDER":
+            folder_target = entities.get("folder_path") or entities.get("directory") or "Desktop"
+            steps.append(PlanStep(
+                step_number=1,
+                tool_name="local_open_folder",
+                parameters={"folder_path": folder_target},
                 risk_level="MEDIUM_RISK"
             ))
 

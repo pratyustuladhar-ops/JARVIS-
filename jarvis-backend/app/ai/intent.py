@@ -43,6 +43,7 @@ class IntentDetector:
         "GET_CURRENT_TIME",
         "LIST_ALLOWED_DIRECTORY",
         "OPEN_FILE",
+        "OPEN_FOLDER",
         "SCREEN_ANALYSIS",
         "OCR_REQUEST",
         "VISION_QUERY",
@@ -53,6 +54,20 @@ class IntentDetector:
         "GENERAL_COMMAND",
         "UNKNOWN"
     ]
+
+    @staticmethod
+    def normalize_query(text: str) -> str:
+        s = text.strip()
+        # Remove polite / conversational leading filler phrases
+        s = re.sub(
+            r"^(?:(?:can|could|would)\s+you\s+(?:please\s+)?|(?:please\s+)|(?:jarvis,?\s*)|(?:hey\s+jarvis,?\s*)|(?:hi\s+jarvis,?\s*)|(?:ok\s+jarvis,?\s*))",
+            "",
+            s,
+            flags=re.I
+        ).strip()
+        # Strip trailing punctuation
+        s = re.sub(r"[?!.]+$", "", s).strip()
+        return s
 
     def __init__(self):
         self.confidence_threshold = settings.INTENT_CONFIDENCE_THRESHOLD
@@ -72,25 +87,36 @@ class IntentDetector:
             (re.compile(r"^(?:jarvis,?\s*)?(?:visual\s+explanation|explain\s+visually|describe\s+this\s+image)[\s?!.]*$", re.I), "VISUAL_EXPLANATION", 0.98),
 
             # Windows Local Agent: Open URL (check before general app open)
-            (re.compile(r"^(?:jarvis,?\s*)?(?:open|navigate to|browse to|launch)\s+(https?://\S+|www\.\S+|youtube(?:\.com)?|google(?:\.com)?|github(?:\.com)?)$", re.I), "OPEN_URL", 0.98),
+            (re.compile(r"^(?:jarvis,?\s*)?(?:open|navigate to|browse to|launch|go to|take me to)\s+(https?://\S+|www\.\S+|youtube(?:\.com)?|google(?:\.com)?|github(?:\.com)?|reddit(?:\.com)?|x(?:\.com)?|twitter(?:\.com)?)$", re.I), "OPEN_URL", 0.98),
+            (re.compile(r"^(?:jarvis,?\s*)?(?:go to|take me to|open)\s+(youtube|google|github|reddit)[\s?!.]*$", re.I), "OPEN_URL", 0.98),
 
+            # Windows Local Agent: Open Folder
+            (re.compile(r"^(?:jarvis,?\s*)?(?:open|launch)\s+(?:my\s+)?(?:folder\s+|directory\s+)?(downloads|documents|desktop)\s+(?:folder|directory)[\s?!.]*$", re.I), "OPEN_FOLDER", 0.98),
+            (re.compile(r"^(?:jarvis,?\s*)?(?:open|view)\s+(?:my\s+)?(downloads|documents|desktop)\s+folder[\s?!.]*$", re.I), "OPEN_FOLDER", 0.98),
 
             # Windows Local Agent: Open Application (Allowlisted & candidate apps)
-            (re.compile(r"^(?:jarvis,?\s*)?(?:open|launch|start|run|take me to|bring me to|switch to)\s+(?:the\s+)?(vscode|vs code|visual studio code|chrome|google chrome|notepad|calculator|calc|explorer|file explorer|terminal)$", re.I), "OPEN_APPLICATION", 0.98),
+            (re.compile(r"^(?:jarvis,?\s*)?(?:open|launch|start|run|take me to|bring me to|switch to)\s+(?:the\s+)?(?:application\s+|app\s+|program\s+)?(vscode|vs code|visual studio code|code|chrome|google chrome|notepad|calculator|calc|explorer|file explorer|terminal|edge|microsoft edge)$", re.I), "OPEN_APPLICATION", 0.98),
+            (re.compile(r"^(?:jarvis,?\s*)?(?:open|launch|start)\s+(?:my\s+)?browser[\s?!.]*$", re.I), "OPEN_APPLICATION", 0.98),
             (re.compile(r"^(?:jarvis,?\s*)?(?:open|launch|start|run|take me to|bring me to|switch to)\s+(?:the\s+)?(?:application\s+|app\s+|program\s+)?([a-zA-Z0-9_\-\.]+(?:\.exe)?)$", re.I), "OPEN_APPLICATION", 0.95),
             (re.compile(r"^(?:jarvis,?\s*)?(?:open|launch|start|run|take me to)\s+application:?\s+(.+)$", re.I), "OPEN_APPLICATION", 0.98),
 
             # Windows Local Agent: Get Current Time
-            (re.compile(r"^(?:jarvis,?\s*)?(?:what time is it|what is the time|current time|tell me the time|what's the time)[\s?!.]*$", re.I), "GET_CURRENT_TIME", 0.98),
+            (re.compile(r"^(?:jarvis,?\s*)?(?:what time is it|what is the time|current time|tell me the time|what's the time|what is the current local time|what is the current time|the time)[\s?!.]*$", re.I), "GET_CURRENT_TIME", 0.98),
 
             # Windows Local Agent: System Info
-            (re.compile(r"^(?:jarvis,?\s*)?(?:what are my |show |get )?(?:system info|computer specs|pc specs|hardware info|system specifications|local machine specs|windows specs)[\s?!.]*$", re.I), "GET_SYSTEM_INFO", 0.98),
+            (re.compile(r"^(?:jarvis,?\s*)?(?:what are my |show (?:my )?|get (?:my )?|display (?:my )?|tell me about (?:this )?)?(?:system info|system information|computer specs|pc specs|hardware info|system specifications|system specs|local machine specs|windows specs|computer)[\s?!.]*$", re.I), "GET_SYSTEM_INFO", 0.98),
 
             # Windows Local Agent: List Allowed Directory
-            (re.compile(r"^(?:jarvis,?\s*)?(?:list|show|view|display)\s+(?:all\s+)?(?:files in\s+|directory\s+|folder:?\s+|contents of\s+)?(desktop|documents|downloads)[\s?!.]*$", re.I), "LIST_ALLOWED_DIRECTORY", 0.98),
+            (re.compile(r"^(?:jarvis,?\s*)?(?:list|show|view|display|open)\s+(?:all\s+)?(?:my\s+)?(?:files\s+(?:in|on)\s+|directory\s+|folder:?\s+|contents\s+of\s+)?(desktop|documents|downloads)(?:\s+(?:files|directory|folder))?[\s?!.]*$", re.I), "LIST_ALLOWED_DIRECTORY", 0.98),
+            (re.compile(r"^(?:jarvis,?\s*)?(?:list|show)\s+(?:my\s+)?(downloads|documents|desktop)[\s?!.]*$", re.I), "LIST_ALLOWED_DIRECTORY", 0.98),
+            (re.compile(r"^(?:jarvis,?\s*)?(?:open\s+my\s+desktop\s+files)[\s?!.]*$", re.I), "LIST_ALLOWED_DIRECTORY", 0.98),
+            (re.compile(r"^(?:jarvis,?\s*)?(?:list\s+documents)[\s?!.]*$", re.I), "LIST_ALLOWED_DIRECTORY", 0.98),
+            (re.compile(r"^(?:jarvis,?\s*)?(?:list|show|view|display)\s+(?:all\s+)?(?:files\s+(?:in|on)\s+|directory\s+|folder:?\s+|contents\s+of\s+)(.+)$", re.I), "LIST_ALLOWED_DIRECTORY", 0.95),
 
             # Windows Local Agent: Open File
             (re.compile(r"^(?:jarvis,?\s*)?open (?:file|document):?\s+(.+)$", re.I), "OPEN_FILE", 0.95),
+            (re.compile(r"^(?:jarvis,?\s*)?open (?:a\s+)?file (?:from|in) (downloads|documents|desktop)[\s?!.]*$", re.I), "OPEN_FILE", 0.95),
+            (re.compile(r"^(?:jarvis,?\s*)?open (?:a\s+)?file (.+) (?:from|in) (downloads|documents|desktop)[\s?!.]*$", re.I), "OPEN_FILE", 0.95),
 
             # Project Analysis
             (re.compile(r"\b(analyz|check|inspect|audit).*(project|repo|codebase)\b", re.I), "PROJECT_ANALYSIS", 0.98),
@@ -205,7 +231,7 @@ class IntentDetector:
         if intent == "OPEN_APPLICATION":
             m = re.search(r"(?:open|launch|start|run|take me to|bring me to|switch to|navigate to)\s+(?:the\s+)?(?:application:?\s+)?(.+)", cleaned, re.I)
             if m:
-                app_raw = m.group(1).strip().lower()
+                app_raw = m.group(1).strip().lower().rstrip(".?!,:;")
                 # Normalize aliases
                 if "vs code" in app_raw or "vscode" in app_raw or "visual studio code" in app_raw:
                     entities["application"] = "vscode"
@@ -222,7 +248,7 @@ class IntentDetector:
                 else:
                     entities["application"] = app_raw
             else:
-                entities["application"] = cleaned
+                entities["application"] = cleaned.strip().lower().rstrip(".?!,:;")
 
         # Windows Local Agent: URL extraction
         if intent == "OPEN_URL":
@@ -246,14 +272,36 @@ class IntentDetector:
                 entities["directory"] = "Downloads"
             elif "document" in lower:
                 entities["directory"] = "Documents"
-            else:
+            elif "desktop" in lower:
                 entities["directory"] = "Desktop"
+            else:
+                m = re.search(r"(?:files\s+(?:in|on)\s+|directory\s+|folder:?\s+|contents\s+of\s+)(.+)", cleaned, re.I)
+                if m:
+                    entities["directory"] = m.group(1).strip()
+                else:
+                    entities["directory"] = cleaned
+
+        # Windows Local Agent: Open Folder extraction
+        if intent == "OPEN_FOLDER":
+            lower = cleaned.lower()
+            if "download" in lower:
+                entities["folder_path"] = "Downloads"
+            elif "document" in lower:
+                entities["folder_path"] = "Documents"
+            else:
+                entities["folder_path"] = "Desktop"
 
         # Windows Local Agent: File path extraction
         if intent == "OPEN_FILE":
-            m = re.search(r"(?:open\s+(?:file|document):?\s+)(.+)", cleaned, re.I)
+            m = re.search(r"(?:open\s+(?:a\s+)?(?:file|document):?\s+)(.+)", cleaned, re.I)
             if m:
                 entities["file_path"] = m.group(1).strip()
+            elif "download" in cleaned.lower():
+                entities["file_path"] = "a file from downloads"
+            elif "document" in cleaned.lower():
+                entities["file_path"] = "a file from documents"
+            elif "desktop" in cleaned.lower():
+                entities["file_path"] = "a file from desktop"
             else:
                 entities["file_path"] = cleaned
 
@@ -266,6 +314,7 @@ class IntentDetector:
         has_image: bool = False
     ) -> IntentDetectionResult:
         cleaned = user_message.strip()
+        norm_msg = self.normalize_query(cleaned)
         if not cleaned:
             if has_image:
                 return IntentDetectionResult(
@@ -283,10 +332,16 @@ class IntentDetector:
                 raw_input=user_message
             )
 
-        # Stage 1: Deterministic Rule Check
+        # Stage 1: Deterministic Rule Check (tests both normalized and raw input)
         for pattern, rule_intent, rule_conf in self.rules:
+            matched_text = None
             if pattern.search(cleaned):
-                entities = self.extract_entities(cleaned, rule_intent)
+                matched_text = cleaned
+            elif norm_msg and pattern.search(norm_msg):
+                matched_text = norm_msg
+
+            if matched_text:
+                entities = self.extract_entities(matched_text, rule_intent)
                 logger.info(f"[INTENT] Rule match: '{rule_intent}' with confidence {rule_conf}")
                 return IntentDetectionResult(
                     intent=rule_intent,

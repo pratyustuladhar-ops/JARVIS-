@@ -23,6 +23,7 @@ TOOL_RISK_MAP = {
     "open_url": LOW_RISK,
     "list_allowed_directory": MEDIUM_RISK,
     "open_file": MEDIUM_RISK,
+    "open_folder": MEDIUM_RISK,
     "capture_screen": LOW_RISK,
 }
 
@@ -175,6 +176,25 @@ def validate_file_path(file_path: str) -> Tuple[bool, Optional[str], Optional[st
     if ext in {".exe", ".bat", ".cmd", ".vbs", ".ps1", ".msi", ".dll", ".reg"}:
         return False, None, f"Direct execution of '{ext}' files via open_file is blocked for security."
 
+    # Handle natural query requesting "a file from downloads/desktop/documents"
+    low_clean = file_path.lower().strip()
+    target_dir_key = None
+    if "download" in low_clean:
+        target_dir_key = "downloads"
+    elif "document" in low_clean:
+        target_dir_key = "documents"
+    elif "desktop" in low_clean:
+        target_dir_key = "desktop"
+
+    if target_dir_key and (low_clean in [f"a file from {target_dir_key}", f"file from {target_dir_key}", f"from {target_dir_key}", target_dir_key] or "a file from" in low_clean):
+        dir_root = ALLOWED_DIRECTORIES.get(target_dir_key)
+        if dir_root and os.path.exists(dir_root):
+            for entry in os.listdir(dir_root):
+                entry_path = os.path.join(dir_root, entry)
+                entry_ext = os.path.splitext(entry)[1].lower()
+                if os.path.isfile(entry_path) and entry_ext not in {".exe", ".bat", ".cmd", ".vbs", ".ps1", ".msi", ".dll", ".reg"}:
+                    return True, entry_path, None
+
     # Check if file exists in any of the allowed directories by relative name
     for base_path in ALLOWED_DIRECTORIES.values():
         candidate = os.path.realpath(os.path.join(base_path, file_path))
@@ -192,3 +212,38 @@ def validate_file_path(file_path: str) -> Tuple[bool, Optional[str], Optional[st
         pass
 
     return False, None, f"File '{file_path}' was not found in approved user directories."
+
+
+def validate_folder_path(folder_path: str) -> Tuple[bool, Optional[str], Optional[str]]:
+    """
+    Validates folder access strictly within Desktop, Documents, or Downloads.
+    Rejects directory traversal (..) and access to system folders.
+    """
+    if not folder_path:
+        return False, None, "Folder path cannot be empty."
+
+    norm = folder_path.lower().strip().replace("/", "\\")
+
+    if ".." in folder_path:
+        return False, None, "Directory traversal (..) is prohibited."
+
+    # Direct alias match (e.g. "desktop", "downloads", "documents")
+    if norm in ALLOWED_DIRECTORIES:
+        return True, ALLOWED_DIRECTORIES[norm], None
+
+    for alias, base_path in ALLOWED_DIRECTORIES.items():
+        if alias in norm and ("folder" in norm or "my " in norm or norm == alias):
+            return True, base_path, None
+
+    # Check if folder resides inside any allowed directory
+    try:
+        resolved = os.path.realpath(folder_path)
+        if os.path.isdir(resolved):
+            for base_path in ALLOWED_DIRECTORIES.values():
+                if os.path.commonpath([resolved, base_path]) == base_path:
+                    return True, resolved, None
+    except Exception as e:
+        return False, None, f"Path resolution failed: {e}"
+
+    return False, None, f"Folder '{folder_path}' is outside approved user folders (Desktop, Documents, Downloads)."
+

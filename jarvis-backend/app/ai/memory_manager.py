@@ -60,6 +60,24 @@ class MemoryManager:
         if not clean_content:
             return None
 
+        # Security: DO NOT store passwords, API keys, auth tokens, credit cards, or private credentials
+        lower_c = clean_content.lower()
+        import re
+        sensitive_patterns = [
+            r"\bpassword\b",
+            r"\bapi[_\s-]?key\b",
+            r"\bauth[_\s-]?token\b",
+            r"\bsecret[_\s-]?key\b",
+            r"\bcredit[\s_-]?card\b",
+            r"\bcvv\b",
+            r"\b\d{4}[-\s]?\d{4}[-\s]?\d{4}[-\s]?\d{4}\b",
+            r"\bbearer\s+[a-zA-Z0-9_\-\.]+\b",
+        ]
+        for pat in sensitive_patterns:
+            if re.search(pat, lower_c):
+                logger.warning("Memory storage blocked: sensitive credential pattern detected.")
+                return None
+
         mem_in = MemoryCreate(
             content=clean_content,
             memory_type=memory_type,

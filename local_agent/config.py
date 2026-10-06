@@ -18,16 +18,25 @@ LOCAL_SERVER_PORT: int = 8001
 ALLOWED_APPLICATIONS: Dict[str, str] = {
     "vscode": "code",
     "code": "code",
+    "vs code": "code",
+    "visual studio code": "code",
     "chrome": "chrome",
     "google-chrome": "chrome",
+    "google chrome": "chrome",
+    "googlechrome": "chrome",
     "notepad": "notepad.exe",
     "calculator": "calc.exe",
     "calc": "calc.exe",
     "explorer": "explorer.exe",
+    "file explorer": "explorer.exe",
     "file-explorer": "explorer.exe",
+    "fileexplorer": "explorer.exe",
+    "files": "explorer.exe",
     "edge": "msedge.exe",
     "msedge": "msedge.exe",
+    "microsoft edge": "msedge.exe",
     "terminal": "wt.exe",
+    "windows terminal": "wt.exe",
 }
 
 # Candidate standard install paths for allowlisted applications on Windows
@@ -40,11 +49,11 @@ APPLICATION_CANDIDATE_PATHS: Dict[str, list] = {
         "chrome",
     ],
     "code": [
-        "code",
-        "code.cmd",
         os.path.expandvars(r"%LOCALAPPDATA%\Programs\Microsoft VS Code\Code.exe"),
-        os.path.expandvars(r"%LOCALAPPDATA%\Programs\Microsoft VS Code\bin\code.cmd"),
         r"C:\Program Files\Microsoft VS Code\Code.exe",
+        os.path.expandvars(r"%LOCALAPPDATA%\Programs\Microsoft VS Code\bin\code.cmd"),
+        "code.cmd",
+        "code",
     ],
     "notepad.exe": [
         "notepad.exe",
@@ -60,8 +69,8 @@ APPLICATION_CANDIDATE_PATHS: Dict[str, list] = {
         r"C:\Windows\explorer.exe",
     ],
     "msedge.exe": [
-        r"C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe",
         r"C:\Program Files\Microsoft\Edge\Application\msedge.exe",
+        r"C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe",
         "msedge.exe",
     ],
     "wt.exe": [

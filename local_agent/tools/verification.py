@@ -60,14 +60,37 @@ def verify_tool_result(tool_name: str, result: Dict[str, Any]) -> Dict[str, Any]
     if tool_name == "open_application":
         pid = result.get("pid")
         app = result.get("application", "")
-        # Process verification
-        is_alive = True
-        if pid:
-            is_alive = verify_process_running(pid)
+        is_alive = False
+        if pid and verify_process_running(pid):
+            is_alive = True
+        else:
+            # Robust Windows check: handle stub/launcher process exit (e.g. Windows 11 Notepad, CalculatorApp, Explorer)
+            app_low = str(app).lower()
+            name_candidates = [app_low]
+            if "calc" in app_low:
+                name_candidates.extend(["calc", "calculator", "calculatorapp"])
+            elif "notepad" in app_low:
+                name_candidates.extend(["notepad"])
+            elif "chrome" in app_low:
+                name_candidates.extend(["chrome"])
+            elif "code" in app_low or "vscode" in app_low:
+                name_candidates.extend(["code"])
+            elif "explorer" in app_low:
+                name_candidates.extend(["explorer"])
+            elif "edge" in app_low:
+                name_candidates.extend(["msedge"])
+            elif "terminal" in app_low:
+                name_candidates.extend(["windowsterminal", "wt"])
+
+            for cand in name_candidates:
+                if verify_process_running(cand):
+                    is_alive = True
+                    break
+
         return {
             "verified": is_alive,
             "status": "VERIFIED" if is_alive else "FAILED",
-            "detail": f"Application '{app}' process verified (PID: {pid})." if is_alive else f"Could not detect process for {app}."
+            "detail": f"Application '{app}' process verified (PID: {pid})." if is_alive else f"Could not detect running process for '{app}'."
         }
 
     elif tool_name == "open_url":
@@ -89,6 +112,13 @@ def verify_tool_result(tool_name: str, result: Dict[str, Any]) -> Dict[str, Any]
             "verified": True,
             "status": "VERIFIED",
             "detail": f"File '{result.get('file')}' launched with default handler."
+        }
+
+    elif tool_name == "open_folder":
+        return {
+            "verified": True,
+            "status": "VERIFIED",
+            "detail": f"Folder '{result.get('folder', 'directory')}' opened in File Explorer."
         }
 
     elif tool_name in ["capture_screen", "local_capture_screen"]:

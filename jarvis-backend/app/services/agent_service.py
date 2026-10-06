@@ -1,6 +1,5 @@
 from typing import Dict, Any, Optional
 from sqlalchemy.orm import Session
-from app.ai.agent import jarvis_agent
 from app.schemas.chat import ChatResponse
 
 
@@ -17,6 +16,7 @@ class AgentService:
         conversation_id: Optional[int] = None,
         context_token: Optional[str] = None
     ) -> ChatResponse:
+        from app.ai.agent import jarvis_agent
         result = jarvis_agent.process(
             db=db,
             message=user_message,

@@ -184,6 +184,19 @@ class JARVISAgent:
                 })
             )
 
+        # Phase 5: Structured Command Learning Dataset Storage
+        self._record_command_learning(
+            command=message,
+            intent=intent_res.intent,
+            confidence=intent_res.confidence,
+            strategy_used=intent_res.strategy_used,
+            entities=intent_res.entities,
+            tool=execution_results[0].tool_name if execution_results else None,
+            execution_status="SUCCESS" if (execution_results and execution_results[0].status == "SUCCESS") else ("ERROR" if execution_results else "N/A"),
+            verification_status=verification_results[0].status if verification_results else "N/A",
+            verification_detail=verification_results[0].detail if verification_results else ""
+        )
+
         agent_state = "RESPONDING"
         if plan.validation_status == "INVALID" or any(r.status != "SUCCESS" for r in execution_results):
             agent_state = "ERROR"
@@ -209,6 +222,23 @@ class JARVISAgent:
             "execution_time_ms": total_duration_ms,
             "agent_state": agent_state
         }
+
+    def _record_command_learning(self, **data):
+        """Stores structured interaction traces for future model training and phrasing analytics."""
+        try:
+            from pathlib import Path
+            from datetime import datetime
+            dataset_dir = Path(__file__).resolve().parent / "data"
+            dataset_dir.mkdir(parents=True, exist_ok=True)
+            log_file = dataset_dir / "command_learning_dataset.jsonl"
+            record = {
+                "timestamp": datetime.utcnow().isoformat(),
+                **data
+            }
+            with open(log_file, "a", encoding="utf-8") as f:
+                f.write(json.dumps(record) + "\n")
+        except Exception as e:
+            logger.debug(f"Command learning dataset recording skipped: {e}")
 
 
 jarvis_agent = JARVISAgent()

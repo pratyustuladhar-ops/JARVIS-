@@ -136,7 +136,7 @@ class VerificationEngine:
                 detail=f"Browser navigated to {url}."
             )
 
-        if tool_name in ["local_get_system_info", "local_get_current_time", "local_list_directory", "local_open_file"]:
+        if tool_name in ["local_get_system_info", "local_get_current_time", "local_list_directory", "local_open_file", "local_open_folder"]:
             if isinstance(output, dict) and output.get("status") == "failed":
                 return VerificationResult(
                     status="FAILED",

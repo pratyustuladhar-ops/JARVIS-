@@ -9,7 +9,6 @@ from app.services.memory_service import memory_service
 from app.schemas.task import TaskCreate, TaskUpdate
 from app.schemas.project import ProjectCreate, ProjectUpdate
 from app.schemas.memory import MemoryCreate
-from app.api.settings import get_system_status
 
 logger = logging.getLogger("jarvis.ai.tools")
 
@@ -355,6 +354,7 @@ class SystemStatusTool(BaseAgentTool):
     input_schema = {"type": "object"}
 
     def execute(self, db: Session, params: Dict[str, Any]) -> Any:
+        from app.api.settings import get_system_status
         status_data = get_system_status()
         return status_data
 
@@ -475,6 +475,26 @@ class LocalOpenFileTool(BaseAgentTool):
         res = local_agent_service.execute_tool(db, "open_file", {"file_path": file_path})
         if res.status != "SUCCESS":
             raise RuntimeError(res.error or f"Failed opening file '{file_path}'")
+        return res.output
+
+
+class LocalOpenFolderTool(BaseAgentTool):
+    name = "local_open_folder"
+    description = "Open an approved directory (Desktop, Documents, Downloads) in Windows File Explorer"
+    risk_level = "MEDIUM_RISK"
+    input_schema = {
+        "type": "object",
+        "properties": {
+            "folder_path": {"type": "string", "description": "Folder name or alias (Desktop, Documents, Downloads)"}
+        }
+    }
+
+    def execute(self, db: Session, params: Dict[str, Any]) -> Any:
+        from app.services.local_agent_service import local_agent_service
+        folder = params.get("folder_path") or params.get("folder") or params.get("directory") or "Desktop"
+        res = local_agent_service.execute_tool(db, "open_folder", {"folder_path": folder})
+        if res.status != "SUCCESS":
+            raise RuntimeError(res.error or f"Failed opening folder '{folder}'")
         return res.output
 
 
@@ -611,6 +631,7 @@ class AgentToolRegistry:
             LocalGetCurrentTimeTool(),
             LocalListDirectoryTool(),
             LocalOpenFileTool(),
+            LocalOpenFolderTool(),
             # Multimodal & Vision Tools (Step 9)
             LocalCaptureScreenTool(),
             VisionAnalysisTool(),

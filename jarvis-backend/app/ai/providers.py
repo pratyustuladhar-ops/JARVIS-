@@ -131,6 +131,10 @@ class MockAIProvider(BaseAIProvider):
                 fname = output.get("file", "File") if isinstance(output, dict) else "File"
                 return f"Opened '{fname}' with its default Windows application."
 
+            if tool_name == "local_open_folder" and status == "SUCCESS":
+                folder_name = output.get("folder", "Folder") if isinstance(output, dict) else "Folder"
+                return f"Opened {folder_name} in File Explorer."
+
             # Windows Local Agent Error / Refusal Handling
             if tool_name.startswith("local_") and (status != "SUCCESS" or (isinstance(output, dict) and output.get("status") == "failed")):
                 err_msg = output.get("error") or output.get("reason") or "Action could not be executed"

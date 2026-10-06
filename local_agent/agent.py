@@ -26,6 +26,7 @@ from local_agent.tools import (
     open_url,
     list_allowed_directory,
     open_file,
+    open_folder,
     capture_screen,
     verify_tool_result
 )
@@ -50,6 +51,7 @@ class WindowsLocalAgent:
         "open_url",
         "list_allowed_directory",
         "open_file",
+        "open_folder",
         "capture_screen"
     ]
 
@@ -133,6 +135,9 @@ class WindowsLocalAgent:
             elif tool_name == "open_file":
                 file_target = parameters.get("file_path") or parameters.get("file")
                 raw_result = open_file(str(file_target))
+            elif tool_name == "open_folder":
+                folder_target = parameters.get("folder_path") or parameters.get("folder") or parameters.get("path") or "Desktop"
+                raw_result = open_folder(str(folder_target))
             elif tool_name in ["capture_screen", "local_capture_screen"]:
                 quality = int(parameters.get("quality", 85))
                 max_dim = int(parameters.get("max_dimension", 1920))
