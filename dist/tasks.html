@@ -1,0 +1,974 @@
+<!DOCTYPE html>
+<html class="dark" lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>JARVIS // TASKS &amp; OPERATIONS COMMAND CENTER</title>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&amp;family=JetBrains+Mono:wght@400;500;600&amp;family=Sora:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          "colors": {
+            "on-secondary": "#382461",
+            "on-secondary-fixed-variant": "#4f3c7a",
+            "background": "#111318",
+            "secondary-fixed": "#eaddff",
+            "secondary-fixed-dim": "#d1bcff",
+            "surface": "#111318",
+            "on-tertiary-fixed": "#0f1c2b",
+            "outline-variant": "#3c494e",
+            "primary": "#aae8ff",
+            "on-surface": "#e1e2e8",
+            "inverse-primary": "#00677f",
+            "on-background": "#e1e2e8",
+            "inverse-on-surface": "#2e3035",
+            "inverse-surface": "#e1e2e8",
+            "tertiary-container": "#b7c4d8",
+            "outline": "#869399",
+            "on-tertiary-fixed-variant": "#3b4858",
+            "on-surface-variant": "#bbc9cf",
+            "tertiary-fixed-dim": "#bac7dc",
+            "on-secondary-fixed": "#220c4b",
+            "surface-container": "#1d2024",
+            "surface-variant": "#33353a",
+            "on-primary": "#003543",
+            "surface-container-lowest": "#0c0e13",
+            "on-primary-container": "#00576c",
+            "error-container": "#93000a",
+            "primary-container": "#27d3ff",
+            "on-error": "#690005",
+            "on-primary-fixed-variant": "#004e60",
+            "tertiary": "#d3e0f4",
+            "on-tertiary": "#253141",
+            "tertiary-fixed": "#d6e3f8",
+            "on-secondary-container": "#c0aaf0",
+            "surface-dim": "#111318",
+            "primary-fixed": "#b6ebff",
+            "secondary-container": "#4f3c7a",
+            "surface-container-high": "#282a2f",
+            "on-primary-fixed": "#001f28",
+            "surface-container-highest": "#33353a",
+            "surface-bright": "#37393e",
+            "secondary": "#d1bcff",
+            "on-error-container": "#ffdad6",
+            "surface-container-low": "#191c20",
+            "surface-tint": "#49d6ff",
+            "error": "#ffb4ab",
+            "on-tertiary-container": "#445162",
+            "primary-fixed-dim": "#49d6ff"
+          },
+          "borderRadius": {
+            "DEFAULT": "0.125rem",
+            "lg": "0.25rem",
+            "xl": "0.5rem",
+            "full": "0.75rem"
+          },
+          "spacing": {
+            "margin-mobile": "1rem",
+            "gutter": "1rem",
+            "space-md": "1rem",
+            "space-lg": "1.5rem",
+            "gutter-mobile": "0.75rem",
+            "space-xs": "0.25rem",
+            "space-sm": "0.5rem",
+            "margin": "2rem",
+            "space-xl": "2.5rem"
+          },
+          "fontFamily": {
+            "headline-lg-mobile": ["Sora"],
+            "headline-lg": ["Sora"],
+            "label-sm": ["JetBrains Mono"],
+            "headline-xl-mobile": ["Sora"],
+            "body-md": ["Inter"],
+            "label-lg": ["JetBrains Mono"],
+            "headline-md": ["Sora"],
+            "body-lg": ["Inter"],
+            "body-sm": ["Inter"],
+            "headline-sm": ["Sora"],
+            "label-md": ["JetBrains Mono"],
+            "headline-xl": ["Sora"]
+          },
+          "fontSize": {
+            "headline-lg-mobile": ["22px", { "lineHeight": "30px", "letterSpacing": "0em", "fontWeight": "600" }],
+            "headline-lg": ["28px", { "lineHeight": "36px", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+            "label-sm": ["10px", { "lineHeight": "14px", "letterSpacing": "0.1em", "fontWeight": "500" }],
+            "headline-xl-mobile": ["28px", { "lineHeight": "36px", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+            "body-md": ["14px", { "lineHeight": "22px", "fontWeight": "400" }],
+            "label-lg": ["13px", { "lineHeight": "18px", "letterSpacing": "0.06em", "fontWeight": "500" }],
+            "headline-md": ["20px", { "lineHeight": "28px", "letterSpacing": "-0.005em", "fontWeight": "500" }],
+            "body-lg": ["16px", { "lineHeight": "26px", "fontWeight": "400" }],
+            "body-sm": ["12px", { "lineHeight": "18px", "fontWeight": "400" }],
+            "headline-sm": ["16px", { "lineHeight": "24px", "letterSpacing": "0em", "fontWeight": "500" }],
+            "label-md": ["11px", { "lineHeight": "16px", "letterSpacing": "0.08em", "fontWeight": "500" }],
+            "headline-xl": ["40px", { "lineHeight": "48px", "letterSpacing": "-0.02em", "fontWeight": "600" }]
+          }
+        },
+      },
+    }
+  </script>
+<style>
+    .material-symbols-outlined {
+      font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+      display: inline-block;
+      vertical-align: middle;
+      line-height: 1;
+    }
+    .hud-bracket {
+      position: relative;
+    }
+    .hud-bracket::before {
+      content: '';
+      position: absolute;
+      top: -1px;
+      left: -1px;
+      width: 6px;
+      height: 6px;
+      border-top: 1px solid #27d3ff;
+      border-left: 1px solid #27d3ff;
+    }
+    .hud-bracket::after {
+      content: '';
+      position: absolute;
+      bottom: -1px;
+      right: -1px;
+      width: 6px;
+      height: 6px;
+      border-bottom: 1px solid #27d3ff;
+      border-right: 1px solid #27d3ff;
+    }
+    .cyan-glow {
+      box-shadow: 0 0 16px rgba(39, 211, 255, 0.12);
+    }
+    .cyan-glow-intense {
+      box-shadow: 0 0 24px rgba(39, 211, 255, 0.28);
+    }
+    @keyframes fadeInToast {
+      from { opacity: 0; transform: translateY(-10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .animate-toast {
+      animation: fadeInToast 0.25s ease-out forwards;
+    }
+  </style>
+  <script type="module" crossorigin src="/assets/api-6_STEUA4.js"></script>
+</head>
+<body class="bg-surface text-on-surface antialiased font-body-md overflow-x-hidden min-h-screen selection:bg-primary/20 selection:text-primary">
+
+<!-- TOAST NOTIFICATION CONTAINER -->
+<div id="jarvis-toast-container" class="fixed top-4 right-4 z-50 flex flex-col gap-2 pointer-events-none"></div>
+
+<!-- ========================================== -->
+<!-- SIDE NAV RAIL                              -->
+<!-- ========================================== -->
+<aside class="fixed left-0 top-0 bottom-0 z-40 flex flex-col justify-between p-4 docked h-screen w-64 border-r border-outline-variant/40 bg-surface-container-lowest/80 backdrop-blur-md">
+<!-- Top Branding & Status Indicator -->
+<div class="flex flex-col gap-4">
+<div class="flex items-center gap-3 px-2 py-1">
+<div class="relative flex items-center justify-center w-8 h-8 rounded border border-primary/40 bg-primary/10">
+<span class="w-3 h-3 rounded-full bg-primary-container animate-pulse shadow-[0_0_10px_#27d3ff]"></span>
+<span class="absolute inset-0 rounded border border-primary/20 animate-ping"></span>
+</div>
+<div class="flex flex-col">
+<span class="text-headline-md font-headline-md font-bold tracking-widest text-primary">JARVIS</span>
+<span class="text-label-sm font-label-sm text-outline tracking-wider">OS // v4.2 TELEMETRY ACTIVE</span>
+</div>
+</div>
+<!-- Execute Command CTA -->
+<button onclick="window.location.href='assistant.html'" class="w-full py-2 px-3 bg-primary/10 border border-primary text-primary hover:border-primary/50 hover:bg-surface-container-high/30 transition-all duration-150 flex items-center justify-center gap-2 text-label-md font-label-md tracking-wider">
+<span class="material-symbols-outlined text-[16px]">terminal</span>
+<span>EXECUTE COMMAND</span>
+</button>
+<!-- Navigation Tabs (Active Item: Tasks) -->
+<nav class="flex flex-col gap-1 mt-2">
+<a class="flex items-center gap-3 px-3 py-2 text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high/40 text-label-md font-label-md" href="index.html">
+<span class="material-symbols-outlined text-[18px]">dashboard</span>
+<span>Dashboard</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high/40 text-label-md font-label-md" href="assistant.html">
+<span class="material-symbols-outlined text-[18px]">smart_toy</span>
+<span>Assistant</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 bg-primary/10 text-primary border-l-2 border-primary text-label-md font-label-md" href="tasks.html">
+<span class="material-symbols-outlined text-[18px]">check_circle</span>
+<span>Tasks</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high/40 text-label-md font-label-md" href="memory.html">
+<span class="material-symbols-outlined text-[18px]">memory</span>
+<span>Memory</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high/40 text-label-md font-label-md" href="projects.html">
+<span class="material-symbols-outlined text-[18px]">folder</span>
+<span>Projects</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high/40 text-label-md font-label-md" href="activity.html">
+<span class="material-symbols-outlined text-[18px]">timeline</span>
+<span>Activity</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high/40 text-label-md font-label-md" href="settings.html">
+<span class="material-symbols-outlined text-[18px]">settings</span>
+<span>Settings</span>
+</a>
+
+</nav>
+</div>
+<!-- Footer Diagnostics & Operator Profile -->
+<div class="border-t border-outline-variant/30 pt-3 flex flex-col gap-2">
+<div class="flex items-center justify-between px-2 py-1 text-label-sm font-label-sm text-on-surface-variant">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary text-[14px]">sensors</span>
+<span>Local Agent: Active</span>
+</div>
+<span class="w-1.5 h-1.5 rounded-full bg-primary-container animate-ping"></span>
+</div>
+<div class="flex items-center gap-2 px-2 py-1 text-label-sm font-label-sm text-outline">
+<span class="material-symbols-outlined text-[14px]">wifi_tethering</span>
+<span>Latency: 12ms</span>
+</div>
+<div class="flex items-center gap-2 px-2 py-1 text-label-sm font-label-sm text-primary hover:bg-surface-container-high/30 transition-all cursor-pointer">
+<span class="material-symbols-outlined text-[16px]">account_circle</span>
+<span>Operator Profile</span>
+</div>
+</div>
+</aside>
+<!-- ========================================== -->
+<!-- TOP NAV / COMMAND HEADER                   -->
+<!-- ========================================== -->
+<header class="fixed top-0 right-0 left-64 z-30 flex items-center justify-between px-6 py-3 bg-surface-container-lowest/80 backdrop-blur-md border-b border-outline-variant/40">
+<!-- Left: Core HUD Identity & Search Memory Vector -->
+<div class="flex items-center gap-4">
+<div class="flex items-center gap-2">
+<a href="index.html" class="text-headline-sm font-headline-sm font-bold tracking-wider text-primary hover:underline">JARVIS // CORE HUD</a>
+<span class="px-1.5 py-0.5 border border-outline-variant/60 text-outline text-label-sm font-label-sm bg-surface-container-lowest">NODE: ALPHA-7</span>
+</div>
+<div class="relative flex items-center">
+<span class="material-symbols-outlined absolute left-2.5 text-outline text-[16px]">search</span>
+<input class="w-64 pl-8 pr-3 py-1 bg-surface-container-lowest border border-outline-variant/50 text-on-surface placeholder:text-outline text-label-sm font-label-sm focus:outline-none focus:border-primary-container focus:ring-0" placeholder="Search memory vector..." type="text"/>
+</div>
+</div>
+<!-- Center/Right: Sync Telemetry & Action Buttons -->
+<div class="flex items-center gap-3">
+<div class="hidden lg:flex items-center gap-2 px-2 py-1 border border-outline-variant/40 bg-surface-container-lowest text-label-sm font-label-sm">
+<span class="w-2 h-2 rounded-full bg-primary-container animate-pulse"></span>
+<span class="text-on-surface-variant">NEURAL LINK:</span>
+<span class="text-primary font-medium">SYNCHRONIZED (99.8%)</span>
+</div>
+<button onclick="window.location.href='assistant.html'" class="px-3 py-1.5 bg-primary/10 border border-primary text-primary hover:bg-primary/20 transition-all text-label-sm font-label-sm flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[16px]">graphic_eq</span>
+<span>VOICE COMMAND</span>
+</button>
+<button class="px-3 py-1.5 bg-surface-container-low border border-outline-variant/60 text-on-surface-variant hover:text-primary hover:border-primary transition-all text-label-sm font-label-sm flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[16px]">tune</span>
+<span>SYS_DIAGNOSTICS</span>
+</button>
+<button class="p-1.5 border border-outline-variant/50 text-on-surface-variant hover:text-primary hover:border-primary transition-all">
+<span class="material-symbols-outlined text-[18px]">notifications_active</span>
+</button>
+<div class="flex items-center gap-2 pl-2 border-l border-outline-variant/40">
+<div class="w-7 h-7 rounded border border-primary/50 bg-primary/10 flex items-center justify-center text-primary text-label-sm font-label-sm">
+          A7
+        </div>
+</div>
+</div>
+</header>
+<!-- ========================================== -->
+<!-- MAIN WORKSPACE CANVAS                      -->
+<!-- ========================================== -->
+<main class="ml-64 pt-16 px-6 pb-12 min-h-screen">
+<!-- PAGE HEADER & PRIMARY CONTROLS -->
+<section class="py-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4 border-b border-outline-variant/30">
+<div>
+<div class="flex items-center gap-2">
+<span class="inline-block w-2 h-2 bg-primary"></span>
+<h1 class="text-headline-lg font-headline-lg text-on-surface tracking-tight">TASKS // AUTONOMOUS AGENT OPERATIONS</h1>
+</div>
+<p class="text-body-sm font-body-sm text-on-surface-variant mt-1">Manage tasks, telemetry workflows, and autonomous agent executions</p>
+</div>
+<div class="flex flex-wrap items-center gap-2">
+<div class="relative">
+<span class="material-symbols-outlined absolute left-2.5 top-2 text-outline text-[16px]">search</span>
+<input id="task-search-input" oninput="handleTaskSearch(this.value)" class="w-56 pl-8 pr-3 py-1.5 bg-surface-container-lowest border border-outline-variant/60 text-on-surface placeholder:text-outline text-label-sm font-label-sm focus:border-primary-container focus:outline-none" placeholder="[CTRL+F] Search tasks..." type="text"/>
+</div>
+<div class="relative">
+<select id="task-status-filter" onchange="handleStatusSelect(this.value)" class="bg-surface-container-lowest border border-outline-variant/60 text-on-surface-variant px-3 py-1.5 text-label-sm font-label-sm focus:border-primary focus:outline-none pr-8">
+<option value="ALL">STATUS: ALL</option>
+<option value="ACTIVE">STATUS: ACTIVE</option>
+<option value="PENDING">STATUS: PENDING</option>
+<option value="COMPLETED">STATUS: COMPLETED</option>
+</select>
+</div>
+<div class="relative">
+<select id="task-sort-select" onchange="handleSortSelect(this.value)" class="bg-surface-container-lowest border border-outline-variant/60 text-on-surface-variant px-3 py-1.5 text-label-sm font-label-sm focus:border-primary focus:outline-none pr-8">
+<option value="DUE_DATE">DUE DATE: SOONEST</option>
+<option value="PRIORITY_DESC">PRIORITY: DESC</option>
+<option value="PRIORITY_ASC">PRIORITY: ASC</option>
+</select>
+</div>
+<button class="px-4 py-1.5 bg-primary/15 border border-primary text-primary hover:bg-primary/25 transition-all text-label-sm font-label-sm tracking-wider flex items-center gap-1.5 cyan-glow" onclick="openCreateTaskModal()">
+<span class="material-symbols-outlined text-[16px]">add</span>
+<span>+ NEW TASK</span>
+</button>
+</div>
+</section>
+<!-- TASK SUMMARY METRIC CARDS (Top Row - 4 HUD Cards) -->
+<section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 my-6">
+<!-- Card 1 -->
+<div class="hud-bracket bg-surface-container-lowest/80 border border-outline-variant/50 p-4 cyan-glow transition-all hover:border-primary/50">
+<div class="flex items-center justify-between text-outline text-label-sm font-label-sm tracking-widest">
+<span>TOTAL TASKS</span>
+<span class="material-symbols-outlined text-[16px] text-primary">data_array</span>
+</div>
+<div id="stat-total-tasks" class="mt-2 text-headline-xl font-headline-xl text-primary font-bold">--</div>
+<div class="mt-1 flex items-center justify-between text-label-sm font-label-sm text-outline border-t border-outline-variant/30 pt-2">
+<span>INDEXED ON NODE-01</span>
+<span class="text-primary/70">100% DISK</span>
+</div>
+</div>
+<!-- Card 2 -->
+<div class="hud-bracket bg-surface-container-lowest/80 border border-outline-variant/50 p-4 cyan-glow transition-all hover:border-primary/50">
+<div class="flex items-center justify-between text-outline text-label-sm font-label-sm tracking-widest">
+<span>ACTIVE EXECUTION</span>
+<div class="flex items-center gap-1.5">
+<span class="w-2 h-2 rounded-full bg-primary animate-ping"></span>
+<span class="material-symbols-outlined text-[16px] text-primary">bolt</span>
+</div>
+</div>
+<div id="stat-active-tasks" class="mt-2 text-headline-xl font-headline-xl text-primary font-bold">--</div>
+<div class="mt-1 flex items-center justify-between text-label-sm font-label-sm text-outline border-t border-outline-variant/30 pt-2">
+<span>RUNNING VIA AGENT</span>
+<span class="text-primary">JARVIS SWARM</span>
+</div>
+</div>
+<!-- Card 3 -->
+<div class="hud-bracket bg-surface-container-lowest/80 border border-outline-variant/50 p-4 cyan-glow transition-all hover:border-primary/50">
+<div class="flex items-center justify-between text-outline text-label-sm font-label-sm tracking-widest">
+<span>COMPLETED</span>
+<span class="material-symbols-outlined text-[16px] text-primary">task_alt</span>
+</div>
+<div id="stat-completed-tasks" class="mt-2 text-headline-xl font-headline-xl text-on-surface font-bold">--</div>
+<div class="mt-1 flex items-center justify-between text-label-sm font-label-sm text-outline border-t border-outline-variant/30 pt-2">
+<span>VERIFIED IN DB</span>
+<span class="text-primary/80">98.2% ACC</span>
+</div>
+</div>
+<!-- Card 4 -->
+<div class="hud-bracket bg-surface-container-lowest/80 border border-outline-variant/50 p-4 cyan-glow transition-all hover:border-primary/50">
+<div class="flex items-center justify-between text-outline text-label-sm font-label-sm tracking-widest">
+<span>HIGH PRIORITY</span>
+<span class="material-symbols-outlined text-[16px] text-primary">priority_high</span>
+</div>
+<div id="stat-high-priority" class="mt-2 text-headline-xl font-headline-xl text-primary font-bold">--</div>
+<div class="mt-1 flex items-center justify-between text-label-sm font-label-sm text-outline border-t border-outline-variant/30 pt-2">
+<span>IMMEDIATE ATTENTION</span>
+<span class="px-1 bg-primary/20 text-primary border border-primary/40 text-[9px]">CRITICAL</span>
+</div>
+</div>
+</section>
+<!-- TASK FILTER BAR -->
+<section class="flex flex-wrap items-center justify-between gap-3 p-3 bg-surface-container-lowest border border-outline-variant/40 mb-6">
+<div id="filter-chip-container" class="flex items-center gap-2 overflow-x-auto">
+<button onclick="setFilterChip('ALL')" id="filter-chip-all" class="px-3 py-1 bg-primary/20 border border-primary text-primary text-label-sm font-label-sm">
+          All (--)
+        </button>
+<button onclick="setFilterChip('ACTIVE')" id="filter-chip-active" class="px-3 py-1 bg-surface-container-low border border-outline-variant/50 text-on-surface-variant hover:border-primary/40 hover:text-on-surface text-label-sm font-label-sm">
+          Active (--)
+        </button>
+<button onclick="setFilterChip('PENDING')" id="filter-chip-pending" class="px-3 py-1 bg-surface-container-low border border-outline-variant/50 text-on-surface-variant hover:border-primary/40 hover:text-on-surface text-label-sm font-label-sm">
+          Pending (--)
+        </button>
+<button onclick="setFilterChip('COMPLETED')" id="filter-chip-completed" class="px-3 py-1 bg-surface-container-low border border-outline-variant/50 text-on-surface-variant hover:border-primary/40 hover:text-on-surface text-label-sm font-label-sm">
+          Completed (--)
+        </button>
+<button onclick="setFilterChip('HIGH')" id="filter-chip-high" class="px-3 py-1 bg-surface-container-low border border-outline-variant/50 text-on-surface-variant hover:border-primary/40 hover:text-on-surface text-label-sm font-label-sm">
+          High Priority (--)
+        </button>
+</div>
+<div class="flex items-center gap-3 text-label-sm font-label-sm text-outline">
+<div class="flex items-center gap-1.5 px-2 py-1 border border-outline-variant/40 bg-surface-container-low">
+<span class="material-symbols-outlined text-[14px]">calendar_today</span>
+<span>TIMEFRAME: TODAY / WEEK</span>
+</div>
+<div class="flex items-center gap-1.5 px-2 py-1 border border-outline-variant/40 bg-surface-container-low">
+<span class="material-symbols-outlined text-[14px] text-primary">smart_toy</span>
+<span>DISPATCHED: JARVIS</span>
+</div>
+</div>
+</section>
+<!-- SPLIT WORK SURFACE -->
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+<!-- LEFT COLUMN: TASK LIST TABLE (65% width = 8 cols) -->
+<div class="lg:col-span-8 flex flex-col gap-3">
+<!-- Table Header Bar -->
+<div class="hud-bracket bg-surface-container-lowest border border-outline-variant/40 px-4 py-2 flex items-center justify-between text-label-sm font-label-sm text-outline">
+<div class="flex items-center gap-4">
+<span class="w-6">SYS</span>
+<span>TASK IDENTIFIER &amp; SPECIFICATION</span>
+</div>
+<div class="flex items-center gap-8">
+<span class="hidden sm:inline">JARVIS ACTION STREAM</span>
+<span>TIMELINE</span>
+<span>STATUS</span>
+</div>
+</div>
+
+<!-- DYNAMIC TASK CONTAINER -->
+<div id="task-list-container" class="flex flex-col gap-3">
+  <!-- Tasks will be rendered here dynamically -->
+  <div class="p-8 text-center text-outline text-label-sm font-mono border border-outline-variant/30 bg-surface-container-lowest">
+    <div class="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-2"></div>
+    CONNECTING TELEMETRY // LOADING TASKS FROM POSTGRESQL...
+  </div>
+</div>
+
+</div>
+<!-- RIGHT COLUMN: TASK DETAIL & AGENT EXECUTION INSPECTOR (35% width = 4 cols) -->
+<div id="task-inspector-panel" class="lg:col-span-4 hud-bracket bg-surface-container-lowest border border-outline-variant/60 p-5 flex flex-col gap-5 cyan-glow">
+<!-- Inspector Header -->
+<div class="border-b border-outline-variant/40 pb-3">
+<div class="flex items-center justify-between">
+<span class="text-label-sm font-label-sm tracking-widest text-primary font-bold">TASK DETAILS // INSPECTOR</span>
+<span id="insp-id-badge" class="px-2 py-0.5 border border-primary/30 text-primary text-label-sm font-label-sm">[ID: --]</span>
+</div>
+<h2 id="insp-title" class="text-headline-md font-headline-md text-on-surface mt-2 font-semibold">Select a task to inspect</h2>
+<p id="insp-desc" class="text-body-sm font-body-sm text-on-surface-variant mt-2 leading-relaxed">
+  Task specification and autonomous agent reasoning output will appear here.
+</p>
+</div>
+<!-- Metadata Grid -->
+<div class="grid grid-cols-2 gap-2 text-label-sm font-label-sm border-b border-outline-variant/40 pb-4">
+<div class="p-2 border border-outline-variant/30 bg-surface-container-low">
+<span class="text-outline block">Status:</span>
+<span id="insp-status" class="text-primary font-semibold">--</span>
+</div>
+<div class="p-2 border border-outline-variant/30 bg-surface-container-low">
+<span class="text-outline block">Priority:</span>
+<span id="insp-priority" class="text-on-surface font-semibold">--</span>
+</div>
+<div class="p-2 border border-outline-variant/30 bg-surface-container-low">
+<span class="text-outline block">Due:</span>
+<span id="insp-due" class="text-on-surface">--</span>
+</div>
+<div class="p-2 border border-outline-variant/30 bg-surface-container-low">
+<span class="text-outline block">Project:</span>
+<span id="insp-project" class="text-primary truncate block">--</span>
+</div>
+<div class="p-2 border border-outline-variant/30 bg-surface-container-low">
+<span class="text-outline block">Created:</span>
+<span id="insp-created" class="text-on-surface-variant font-mono">--</span>
+</div>
+<div class="p-2 border border-outline-variant/30 bg-surface-container-low">
+<span class="text-outline block">Last Updated:</span>
+<span id="insp-updated" class="text-on-surface-variant font-mono">--</span>
+</div>
+</div>
+<!-- JARVIS Execution Pipeline -->
+<div class="flex flex-col gap-3">
+<div class="flex items-center justify-between">
+<span class="text-label-md font-label-md text-primary font-semibold tracking-wider">JARVIS EXECUTION PIPELINE</span>
+<span id="insp-pipeline-stage" class="text-label-sm font-label-sm text-outline">STAGE 3/4</span>
+</div>
+<div class="p-2.5 bg-surface-container-low border border-outline-variant/40 text-label-sm font-label-sm">
+<span class="text-outline">INTENT: </span>
+<span id="insp-intent" class="text-on-surface">Automated Task Orchestration</span>
+</div>
+<div class="flex flex-col gap-2 my-1">
+<div class="flex items-center gap-2 text-label-sm font-label-sm text-outline">
+<span class="w-4 text-primary font-bold">[✓]</span>
+<span class="line-through text-outline">01 Ingest and validate task payload</span>
+</div>
+<div class="flex items-center gap-2 text-label-sm font-label-sm text-outline">
+<span class="w-4 text-primary font-bold">[✓]</span>
+<span class="line-through text-outline">02 Bind execution context &amp; parameters</span>
+</div>
+<div class="flex items-center gap-2 text-label-sm font-label-sm text-primary font-medium bg-primary/10 p-1 border-l-2 border-primary">
+<span class="w-4 text-primary font-bold">[→]</span>
+<span id="insp-pipeline-active-step">03 Autonomous execution step in progress</span>
+</div>
+<div class="flex items-center gap-2 text-label-sm font-label-sm text-outline">
+<span class="w-4 text-outline font-bold">[○]</span>
+<span>04 Verify completion &amp; audit telemetry</span>
+</div>
+</div>
+<div class="p-2 bg-surface-container-high/40 border border-outline-variant/40 flex items-center justify-between text-label-sm font-label-sm">
+<span class="text-outline">EXECUTION STATUS:</span>
+<span id="insp-worker-status" class="text-primary font-bold">READY // SWARM_NODE_4</span>
+</div>
+</div>
+<!-- Tactical Action Controls -->
+<div class="flex flex-col gap-2 mt-2 pt-3 border-t border-outline-variant/40">
+<button onclick="handleRunWithJarvis()" class="w-full py-2.5 px-4 bg-primary/20 border border-primary text-primary font-label-md font-label-md tracking-wider flex items-center justify-center gap-2 hover:bg-primary/30 transition-all cyan-glow">
+<span class="material-symbols-outlined text-[18px]">bolt</span>
+<span>⚡ RUN WITH JARVIS</span>
+</button>
+<div class="grid grid-cols-3 gap-2">
+<button onclick="openEditTaskModal()" class="py-1.5 bg-surface-container-low border border-outline-variant/50 hover:border-primary text-on-surface-variant hover:text-primary transition-all text-label-sm font-label-sm">
+              EDIT SPEC
+            </button>
+<button onclick="handleMarkComplete()" class="py-1.5 bg-surface-container-low border border-outline-variant/50 hover:border-primary text-on-surface-variant hover:text-primary transition-all text-label-sm font-label-sm">
+              MARK COMPLETE
+            </button>
+<button onclick="handleDeleteTask()" class="py-1.5 bg-surface-container-low border border-error-container hover:bg-error-container/20 text-error transition-all text-label-sm font-label-sm">
+              DELETE
+            </button>
+</div>
+</div>
+</div>
+</div>
+</main>
+
+<!-- ========================================== -->
+<!-- CREATE / EDIT TASK MODAL OVERLAY           -->
+<!-- ========================================== -->
+<div class="hidden fixed inset-0 z-50 flex items-center justify-center bg-surface-container-lowest/80 backdrop-blur-md p-4" id="task-modal">
+<div class="hud-bracket w-full max-w-xl bg-surface-container-lowest border border-primary p-6 cyan-glow-intense flex flex-col gap-4">
+<div class="flex items-center justify-between border-b border-outline-variant/50 pb-3">
+<div class="flex items-center gap-2">
+<span class="w-2 h-2 bg-primary"></span>
+<h3 id="task-modal-header" class="text-headline-sm font-headline-sm text-primary font-bold tracking-wide">CREATE NEW TASK [POST /api/v1/tasks]</h3>
+</div>
+<button class="text-outline hover:text-primary" onclick="closeTaskModal()">
+<span class="material-symbols-outlined text-[20px]">close</span>
+</button>
+</div>
+<form id="task-form" onsubmit="handleTaskSubmit(event)" class="flex flex-col gap-3">
+<input type="hidden" id="task-form-id" value=""/>
+<div>
+<label class="block text-label-sm font-label-sm text-outline mb-1">TASK TITLE *</label>
+<input id="task-input-title" required class="w-full bg-surface-container-low border border-outline-variant/60 text-on-surface px-3 py-2 text-label-sm font-label-sm focus:border-primary focus:outline-none" placeholder="e.g. Optimize vector search embeddings" type="text"/>
+</div>
+<div>
+<label class="block text-label-sm font-label-sm text-outline mb-1">DESCRIPTION</label>
+<textarea id="task-input-desc" class="w-full bg-surface-container-low border border-outline-variant/60 text-on-surface px-3 py-2 text-body-sm font-body-sm focus:border-primary focus:outline-none" placeholder="Provide specification or prompt instructions for JARVIS agent swarm..." rows="3"></textarea>
+</div>
+<div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+<div>
+<label class="block text-label-sm font-label-sm text-outline mb-1">PRIORITY</label>
+<select id="task-input-priority" class="w-full bg-surface-container-low border border-outline-variant/60 text-on-surface px-2 py-1.5 text-label-sm font-label-sm focus:border-primary focus:outline-none">
+<option value="HIGH">HIGH</option>
+<option value="MEDIUM" selected>MEDIUM</option>
+<option value="LOW">LOW</option>
+<option value="CRITICAL">CRITICAL</option>
+</select>
+</div>
+<div>
+<label class="block text-label-sm font-label-sm text-outline mb-1">PROJECT / CATEGORY</label>
+<select id="task-input-category" class="w-full bg-surface-container-low border border-outline-variant/60 text-on-surface px-2 py-1.5 text-label-sm font-label-sm focus:border-primary focus:outline-none">
+<option value="Java Core Engine">Java Core Engine</option>
+<option value="Drought Prediction">Drought Prediction</option>
+<option value="Smart Cafe">Smart Cafe</option>
+<option value="General" selected>General</option>
+<option value="Campus Navigator">Campus Navigator</option>
+</select>
+</div>
+<div>
+<label class="block text-label-sm font-label-sm text-outline mb-1">DUE DATE</label>
+<input id="task-input-due" class="w-full bg-surface-container-low border border-outline-variant/60 text-on-surface px-2 py-1.5 text-label-sm font-label-sm focus:border-primary focus:outline-none" type="date"/>
+</div>
+</div>
+<div class="flex items-center justify-end gap-3 pt-3 border-t border-outline-variant/40 mt-2">
+<button type="button" class="px-4 py-2 border border-outline-variant/50 text-outline hover:text-on-surface text-label-sm font-label-sm" onclick="closeTaskModal()">
+  CANCEL
+</button>
+<button id="task-form-submit-btn" type="submit" class="px-5 py-2 bg-primary/20 border border-primary text-primary hover:bg-primary/30 transition-all text-label-sm font-label-sm flex items-center gap-1.5 cyan-glow">
+<span class="material-symbols-outlined text-[16px]">add_task</span>
+<span id="task-submit-text">[+] CREATE TASK</span>
+</button>
+</div>
+</form>
+</div>
+</div>
+
+<!-- CLIENT LOGIC INTEGRATING CENTRALIZED API SERVICE -->
+<script>
+  let allTasks = [];
+  let filteredTasks = [];
+  let selectedTask = null;
+  let activeFilterChip = 'ALL';
+  let activeStatusFilter = 'ALL';
+  let activeSort = 'DUE_DATE';
+  let searchQuery = '';
+
+  // Utility: Toast feedback
+  function showToast(message, type = 'info') {
+    const container = document.getElementById('jarvis-toast-container');
+    if (!container) return;
+    const toast = document.createElement('div');
+    const borderColor = type === 'error' ? 'border-error text-error' : 'border-primary text-primary';
+    toast.className = `hud-bracket p-3 bg-surface-container-lowest/95 border ${borderColor} text-label-sm font-label-sm shadow-[0_0_15px_rgba(39,211,255,0.3)] flex items-center gap-2 animate-toast pointer-events-auto`;
+    toast.innerHTML = `
+      <span class="w-1.5 h-1.5 rounded-full ${type === 'error' ? 'bg-error' : 'bg-primary'} animate-ping"></span>
+      <span>${message}</span>
+    `;
+    container.appendChild(toast);
+    setTimeout(() => {
+      toast.style.transition = 'opacity 0.4s ease';
+      toast.style.opacity = '0';
+      setTimeout(() => toast.remove(), 400);
+    }, 3500);
+  }
+
+  // Load tasks on startup
+  async function loadTasks() {
+    const container = document.getElementById('task-list-container');
+    try {
+      allTasks = await window.jarvisApi.getTasks();
+      updateSummaryCards(allTasks);
+      applyFilters();
+    } catch (err) {
+      console.error("Failed to load tasks from API:", err);
+      container.innerHTML = `
+        <div class="hud-bracket bg-surface-container-lowest border border-error/50 p-6 text-center text-label-sm font-label-sm space-y-3">
+          <div class="text-error font-bold flex items-center justify-center gap-2">
+            <span class="material-symbols-outlined text-lg">warning</span>
+            <span>API CONNECTION TIMEOUT // POSTGRESQL DISCONNECTED</span>
+          </div>
+          <p class="text-outline">Could not connect to FastAPI at http://localhost:8000/api/v1/tasks. Make sure uvicorn is running.</p>
+          <button onclick="loadTasks()" class="px-4 py-1.5 bg-primary/20 border border-primary text-primary hover:bg-primary/30 transition-all font-mono text-xs">
+            ↻ RETRY CONNECTION
+          </button>
+        </div>
+      `;
+    }
+  }
+
+  function updateSummaryCards(tasks) {
+    const total = tasks.length;
+    const active = tasks.filter(t => ['AI WORKING', 'ACTIVE', 'IN_PROGRESS', 'WAITING FOR INPUT'].includes(t.status?.toUpperCase())).length;
+    const completed = tasks.filter(t => t.status?.toUpperCase() === 'COMPLETED').length;
+    const highPriority = tasks.filter(t => ['HIGH', 'CRITICAL'].includes(t.priority?.toUpperCase())).length;
+    const pending = tasks.filter(t => ['SCHEDULED', 'PENDING', 'PAUSED'].includes(t.status?.toUpperCase())).length;
+
+    document.getElementById('stat-total-tasks').textContent = String(total).padStart(2, '0');
+    document.getElementById('stat-active-tasks').textContent = String(active).padStart(2, '0');
+    document.getElementById('stat-completed-tasks').textContent = String(completed).padStart(2, '0');
+    document.getElementById('stat-high-priority').textContent = String(highPriority).padStart(2, '0');
+
+    // Update filter chip badges
+    document.getElementById('filter-chip-all').textContent = `All (${String(total).padStart(2, '0')})`;
+    document.getElementById('filter-chip-active').textContent = `Active (${String(active).padStart(2, '0')})`;
+    document.getElementById('filter-chip-pending').textContent = `Pending (${String(pending).padStart(2, '0')})`;
+    document.getElementById('filter-chip-completed').textContent = `Completed (${String(completed).padStart(2, '0')})`;
+    document.getElementById('filter-chip-high').textContent = `High Priority (${String(highPriority).padStart(2, '0')})`;
+  }
+
+  function applyFilters() {
+    let result = [...allTasks];
+
+    // Status filter chip
+    if (activeFilterChip === 'ACTIVE') {
+      result = result.filter(t => ['AI WORKING', 'ACTIVE', 'IN_PROGRESS', 'WAITING FOR INPUT'].includes(t.status?.toUpperCase()));
+    } else if (activeFilterChip === 'PENDING') {
+      result = result.filter(t => ['SCHEDULED', 'PENDING', 'PAUSED'].includes(t.status?.toUpperCase()));
+    } else if (activeFilterChip === 'COMPLETED') {
+      result = result.filter(t => t.status?.toUpperCase() === 'COMPLETED');
+    } else if (activeFilterChip === 'HIGH') {
+      result = result.filter(t => ['HIGH', 'CRITICAL'].includes(t.priority?.toUpperCase()));
+    }
+
+    // Dropdown Status filter
+    if (activeStatusFilter !== 'ALL') {
+      result = result.filter(t => t.status?.toUpperCase().includes(activeStatusFilter));
+    }
+
+    // Search input
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase();
+      result = result.filter(t => 
+        (t.title && t.title.toLowerCase().includes(q)) ||
+        (t.description && t.description.toLowerCase().includes(q)) ||
+        (t.category && t.category.toLowerCase().includes(q))
+      );
+    }
+
+    // Sort
+    if (activeSort === 'PRIORITY_DESC') {
+      const pWeights = { 'CRITICAL': 4, 'HIGH': 3, 'MEDIUM': 2, 'LOW': 1 };
+      result.sort((a, b) => (pWeights[b.priority?.toUpperCase()] || 0) - (pWeights[a.priority?.toUpperCase()] || 0));
+    } else if (activeSort === 'PRIORITY_ASC') {
+      const pWeights = { 'CRITICAL': 4, 'HIGH': 3, 'MEDIUM': 2, 'LOW': 1 };
+      result.sort((a, b) => (pWeights[a.priority?.toUpperCase()] || 0) - (pWeights[b.priority?.toUpperCase()] || 0));
+    } else if (activeSort === 'DUE_DATE') {
+      result.sort((a, b) => (new Date(a.due_date || '2099') - new Date(b.due_date || '2099')));
+    }
+
+    filteredTasks = result;
+    renderTasks();
+  }
+
+  function renderTasks() {
+    const container = document.getElementById('task-list-container');
+    if (filteredTasks.length === 0) {
+      container.innerHTML = `
+        <div class="hud-bracket bg-surface-container-lowest border border-outline-variant/40 p-8 text-center text-outline text-label-sm font-label-sm space-y-3">
+          <span class="material-symbols-outlined text-3xl text-outline/50">inbox</span>
+          <div class="text-on-surface font-semibold">NO TASKS FOUND FOR CURRENT FILTER</div>
+          <p class="text-outline">Adjust your search parameters or schedule a new task.</p>
+          <button onclick="openCreateTaskModal()" class="px-4 py-2 bg-primary/10 border border-primary text-primary hover:bg-primary/20 transition-all">
+            + CREATE NEW TASK
+          </button>
+        </div>
+      `;
+      return;
+    }
+
+    container.innerHTML = filteredTasks.map(task => {
+      const isSelected = selectedTask && selectedTask.id === task.id;
+      const isCompleted = task.status?.toUpperCase() === 'COMPLETED';
+      const borderClass = isSelected ? 'border-2 border-primary/80 cyan-glow-intense' : 'border border-outline-variant/40 hover:border-primary/50';
+      const bulletClass = isCompleted ? 'bg-primary' : (task.priority === 'HIGH' || task.priority === 'CRITICAL' ? 'bg-primary animate-pulse' : 'bg-outline');
+      const progress = task.progress || (isCompleted ? 100 : 35);
+      const actionText = isCompleted ? 'AST REVISION SAVED // VERIFIED' : (task.eta ? `EXECUTING WORKER (${progress}%)` : `JARVIS AGENT READY (${progress}%)`);
+
+      return `
+        <div onclick="selectTask(${task.id})" class="hud-bracket bg-surface-container-lowest/90 ${borderClass} p-4 transition-all relative cursor-pointer select-none">
+          <div class="flex flex-col md:flex-row md:items-center justify-between gap-3">
+            <div class="flex items-start gap-3">
+              <span class="w-2.5 h-2.5 mt-1 rounded-sm ${bulletClass}"></span>
+              <div>
+                <div class="flex items-center gap-2">
+                  <h3 class="text-headline-sm font-headline-sm ${isCompleted ? 'line-through text-on-surface-variant' : 'text-on-surface'} font-semibold hover:text-primary transition-colors">
+                    ${escapeHtml(task.title)}
+                  </h3>
+                  <span class="px-1.5 py-0.5 border border-primary/40 bg-primary/10 text-primary text-label-sm font-label-sm">#TSK-${task.id}</span>
+                </div>
+                <div class="flex flex-wrap items-center gap-2 mt-1.5 text-label-sm font-label-sm">
+                  <span class="px-2 py-0.5 bg-surface-container border border-outline-variant/60 text-on-surface-variant">Project [${escapeHtml(task.category || 'General')}]</span>
+                  <span class="px-2 py-0.5 ${isCompleted ? 'bg-surface-container border-outline-variant/40 text-outline' : 'bg-primary/15 border border-primary text-primary'} font-medium flex items-center gap-1">
+                    ${!isCompleted ? '<span class="material-symbols-outlined text-[12px] animate-spin">sync</span>' : ''}
+                    ${escapeHtml(task.status || 'ACTIVE')}
+                  </span>
+                  <span class="px-2 py-0.5 bg-outline-variant/30 border border-outline-variant text-on-surface font-mono text-[10px]">${task.priority || 'MEDIUM'}</span>
+                </div>
+              </div>
+            </div>
+            <div class="text-right text-label-sm font-label-sm flex md:flex-col justify-between items-end">
+              <span class="text-outline">DUE: ${task.due_date ? task.due_date.split('T')[0] : 'NO DATE'}</span>
+              <span class="text-on-surface-variant font-mono">${task.eta || 'UTC 14:10'}</span>
+            </div>
+          </div>
+          <div class="mt-4 pt-3 border-t border-outline-variant/30 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+            <div class="flex items-center gap-2 text-label-sm font-label-sm">
+              <span class="text-primary font-bold">&gt;&gt; JARVIS Action:</span>
+              <span class="text-on-surface font-mono text-xs">${actionText}</span>
+            </div>
+            <div class="w-full sm:w-48 bg-surface-container h-1.5 rounded-none overflow-hidden border border-outline-variant/40">
+              <div class="bg-primary h-full transition-all duration-300" style="width: ${progress}%"></div>
+            </div>
+          </div>
+        </div>
+      `;
+    }).join('');
+
+    // Ensure inspector is loaded
+    if (filteredTasks.length > 0) {
+      if (!selectedTask || !filteredTasks.some(t => t.id === selectedTask.id)) {
+        selectTask(filteredTasks[0].id);
+      } else {
+        populateInspector(selectedTask);
+      }
+    }
+  }
+
+  async function selectTask(taskId) {
+    try {
+      selectedTask = await window.jarvisApi.getTask(taskId);
+      populateInspector(selectedTask);
+      // Rerender list to toggle selection glow
+      renderTasks();
+    } catch (e) {
+      console.warn("Could not fetch task detail by ID, using local memory:", e);
+      selectedTask = allTasks.find(t => t.id === taskId);
+      if (selectedTask) populateInspector(selectedTask);
+    }
+  }
+
+  function populateInspector(task) {
+    if (!task) return;
+    document.getElementById('insp-id-badge').textContent = `[ID: #TSK-${task.id}]`;
+    document.getElementById('insp-title').textContent = task.title;
+    document.getElementById('insp-desc').textContent = task.description || 'No extended specification registered. Autonomous subagent execution proceeding under baseline heuristics.';
+    document.getElementById('insp-status').textContent = task.status || 'ACTIVE';
+    document.getElementById('insp-priority').textContent = task.priority || 'MEDIUM';
+    document.getElementById('insp-due').textContent = task.due_date ? task.due_date.split('T')[0] : '2025-05-25';
+    document.getElementById('insp-project').textContent = task.category || 'General';
+    document.getElementById('insp-created').textContent = task.created_at ? new Date(task.created_at).toLocaleTimeString() : '14:10:02';
+    document.getElementById('insp-updated').textContent = task.updated_at ? new Date(task.updated_at).toLocaleTimeString() : '14:38:12';
+
+    const isComplete = task.status?.toUpperCase() === 'COMPLETED';
+    document.getElementById('insp-pipeline-stage').textContent = isComplete ? 'STAGE 4/4 (VERIFIED)' : 'STAGE 3/4 (RUNNING)';
+    document.getElementById('insp-worker-status').textContent = isComplete ? 'COMPLETE // LOGS ARCHIVED' : 'ACTIVE // SWARM_NODE_4';
+  }
+
+  // Filter & Search Handlers
+  function setFilterChip(chip) {
+    activeFilterChip = chip;
+    const chips = ['ALL', 'ACTIVE', 'PENDING', 'COMPLETED', 'HIGH'];
+    chips.forEach(c => {
+      const el = document.getElementById(`filter-chip-${c.toLowerCase()}`);
+      if (el) {
+        if (c === chip) {
+          el.className = 'px-3 py-1 bg-primary/20 border border-primary text-primary text-label-sm font-label-sm';
+        } else {
+          el.className = 'px-3 py-1 bg-surface-container-low border border-outline-variant/50 text-on-surface-variant hover:border-primary/40 hover:text-on-surface text-label-sm font-label-sm';
+        }
+      }
+    });
+    applyFilters();
+  }
+
+  function handleStatusSelect(val) {
+    activeStatusFilter = val;
+    applyFilters();
+  }
+
+  function handleSortSelect(val) {
+    activeSort = val;
+    applyFilters();
+  }
+
+  function handleTaskSearch(val) {
+    searchQuery = val;
+    applyFilters();
+  }
+
+  // Create Task Modal Controls
+  function openCreateTaskModal() {
+    document.getElementById('task-modal-header').textContent = 'CREATE NEW TASK [POST /api/v1/tasks]';
+    document.getElementById('task-form-id').value = '';
+    document.getElementById('task-input-title').value = '';
+    document.getElementById('task-input-desc').value = '';
+    document.getElementById('task-input-priority').value = 'MEDIUM';
+    document.getElementById('task-input-category').value = 'General';
+    document.getElementById('task-input-due').value = new Date().toISOString().split('T')[0];
+    document.getElementById('task-submit-text').textContent = '[+] CREATE TASK';
+    document.getElementById('task-modal').classList.remove('hidden');
+  }
+
+  function openEditTaskModal() {
+    if (!selectedTask) return;
+    document.getElementById('task-modal-header').textContent = `EDIT TASK SPEC [#TSK-${selectedTask.id}]`;
+    document.getElementById('task-form-id').value = selectedTask.id;
+    document.getElementById('task-input-title').value = selectedTask.title || '';
+    document.getElementById('task-input-desc').value = selectedTask.description || '';
+    document.getElementById('task-input-priority').value = selectedTask.priority || 'MEDIUM';
+    document.getElementById('task-input-category').value = selectedTask.category || 'General';
+    document.getElementById('task-input-due').value = selectedTask.due_date ? selectedTask.due_date.split('T')[0] : '';
+    document.getElementById('task-submit-text').textContent = '💾 UPDATE SPEC';
+    document.getElementById('task-modal').classList.remove('hidden');
+  }
+
+  function closeTaskModal() {
+    document.getElementById('task-modal').classList.add('hidden');
+  }
+
+  async function handleTaskSubmit(event) {
+    event.preventDefault();
+    const taskId = document.getElementById('task-form-id').value;
+    const title = document.getElementById('task-input-title').value.trim();
+    const description = document.getElementById('task-input-desc').value.trim();
+    const priority = document.getElementById('task-input-priority').value;
+    const category = document.getElementById('task-input-category').value;
+    const dueDate = document.getElementById('task-input-due').value;
+
+    const btn = document.getElementById('task-form-submit-btn');
+    btn.disabled = true;
+    btn.classList.add('opacity-50');
+
+    try {
+      if (taskId) {
+        // Edit existing
+        const updated = await window.jarvisApi.updateTask(Number(taskId), {
+          title,
+          description,
+          priority,
+          category,
+          due_date: dueDate ? `${dueDate}T00:00:00` : null,
+        });
+        showToast(`Task #TSK-${taskId} updated successfully!`);
+        closeTaskModal();
+        await loadTasks();
+        selectTask(updated.id);
+      } else {
+        // Create new
+        const created = await window.jarvisApi.createTask({
+          title,
+          description,
+          priority,
+          category,
+          status: 'AI WORKING',
+          progress: 10,
+          eta: '~15m',
+          due_date: dueDate ? `${dueDate}T00:00:00` : null,
+        });
+        showToast(`Task #TSK-${created.id} created and dispatched to queue!`);
+        closeTaskModal();
+        await loadTasks();
+        selectTask(created.id);
+      }
+    } catch (err) {
+      console.error("Failed to submit task:", err);
+      showToast(`Error saving task: ${err.message}`, 'error');
+    } finally {
+      btn.disabled = false;
+      btn.classList.remove('opacity-50');
+    }
+  }
+
+  async function handleMarkComplete() {
+    if (!selectedTask) return;
+    try {
+      await window.jarvisApi.updateTask(selectedTask.id, {
+        status: 'COMPLETED',
+        progress: 100,
+        eta: 'ARCHIVED'
+      });
+      showToast(`Task #TSK-${selectedTask.id} marked as COMPLETED.`);
+      await loadTasks();
+    } catch (e) {
+      console.error(e);
+      showToast(`Failed to update task: ${e.message}`, 'error');
+    }
+  }
+
+  async function handleDeleteTask() {
+    if (!selectedTask) return;
+    const confirmed = confirm(`Are you sure you want to delete Task #TSK-${selectedTask.id}: "${selectedTask.title}"?`);
+    if (!confirmed) return;
+
+    try {
+      await window.jarvisApi.deleteTask(selectedTask.id);
+      showToast(`Task #TSK-${selectedTask.id} deleted from queue.`);
+      selectedTask = null;
+      await loadTasks();
+    } catch (e) {
+      console.error(e);
+      showToast(`Delete failed: ${e.message}`, 'error');
+    }
+  }
+
+  async function handleRunWithJarvis() {
+    if (!selectedTask) return;
+    showToast(`⚡ Autonomous Swarm dispatched for Task #${selectedTask.id}...`);
+    try {
+      const res = await window.jarvisApi.sendChatMessage(`Execute task: ${selectedTask.title}`);
+      showToast(`JARVIS: ${res.message.slice(0, 60)}...`);
+    } catch (e) {
+      console.warn("Could not dispatch assistant command:", e);
+    }
+  }
+
+  function escapeHtml(str) {
+    if (!str) return '';
+    return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+  }
+
+  // Boot on page load
+  window.addEventListener('DOMContentLoaded', loadTasks);
+</script>
+</body>
+</html>

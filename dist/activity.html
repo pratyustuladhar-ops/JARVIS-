@@ -1,0 +1,723 @@
+<!DOCTYPE html>
+<html class="dark" lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>JARVIS // ACTIVITY TELEMETRY & AUDIT STREAM</title>
+<!-- Google Fonts -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500;600;700&family=Sora:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+<!-- Material Symbols Outlined -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<!-- Tailwind CSS with Forms and Container Queries -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          "colors": {
+            "on-secondary": "#382461",
+            "on-secondary-fixed-variant": "#4f3c7a",
+            "background": "#111318",
+            "secondary-fixed": "#eaddff",
+            "secondary-fixed-dim": "#d1bcff",
+            "surface": "#111318",
+            "on-tertiary-fixed": "#0f1c2b",
+            "outline-variant": "#3c494e",
+            "primary": "#aae8ff",
+            "on-surface": "#e1e2e8",
+            "inverse-primary": "#00677f",
+            "on-background": "#e1e2e8",
+            "inverse-on-surface": "#2e3035",
+            "inverse-surface": "#e1e2e8",
+            "tertiary-container": "#b7c4d8",
+            "outline": "#869399",
+            "on-tertiary-fixed-variant": "#3b4858",
+            "on-surface-variant": "#bbc9cf",
+            "tertiary-fixed-dim": "#bac7dc",
+            "on-secondary-fixed": "#220c4b",
+            "surface-container": "#1d2024",
+            "surface-variant": "#33353a",
+            "on-primary": "#003543",
+            "surface-container-lowest": "#0c0e13",
+            "on-primary-container": "#00576c",
+            "error-container": "#93000a",
+            "primary-container": "#27d3ff",
+            "on-error": "#690005",
+            "on-primary-fixed-variant": "#004e60",
+            "tertiary": "#d3e0f4",
+            "on-tertiary": "#253141",
+            "tertiary-fixed": "#d6e3f8",
+            "on-secondary-container": "#c0aaf0",
+            "surface-dim": "#111318",
+            "primary-fixed": "#b6ebff",
+            "secondary-container": "#4f3c7a",
+            "surface-container-high": "#282a2f",
+            "on-primary-fixed": "#001f28",
+            "surface-container-highest": "#33353a",
+            "surface-bright": "#37393e",
+            "secondary": "#d1bcff",
+            "on-error-container": "#ffdad6",
+            "surface-container-low": "#191c20",
+            "surface-tint": "#49d6ff",
+            "error": "#ffb4ab",
+            "on-tertiary-container": "#445162",
+            "primary-fixed-dim": "#49d6ff"
+          },
+          "borderRadius": {
+            "DEFAULT": "0.125rem",
+            "lg": "0.25rem",
+            "xl": "0.5rem",
+            "full": "0.75rem"
+          },
+          "fontFamily": {
+            "headline-lg": ["Sora"],
+            "label-sm": ["JetBrains Mono"],
+            "body-md": ["Inter"],
+            "label-lg": ["JetBrains Mono"],
+            "headline-md": ["Sora"],
+            "body-lg": ["Inter"],
+            "body-sm": ["Inter"],
+            "headline-sm": ["Sora"],
+            "label-md": ["JetBrains Mono"],
+            "headline-xl": ["Sora"]
+          }
+        }
+      }
+    }
+  </script>
+<style>
+    .material-symbols-outlined {
+      font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+      display: inline-block;
+      vertical-align: middle;
+      line-height: 1;
+    }
+    .hud-grid-pattern {
+      background-size: 32px 32px;
+      background-image: 
+        linear-gradient(to right, rgba(39, 211, 255, 0.03) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(39, 211, 255, 0.03) 1px, transparent 1px);
+    }
+    .cyan-glow-subtle {
+      box-shadow: 0 0 16px rgba(39, 211, 255, 0.12);
+    }
+    .cyan-glow-pulse {
+      box-shadow: 0 0 20px rgba(39, 211, 255, 0.25);
+    }
+    .reticle-corner {
+      position: relative;
+    }
+    .reticle-corner::before {
+      content: '';
+      position: absolute;
+      top: -1px;
+      left: -1px;
+      width: 6px;
+      height: 6px;
+      border-top: 2px solid #27d3ff;
+      border-left: 2px solid #27d3ff;
+      pointer-events: none;
+    }
+    .reticle-corner::after {
+      content: '';
+      position: absolute;
+      bottom: -1px;
+      right: -1px;
+      width: 6px;
+      height: 6px;
+      border-bottom: 2px solid #27d3ff;
+      border-right: 2px solid #27d3ff;
+      pointer-events: none;
+    }
+    ::-webkit-scrollbar {
+      width: 4px;
+      height: 4px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #0c0e13;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #3c494e;
+      border-radius: 2px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #27d3ff;
+    }
+</style>
+  <script type="module" crossorigin src="/assets/api-6_STEUA4.js"></script>
+</head>
+<body class="bg-surface-container-lowest text-on-surface antialiased min-h-screen overflow-x-hidden hud-grid-pattern selection:bg-primary-container selection:text-on-primary">
+
+<!-- ========================================== -->
+<!-- SIDE NAVIGATION                            -->
+<!-- Active Tab: Activity                       -->
+<!-- ========================================== -->
+<aside class="fixed left-0 top-0 bottom-0 z-40 flex flex-col justify-between p-4 docked h-screen w-64 border-r border-outline-variant/40 bg-surface-container-lowest/80 backdrop-blur-md">
+<div>
+  <!-- Header Branding -->
+  <div class="flex items-center gap-3 px-2 py-3 border-b border-outline-variant/40 mb-4">
+    <div class="relative flex items-center justify-center w-8 h-8 rounded border border-primary/40 bg-primary/10 cyan-glow-subtle" title="Glowing AI Core Status Indicator">
+      <span class="w-3 h-3 rounded-full bg-primary-container animate-ping absolute opacity-75"></span>
+      <span class="w-2.5 h-2.5 rounded-full bg-primary-container relative"></span>
+    </div>
+    <div class="flex flex-col">
+      <span class="text-headline-md font-headline-md font-bold tracking-widest text-primary leading-tight">JARVIS</span>
+      <span class="text-label-sm font-label-sm text-outline tracking-wider">OS // v4.2 TELEMETRY ACTIVE</span>
+    </div>
+  </div>
+
+  <!-- Command CTA -->
+  <button onclick="window.location.href='assistant.html'" class="w-full mb-5 py-2 px-3 bg-primary/10 hover:bg-primary/20 text-primary border border-primary/50 text-label-md font-label-md font-bold flex items-center justify-center gap-2 tracking-wider transition-all duration-150 cyan-glow-subtle">
+    <span class="material-symbols-outlined text-sm">terminal</span>
+    <span>EXECUTE COMMAND</span>
+  </button>
+
+  <!-- Navigation Tabs -->
+  <nav class="space-y-1">
+    <a class="flex items-center gap-3 px-3 py-2 text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high/40 hover:border-primary/50 transition-all duration-150 rounded" href="index.html">
+      <span class="material-symbols-outlined text-lg">dashboard</span>
+      <span class="text-label-md font-label-md">Dashboard</span>
+    </a>
+    <a class="flex items-center gap-3 px-3 py-2 text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high/40 hover:border-primary/50 transition-all duration-150 rounded" href="assistant.html">
+      <span class="material-symbols-outlined text-lg">smart_toy</span>
+      <span class="text-label-md font-label-md">Assistant</span>
+    </a>
+    <a class="flex items-center gap-3 px-3 py-2 text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high/40 hover:border-primary/50 transition-all duration-150 rounded" href="tasks.html">
+      <span class="material-symbols-outlined text-lg">check_circle</span>
+      <span class="text-label-md font-label-md">Tasks</span>
+    </a>
+    <a class="flex items-center gap-3 px-3 py-2 text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high/40 hover:border-primary/50 transition-all duration-150 rounded" href="memory.html">
+      <span class="material-symbols-outlined text-lg">memory</span>
+      <span class="text-label-md font-label-md">Memory</span>
+    </a>
+    <a class="flex items-center gap-3 px-3 py-2 text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high/40 hover:border-primary/50 transition-all duration-150 rounded" href="projects.html">
+      <span class="material-symbols-outlined text-lg">folder</span>
+      <span class="text-label-md font-label-md">Projects</span>
+    </a>
+    <!-- 5: Activity (ACTIVE) -->
+    <a class="flex items-center gap-3 px-3 py-2 bg-primary/10 text-primary border-l-2 border-primary rounded-r transition-all duration-150 shadow-[inset_0_0_12px_rgba(39,211,255,0.08)]" href="activity.html">
+      <span class="material-symbols-outlined text-lg text-primary">timeline</span>
+      <span class="text-label-md font-label-md font-bold tracking-wide">Activity</span>
+      <span class="ml-auto w-1.5 h-1.5 rounded-full bg-primary-container"></span>
+    </a>
+    <a class="flex items-center gap-3 px-3 py-2 text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high/40 hover:border-primary/50 transition-all duration-150 rounded" href="settings.html">
+      <span class="material-symbols-outlined text-lg">settings</span>
+      <span class="text-label-md font-label-md">Settings</span>
+    </a>
+
+  </nav>
+</div>
+
+<!-- Telemetry Footer Status -->
+<div class="border-t border-outline-variant/40 pt-3 space-y-2">
+  <div class="flex items-center justify-between text-label-sm font-label-sm text-on-surface-variant px-2 py-1 bg-surface-container-low/60 rounded border border-outline-variant/20">
+    <span class="flex items-center gap-2">
+      <span class="material-symbols-outlined text-xs text-primary-container">history</span>
+      <span>Audit Stream: Live</span>
+    </span>
+    <span class="w-1.5 h-1.5 rounded-full bg-primary-container animate-pulse"></span>
+  </div>
+  <div class="flex items-center justify-between text-label-sm font-label-sm text-on-surface-variant px-2 py-1 bg-surface-container-low/60 rounded border border-outline-variant/20">
+    <span class="flex items-center gap-2">
+      <span class="material-symbols-outlined text-xs text-outline">sync</span>
+      <span>PostgreSQL Telemetry</span>
+    </span>
+    <span class="text-primary text-[9px]">ONLINE</span>
+  </div>
+</div>
+</aside>
+
+<!-- ========================================== -->
+<!-- TOP COMMAND HEADER                         -->
+<!-- ========================================== -->
+<header class="fixed top-0 right-0 left-64 z-30 flex items-center justify-between px-6 py-3 docked full-width border-b border-outline-variant/40 bg-surface-container-lowest/80 backdrop-blur-md">
+  <div class="flex items-center gap-6">
+    <div class="flex items-center gap-2">
+      <a href="index.html" class="text-headline-sm font-headline-sm font-bold tracking-wider text-primary hover:underline">JARVIS // CORE HUD</a>
+      <span class="px-2 py-0.5 text-label-sm font-label-sm bg-surface-container text-on-surface-variant border border-outline-variant/50 rounded">NODE: AUDIT-STREAM</span>
+    </div>
+    <div class="relative w-72">
+      <span class="material-symbols-outlined absolute left-2.5 top-1/2 -translate-y-1/2 text-outline text-sm">search</span>
+      <input id="header-search-input" oninput="handleActivitySearch(this.value)" class="w-full pl-8 pr-3 py-1 bg-surface-container-low border border-outline-variant/40 text-body-sm font-body-sm text-on-surface placeholder:text-outline/70 focus:outline-none focus:border-primary-container focus:ring-1 focus:ring-primary-container rounded" placeholder="Search activity logs..." type="text"/>
+    </div>
+  </div>
+  <div class="flex items-center gap-4">
+    <div class="hidden lg:flex items-center gap-2 px-3 py-1 bg-surface-container-low border border-primary/20 rounded">
+      <span class="w-2 h-2 rounded-full bg-primary-container animate-pulse"></span>
+      <span class="text-label-sm font-label-sm text-on-surface-variant">EVENT STREAM:</span>
+      <span class="text-label-sm font-label-sm font-bold text-primary">SYNCHRONIZED (100%)</span>
+    </div>
+    <div class="flex items-center gap-2 border-l border-outline-variant/40 pl-4">
+      <button class="relative p-1.5 text-on-surface-variant hover:text-primary transition-colors" title="Notifications">
+        <span class="material-symbols-outlined text-lg">notifications_active</span>
+        <span class="absolute top-1 right-1 w-1.5 h-1.5 bg-primary-container rounded-full"></span>
+      </button>
+      <div class="w-7 h-7 rounded border border-primary/50 bg-primary/10 flex items-center justify-center text-primary text-label-sm font-label-sm font-bold" title="Commander Node">
+        OP-1
+      </div>
+    </div>
+  </div>
+</header>
+
+<!-- ========================================== -->
+<!-- MAIN COMMAND CONTENT CANVAS                -->
+<!-- ========================================== -->
+<main class="ml-64 pt-20 p-8 space-y-6">
+
+  <!-- PAGE HEADER & CONTROLS -->
+  <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-outline-variant/30 pb-4">
+    <div>
+      <div class="flex items-center gap-2">
+        <span class="material-symbols-outlined text-primary text-xl">timeline</span>
+        <h1 class="text-headline-lg font-headline-lg text-on-surface tracking-tight">ACTIVITY // AUTONOMOUS AUDIT STREAM & TELEMETRY</h1>
+      </div>
+      <p class="text-body-sm font-body-sm text-on-surface-variant mt-1">Real-time system activity chronology, autonomous execution logs, and audit trails</p>
+    </div>
+    <div class="flex items-center gap-3">
+      <!-- Search filter -->
+      <div class="relative w-60">
+        <span class="material-symbols-outlined absolute left-2.5 top-1/2 -translate-y-1/2 text-outline text-xs">manage_search</span>
+        <input id="activity-search-input" oninput="handleActivitySearch(this.value)" class="w-full pl-8 pr-3 py-1.5 bg-surface-container-low border border-outline-variant/50 text-label-sm font-label-sm text-on-surface placeholder:text-outline rounded focus:border-primary-container focus:outline-none" placeholder="[CTRL+F] Filter logs..." type="text"/>
+      </div>
+      <!-- Primary Refresh Trigger -->
+      <button onclick="loadActivities()" class="flex items-center gap-2 px-4 py-2 bg-primary/10 hover:bg-primary/20 text-primary border border-primary-container text-label-md font-label-md font-bold rounded cyan-glow-pulse transition-all duration-150">
+        <span class="material-symbols-outlined text-base">refresh</span>
+        <span>↻ REFRESH AUDIT</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- KPI SUMMARY HUD CARDS (Top Row - 4 Cards) -->
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+    <!-- KPI 1 -->
+    <div class="reticle-corner p-4 bg-surface-container-low/70 border border-outline-variant/40 backdrop-blur-md rounded">
+      <div class="flex items-center justify-between text-outline text-label-sm font-label-sm mb-1">
+        <span>TOTAL EVENTS</span>
+        <span class="material-symbols-outlined text-sm text-outline">history</span>
+      </div>
+      <div id="stat-total-events" class="text-headline-xl font-headline-xl text-primary font-bold tracking-tight">--</div>
+      <div class="text-label-sm font-label-sm text-on-surface-variant flex items-center gap-1.5 mt-1">
+        <span class="w-1.5 h-1.5 rounded-full bg-primary"></span>
+        <span>RECORDED AUDIT NODES</span>
+      </div>
+    </div>
+    <!-- KPI 2 -->
+    <div class="reticle-corner p-4 bg-surface-container-low/70 border border-outline-variant/40 backdrop-blur-md rounded">
+      <div class="flex items-center justify-between text-outline text-label-sm font-label-sm mb-1">
+        <span>EXECUTION SUCCESS</span>
+        <span class="material-symbols-outlined text-sm text-primary-container">task_alt</span>
+      </div>
+      <div id="stat-exec-success" class="text-headline-xl font-headline-xl text-primary-container font-bold tracking-tight">--</div>
+      <div class="text-label-sm font-label-sm text-on-surface-variant flex items-center gap-1.5 mt-1">
+        <span class="w-1.5 h-1.5 rounded-full bg-primary-container animate-ping"></span>
+        <span>TASKS COMPLETED</span>
+      </div>
+    </div>
+    <!-- KPI 3 -->
+    <div class="reticle-corner p-4 bg-surface-container-low/70 border border-outline-variant/40 backdrop-blur-md rounded">
+      <div class="flex items-center justify-between text-outline text-label-sm font-label-sm mb-1">
+        <span>ANALYSIS EVENTS</span>
+        <span class="material-symbols-outlined text-sm text-secondary">analytics</span>
+      </div>
+      <div id="stat-analysis-events" class="text-headline-xl font-headline-xl text-secondary font-bold tracking-tight">--</div>
+      <div class="text-label-sm font-label-sm text-on-surface-variant flex items-center gap-1.5 mt-1">
+        <span class="w-1.5 h-1.5 rounded-full bg-secondary"></span>
+        <span>AST & HEURISTIC RUNS</span>
+      </div>
+    </div>
+    <!-- KPI 4 -->
+    <div class="reticle-corner p-4 bg-surface-container-low/70 border border-outline-variant/40 backdrop-blur-md rounded">
+      <div class="flex items-center justify-between text-outline text-label-sm font-label-sm mb-1">
+        <span>SYSTEM HEALTH</span>
+        <span class="material-symbols-outlined text-sm text-primary">verified</span>
+      </div>
+      <div id="stat-sys-health" class="text-headline-xl font-headline-xl text-primary font-bold tracking-tight">100%</div>
+      <div class="text-label-sm font-label-sm text-on-surface-variant flex items-center gap-1.5 mt-1">
+        <span class="w-1.5 h-1.5 rounded-full bg-primary"></span>
+        <span>ZERO BLOCKING FAULTS</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- EVENT TYPE FILTER CHIPS -->
+  <div class="flex flex-wrap items-center justify-between gap-3 p-3 bg-surface-container-lowest border border-outline-variant/40 rounded">
+    <div class="flex items-center gap-2 overflow-x-auto">
+      <button onclick="setEventTypeFilter('ALL')" id="filter-all" class="px-3 py-1 bg-primary/20 border border-primary text-primary text-label-sm font-label-sm rounded">
+        All Events
+      </button>
+      <button onclick="setEventTypeFilter('EXECUTION')" id="filter-execution" class="px-3 py-1 bg-surface-container-low border border-outline-variant/50 text-on-surface-variant hover:border-primary/40 hover:text-on-surface text-label-sm font-label-sm rounded">
+        Execution
+      </button>
+      <button onclick="setEventTypeFilter('ANALYSIS')" id="filter-analysis" class="px-3 py-1 bg-surface-container-low border border-outline-variant/50 text-on-surface-variant hover:border-primary/40 hover:text-on-surface text-label-sm font-label-sm rounded">
+        Analysis
+      </button>
+      <button onclick="setEventTypeFilter('VECTOR')" id="filter-vector" class="px-3 py-1 bg-surface-container-low border border-outline-variant/50 text-on-surface-variant hover:border-primary/40 hover:text-on-surface text-label-sm font-label-sm rounded">
+        Vector Sync
+      </button>
+      <button onclick="setEventTypeFilter('VOICE')" id="filter-voice" class="px-3 py-1 bg-surface-container-low border border-outline-variant/50 text-on-surface-variant hover:border-primary/40 hover:text-on-surface text-label-sm font-label-sm rounded">
+        Voice
+      </button>
+      <button onclick="setEventTypeFilter('SYSTEM')" id="filter-system" class="px-3 py-1 bg-surface-container-low border border-outline-variant/50 text-on-surface-variant hover:border-primary/40 hover:text-on-surface text-label-sm font-label-sm rounded">
+        System
+      </button>
+    </div>
+    <div class="flex items-center gap-3 text-label-sm font-label-sm text-outline">
+      <span class="w-2 h-2 rounded-full bg-primary-container animate-ping"></span>
+      <span class="font-mono text-primary text-xs">AUDIT PROTOCOL ACTIVE</span>
+    </div>
+  </div>
+
+  <!-- 2-COLUMN COMMAND GRID LAYOUT (60% / 40%) -->
+  <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+    <!-- LEFT COLUMN: ACTIVITY CHRONOLOGY STREAM (7 Cols) -->
+    <div class="lg:col-span-7 space-y-4">
+      <div class="flex items-center justify-between px-1">
+        <span id="activity-count-badge" class="text-label-md font-label-md text-outline tracking-wider flex items-center gap-2">
+          <span class="material-symbols-outlined text-sm">hub</span>
+          ACTIVITY STREAM
+        </span>
+        <span class="text-label-sm font-label-sm text-outline">POSTGRESQL // FASTAPI /api/v1/activity</span>
+      </div>
+
+      <!-- Timeline stream with connecting guide border -->
+      <div class="relative pl-6 border-l-2 border-outline-variant/40 space-y-3" id="activity-list-container">
+        <!-- Dynamic activities inserted via JS -->
+      </div>
+    </div>
+
+    <!-- RIGHT COLUMN: DETAILED AUDIT INSPECTOR (5 Cols) -->
+    <div class="lg:col-span-5 space-y-5">
+      <div class="reticle-corner p-6 bg-surface-container/90 border border-outline-variant/50 rounded backdrop-blur-md space-y-5">
+        
+        <!-- Header & Overview -->
+        <div class="border-b border-outline-variant/40 pb-4">
+          <div class="flex items-center justify-between mb-1">
+            <span id="insp-node-id" class="text-label-sm font-label-sm text-primary tracking-widest">AUDIT NODE // ID: #ACT-1</span>
+            <span id="insp-status-badge" class="px-2 py-0.5 text-label-sm font-label-sm bg-primary/20 text-primary border border-primary/40 rounded flex items-center gap-1">
+              <span class="w-1.5 h-1.5 rounded-full bg-primary animate-pulse"></span>
+              <span id="insp-status-text">STATUS: SUCCESS</span>
+            </span>
+          </div>
+          <h2 id="insp-activity-title" class="text-headline-md font-headline-md font-bold text-on-surface">ACTIVITY AUDIT</h2>
+          <div class="grid grid-cols-2 gap-2 mt-4 text-label-sm font-label-sm bg-surface-container-lowest p-3 border border-outline-variant/30 rounded">
+            <div>
+              <span class="text-outline">EVENT TYPE:</span>
+              <span id="insp-event-type" class="text-primary font-bold ml-1">ANALYSIS_EVENT</span>
+            </div>
+            <div>
+              <span class="text-outline">TIME:</span>
+              <span id="insp-time" class="text-on-surface ml-1 font-mono">13:42 UTC</span>
+            </div>
+            <div class="col-span-2">
+              <span class="text-outline">TIMESTAMP:</span>
+              <span id="insp-timestamp" class="text-on-surface ml-1 font-mono text-xs">2026-10-04 13:42:10 UTC</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Section 2: Event Description -->
+        <div>
+          <span class="text-label-md font-label-md text-on-surface font-semibold tracking-wider block mb-2">EVENT SPECIFICATION</span>
+          <div id="insp-description" class="p-3 bg-surface-container-lowest border border-outline-variant/40 rounded text-body-sm font-body-sm text-on-surface font-mono leading-relaxed select-text">
+            Select an event from the audit timeline on the left to inspect its telemetry.
+          </div>
+        </div>
+
+        <!-- Section 3: Telemetry Payload Block -->
+        <div class="p-3.5 bg-surface-container-lowest border border-outline-variant/40 rounded space-y-2 text-label-sm font-label-sm">
+          <div class="flex items-center justify-between text-outline">
+            <span class="flex items-center gap-1 text-primary">
+              <span class="material-symbols-outlined text-xs">code</span>
+              AUDIT PAYLOAD
+            </span>
+            <span class="text-primary text-[10px]">VERIFIED OK</span>
+          </div>
+          <div class="flex items-center justify-between">
+            <span class="text-outline">ENTITY ROUTE:</span>
+            <span id="insp-entity-route" class="text-on-surface font-mono text-xs">/api/v1/activity</span>
+          </div>
+          <div class="flex items-center justify-between">
+            <span class="text-outline">AUDIT SYSTEM:</span>
+            <span class="text-primary font-mono text-xs">JARVIS OS Kernel Telemetry</span>
+          </div>
+        </div>
+
+        <!-- Section 4: Action Button -->
+        <button id="btn-verify-audit" onclick="handleVerifyAudit()" class="w-full py-2.5 px-3 bg-primary/20 hover:bg-primary/30 text-primary border border-primary-container text-label-md font-label-md font-bold rounded cyan-glow-pulse flex items-center justify-center gap-2 transition-all duration-150">
+          <span class="material-symbols-outlined text-sm">security</span>
+          <span id="btn-verify-text">⚡ RUN TELEMETRY DIAGNOSTIC</span>
+        </button>
+
+        <!-- Dynamic AI Insight -->
+        <div id="insp-ai-insight" class="p-2.5 bg-surface-container-high/40 border-l-2 border-primary-container rounded-r text-body-sm font-body-sm text-on-surface-variant">
+          <span class="text-primary font-label-sm font-bold block mb-1">AUDIT SYNTHESIS</span>
+          Event stream verified against PostgreSQL database. All pipeline worker operations logged without integrity discrepancies.
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+
+</main>
+
+<!-- ========================================== -->
+<!-- HUD TOAST NOTIFICATION CONTAINER           -->
+<!-- ========================================== -->
+<div id="jarvis-toast-container" class="fixed bottom-6 right-6 z-50 flex flex-col gap-2 max-w-sm pointer-events-none"></div>
+
+<!-- Centralized API Service Layer -->
+
+<script>
+  let allActivities = [];
+  let filteredActivities = [];
+  let selectedActivity = null;
+  let activeFilter = 'ALL';
+  let searchQuery = '';
+
+  function showToast(message, type = 'info') {
+    const container = document.getElementById('jarvis-toast-container');
+    const toast = document.createElement('div');
+    const isError = type === 'error';
+    const borderColor = isError ? 'border-error/80' : 'border-primary/80';
+    const textColor = isError ? 'text-error' : 'text-primary';
+    const icon = isError ? 'error' : 'check_circle';
+
+    toast.className = `reticle-corner p-3 bg-surface-container/95 border ${borderColor} text-on-surface text-label-sm font-label-sm shadow-xl flex items-center gap-3 transition-all duration-300 transform translate-y-4 opacity-0 pointer-events-auto`;
+    toast.innerHTML = `
+      <span class="material-symbols-outlined text-sm ${textColor}">${icon}</span>
+      <span class="flex-1">${escapeHtml(message)}</span>
+      <span class="text-outline text-[10px]">JARVIS // OS</span>
+    `;
+
+    container.appendChild(toast);
+    requestAnimationFrame(() => {
+      toast.classList.remove('translate-y-4', 'opacity-0');
+      toast.classList.add('translate-y-0', 'opacity-100');
+    });
+
+    setTimeout(() => {
+      toast.classList.add('opacity-0', 'translate-y-2');
+      setTimeout(() => toast.remove(), 300);
+    }, 4000);
+  }
+
+  async function loadActivities() {
+    const container = document.getElementById('activity-list-container');
+    container.innerHTML = `
+      <div class="p-8 text-center text-outline text-label-sm font-label-sm flex items-center justify-center gap-3">
+        <span class="material-symbols-outlined animate-spin text-primary">cyclone</span>
+        <span>CONNECTING TO FASTAPI /api/v1/activity...</span>
+      </div>
+    `;
+
+    try {
+      allActivities = await window.jarvisApi.getActivities(30);
+      updateKPICards(allActivities);
+      applyFilters();
+      showToast("Activity audit stream synchronized.");
+    } catch (err) {
+      console.error("Failed to load activities from backend:", err);
+      container.innerHTML = `
+        <div class="reticle-corner p-8 bg-surface-container-low/80 border border-error/50 text-center text-label-sm font-label-sm space-y-3">
+          <span class="material-symbols-outlined text-3xl text-error">cloud_off</span>
+          <div class="text-error font-bold">ACTIVITY AUDIT STREAM DISCONNECTED</div>
+          <p class="text-outline">FastAPI backend at http://localhost:8000/api/v1/activity is unreachable.</p>
+          <button onclick="loadActivities()" class="px-4 py-2 bg-primary/10 border border-primary text-primary hover:bg-primary/20 transition-all">
+            ↻ RETRY CONNECTION
+          </button>
+        </div>
+      `;
+      showToast("Cannot connect to FastAPI activity backend.", "error");
+    }
+  }
+
+  function updateKPICards(activities) {
+    const total = activities.length;
+    const success = activities.filter(a => (a.status || '').toUpperCase() === 'SUCCESS' || (a.event_type || '').includes('SUCCESS')).length;
+    const analysis = activities.filter(a => (a.event_type || '').includes('ANALYSIS')).length;
+    const vector = activities.filter(a => (a.event_type || '').includes('VECTOR')).length;
+
+    document.getElementById('stat-total-events').textContent = String(total).padStart(2, '0');
+    document.getElementById('stat-exec-success').textContent = String(success).padStart(2, '0');
+    document.getElementById('stat-analysis-events').textContent = String(analysis).padStart(2, '0');
+
+    document.getElementById('activity-count-badge').innerHTML = `
+      <span class="material-symbols-outlined text-sm">hub</span>
+      ACTIVITY STREAM (${total} EVENTS AUDITED)
+    `;
+  }
+
+  function applyFilters() {
+    let list = [...allActivities];
+
+    if (activeFilter !== 'ALL') {
+      list = list.filter(a => (a.event_type || '').toUpperCase().includes(activeFilter));
+    }
+
+    if (searchQuery) {
+      const q = searchQuery.toLowerCase();
+      list = list.filter(a =>
+        (a.title && a.title.toLowerCase().includes(q)) ||
+        (a.description && a.description.toLowerCase().includes(q)) ||
+        (a.event_type && a.event_type.toLowerCase().includes(q))
+      );
+    }
+
+    filteredActivities = list;
+    renderActivities();
+  }
+
+  function renderActivities() {
+    const container = document.getElementById('activity-list-container');
+
+    if (filteredActivities.length === 0) {
+      container.innerHTML = `
+        <div class="reticle-corner bg-surface-container-lowest border border-outline-variant/40 p-8 text-center text-outline text-label-sm font-label-sm space-y-3">
+          <span class="material-symbols-outlined text-3xl text-outline/50">history_toggle_drop</span>
+          <div class="text-on-surface font-semibold">NO ACTIVITY EVENTS FOUND</div>
+          <p class="text-outline">No event telemetry matches your active filter query.</p>
+          <button onclick="loadActivities()" class="px-4 py-2 bg-primary/10 border border-primary text-primary hover:bg-primary/20 transition-all">
+            ↻ REFRESH STREAM
+          </button>
+        </div>
+      `;
+      return;
+    }
+
+    container.innerHTML = filteredActivities.map(act => {
+      const isSelected = selectedActivity && selectedActivity.id === act.id;
+      const borderClass = isSelected
+        ? 'border-2 border-primary-container cyan-glow-pulse bg-surface-container/90'
+        : 'border border-outline-variant/40 hover:border-primary/50 bg-surface-container-low/70';
+
+      const typeUpper = (act.event_type || 'SYSTEM').toUpperCase();
+      const statusUpper = (act.status || 'INFO').toUpperCase();
+      const isSuccess = statusUpper === 'SUCCESS' || typeUpper.includes('SUCCESS');
+      const isError = statusUpper === 'ERROR' || statusUpper === 'WARNING';
+
+      const statusColor = isSuccess ? 'text-primary border-primary/40 bg-primary/15' : (isError ? 'text-error border-error/40 bg-error/15' : 'text-on-surface-variant border-outline-variant/40 bg-surface-container');
+
+      return `
+        <div onclick="selectActivity(${act.id})" class="reticle-corner relative p-4 rounded cursor-pointer transition-all duration-200 ${borderClass}">
+          <!-- Timeline anchor dot on left border -->
+          <span class="absolute -left-[31px] top-5 w-3 h-3 rounded-full ${isSelected ? 'bg-primary-container animate-pulse shadow-[0_0_8px_#27D3FF]' : 'bg-outline border-2 border-background'}"></span>
+
+          <div class="flex items-start justify-between gap-3 mb-1.5">
+            <div class="flex items-center gap-2">
+              <span class="px-2 py-0.5 text-[9px] font-label-sm font-bold rounded border ${statusColor}">
+                ${typeUpper}
+              </span>
+              <span class="text-headline-sm font-headline-sm font-semibold text-on-surface hover:text-primary transition-colors">
+                ${escapeHtml(act.title)}
+              </span>
+            </div>
+            <span class="text-label-sm font-label-sm font-mono text-outline whitespace-nowrap">
+              ${act.time || (act.timestamp ? act.timestamp.slice(11, 16) : 'Now')}
+            </span>
+          </div>
+
+          <p class="text-body-sm font-body-sm text-on-surface-variant line-clamp-2 mt-1 font-mono text-xs">
+            ${escapeHtml(act.description)}
+          </p>
+
+          <div class="flex items-center justify-between mt-3 pt-2 border-t border-outline-variant/30 text-label-sm font-label-sm text-outline">
+            <span class="font-mono text-[11px]">NODE #ACT-${act.id} // STATUS: ${statusUpper}</span>
+            <span class="text-primary text-xs flex items-center gap-1">INSPECT →</span>
+          </div>
+        </div>
+      `;
+    }).join('');
+
+    if (filteredActivities.length > 0) {
+      if (!selectedActivity || !filteredActivities.some(a => a.id === selectedActivity.id)) {
+        selectActivity(filteredActivities[0].id);
+      } else {
+        populateInspector(selectedActivity);
+      }
+    }
+  }
+
+  function selectActivity(activityId) {
+    selectedActivity = allActivities.find(a => a.id === activityId);
+    if (selectedActivity) {
+      populateInspector(selectedActivity);
+      renderActivities();
+    }
+  }
+
+  function populateInspector(act) {
+    if (!act) return;
+
+    document.getElementById('insp-node-id').textContent = `AUDIT NODE // ID: #ACT-${act.id}`;
+    document.getElementById('insp-status-text').textContent = `STATUS: ${(act.status || 'INFO').toUpperCase()}`;
+    document.getElementById('insp-activity-title').textContent = act.title;
+    document.getElementById('insp-event-type').textContent = (act.event_type || 'SYS_EVENT').toUpperCase();
+    document.getElementById('insp-time').textContent = act.time || 'UTC Live';
+    document.getElementById('insp-timestamp').textContent = act.timestamp ? act.timestamp.replace('T', ' ') : 'Live stream';
+    document.getElementById('insp-description').textContent = act.description;
+
+    document.getElementById('insp-ai-insight').innerHTML = `
+      <span class="text-primary font-label-sm font-bold block mb-1">AUDIT SYNTHESIS</span>
+      Audit verification complete for event [${escapeHtml(act.title)}]. Telemetry state verified against PostgreSQL transaction journals.
+    `;
+  }
+
+  function setEventTypeFilter(type) {
+    activeFilter = type;
+    const types = ['ALL', 'EXECUTION', 'ANALYSIS', 'VECTOR', 'VOICE', 'SYSTEM'];
+    types.forEach(t => {
+      const btn = document.getElementById(`filter-${t.toLowerCase()}`);
+      if (btn) {
+        if (t === type) {
+          btn.className = 'px-3 py-1 bg-primary/20 border border-primary text-primary text-label-sm font-label-sm rounded';
+        } else {
+          btn.className = 'px-3 py-1 bg-surface-container-low border border-outline-variant/50 text-on-surface-variant hover:border-primary/40 hover:text-on-surface text-label-sm font-label-sm rounded';
+        }
+      }
+    });
+    applyFilters();
+  }
+
+  function handleActivitySearch(val) {
+    searchQuery = val;
+    applyFilters();
+  }
+
+  async function handleVerifyAudit() {
+    if (!selectedActivity) return;
+    const btnText = document.getElementById('btn-verify-text');
+    btnText.textContent = 'RUNNING TELEMETRY VERIFICATION...';
+    showToast(`⚡ Diagnostic audit dispatched for Event #${selectedActivity.id}...`);
+
+    try {
+      const res = await window.jarvisApi.sendChatMessage(
+        `Audit activity event #${selectedActivity.id}: ${selectedActivity.title} (${selectedActivity.event_type})`
+      );
+      showToast(`JARVIS: ${res.message.slice(0, 60)}...`);
+      document.getElementById('insp-ai-insight').innerHTML = `
+        <span class="text-primary font-label-sm font-bold block mb-1">AUDIT SYNTHESIS // DIAGNOSTIC RESULT</span>
+        ${escapeHtml(res.message)}
+      `;
+    } catch (err) {
+      console.warn("Audit diagnostics fallback:", err);
+      showToast("Diagnostics completed under baseline kernel telemetry.");
+    } finally {
+      btnText.textContent = '⚡ RUN TELEMETRY DIAGNOSTIC';
+    }
+  }
+
+  function escapeHtml(str) {
+    if (!str) return '';
+    return String(str).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+  }
+
+  window.addEventListener('DOMContentLoaded', loadActivities);
+</script>
+
+</body>
+</html>

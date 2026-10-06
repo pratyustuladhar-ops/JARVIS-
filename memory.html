@@ -1,0 +1,913 @@
+<!DOCTYPE html>
+<html class="dark" lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>JARVIS // VECTOR KNOWLEDGE & SEMANTIC MEMORY</title>
+<!-- Google Fonts -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500;600;700&family=Sora:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+<!-- Material Symbols Outlined -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<!-- Tailwind CSS with Forms and Container Queries -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          "colors": {
+            "on-secondary": "#382461",
+            "on-secondary-fixed-variant": "#4f3c7a",
+            "background": "#111318",
+            "secondary-fixed": "#eaddff",
+            "secondary-fixed-dim": "#d1bcff",
+            "surface": "#111318",
+            "on-tertiary-fixed": "#0f1c2b",
+            "outline-variant": "#3c494e",
+            "primary": "#aae8ff",
+            "on-surface": "#e1e2e8",
+            "inverse-primary": "#00677f",
+            "on-background": "#e1e2e8",
+            "inverse-on-surface": "#2e3035",
+            "inverse-surface": "#e1e2e8",
+            "tertiary-container": "#b7c4d8",
+            "outline": "#869399",
+            "on-tertiary-fixed-variant": "#3b4858",
+            "on-surface-variant": "#bbc9cf",
+            "tertiary-fixed-dim": "#bac7dc",
+            "on-secondary-fixed": "#220c4b",
+            "surface-container": "#1d2024",
+            "surface-variant": "#33353a",
+            "on-primary": "#003543",
+            "surface-container-lowest": "#0c0e13",
+            "on-primary-container": "#00576c",
+            "error-container": "#93000a",
+            "primary-container": "#27d3ff",
+            "on-error": "#690005",
+            "on-primary-fixed-variant": "#004e60",
+            "tertiary": "#d3e0f4",
+            "on-tertiary": "#253141",
+            "tertiary-fixed": "#d6e3f8",
+            "on-secondary-container": "#c0aaf0",
+            "surface-dim": "#111318",
+            "primary-fixed": "#b6ebff",
+            "secondary-container": "#4f3c7a",
+            "surface-container-high": "#282a2f",
+            "on-primary-fixed": "#001f28",
+            "surface-container-highest": "#33353a",
+            "surface-bright": "#37393e",
+            "secondary": "#d1bcff",
+            "on-error-container": "#ffdad6",
+            "surface-container-low": "#191c20",
+            "surface-tint": "#49d6ff",
+            "error": "#ffb4ab",
+            "on-tertiary-container": "#445162",
+            "primary-fixed-dim": "#49d6ff"
+          },
+          "borderRadius": {
+            "DEFAULT": "0.125rem",
+            "lg": "0.25rem",
+            "xl": "0.5rem",
+            "full": "0.75rem"
+          },
+          "fontFamily": {
+            "headline-lg": ["Sora"],
+            "label-sm": ["JetBrains Mono"],
+            "body-md": ["Inter"],
+            "label-lg": ["JetBrains Mono"],
+            "headline-md": ["Sora"],
+            "body-lg": ["Inter"],
+            "body-sm": ["Inter"],
+            "headline-sm": ["Sora"],
+            "label-md": ["JetBrains Mono"],
+            "headline-xl": ["Sora"]
+          }
+        }
+      }
+    }
+  </script>
+<style>
+    .material-symbols-outlined {
+      font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+      display: inline-block;
+      vertical-align: middle;
+      line-height: 1;
+    }
+    .hud-grid-pattern {
+      background-size: 32px 32px;
+      background-image: 
+        linear-gradient(to right, rgba(39, 211, 255, 0.03) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(39, 211, 255, 0.03) 1px, transparent 1px);
+    }
+    .cyan-glow-subtle {
+      box-shadow: 0 0 16px rgba(39, 211, 255, 0.12);
+    }
+    .cyan-glow-pulse {
+      box-shadow: 0 0 20px rgba(39, 211, 255, 0.25);
+    }
+    .reticle-corner {
+      position: relative;
+    }
+    .reticle-corner::before {
+      content: '';
+      position: absolute;
+      top: -1px;
+      left: -1px;
+      width: 6px;
+      height: 6px;
+      border-top: 2px solid #27d3ff;
+      border-left: 2px solid #27d3ff;
+      pointer-events: none;
+    }
+    .reticle-corner::after {
+      content: '';
+      position: absolute;
+      bottom: -1px;
+      right: -1px;
+      width: 6px;
+      height: 6px;
+      border-bottom: 2px solid #27d3ff;
+      border-right: 2px solid #27d3ff;
+      pointer-events: none;
+    }
+    ::-webkit-scrollbar {
+      width: 4px;
+      height: 4px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #0c0e13;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #3c494e;
+      border-radius: 2px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #27d3ff;
+    }
+</style>
+</head>
+<body class="bg-surface-container-lowest text-on-surface antialiased min-h-screen overflow-x-hidden hud-grid-pattern selection:bg-primary-container selection:text-on-primary">
+
+<!-- ========================================== -->
+<!-- SIDE NAVIGATION                            -->
+<!-- Active Tab: Memory                         -->
+<!-- ========================================== -->
+<aside class="fixed left-0 top-0 bottom-0 z-40 flex flex-col justify-between p-4 docked h-screen w-64 border-r border-outline-variant/40 bg-surface-container-lowest/80 backdrop-blur-md">
+<div>
+  <!-- Header Branding -->
+  <div class="flex items-center gap-3 px-2 py-3 border-b border-outline-variant/40 mb-4">
+    <div class="relative flex items-center justify-center w-8 h-8 rounded border border-primary/40 bg-primary/10 cyan-glow-subtle" title="Glowing AI Core Status Indicator">
+      <span class="w-3 h-3 rounded-full bg-primary-container animate-ping absolute opacity-75"></span>
+      <span class="w-2.5 h-2.5 rounded-full bg-primary-container relative"></span>
+    </div>
+    <div class="flex flex-col">
+      <span class="text-headline-md font-headline-md font-bold tracking-widest text-primary leading-tight">JARVIS</span>
+      <span class="text-label-sm font-label-sm text-outline tracking-wider">OS // v4.2 TELEMETRY ACTIVE</span>
+    </div>
+  </div>
+
+  <!-- Command CTA -->
+  <button onclick="window.location.href='assistant.html'" class="w-full mb-5 py-2 px-3 bg-primary/10 hover:bg-primary/20 text-primary border border-primary/50 text-label-md font-label-md font-bold flex items-center justify-center gap-2 tracking-wider transition-all duration-150 cyan-glow-subtle">
+    <span class="material-symbols-outlined text-sm">terminal</span>
+    <span>EXECUTE COMMAND</span>
+  </button>
+
+  <!-- Navigation Tabs -->
+  <nav class="space-y-1">
+    <a class="flex items-center gap-3 px-3 py-2 text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high/40 hover:border-primary/50 transition-all duration-150 rounded" href="index.html">
+      <span class="material-symbols-outlined text-lg">dashboard</span>
+      <span class="text-label-md font-label-md">Dashboard</span>
+    </a>
+    <a class="flex items-center gap-3 px-3 py-2 text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high/40 hover:border-primary/50 transition-all duration-150 rounded" href="assistant.html">
+      <span class="material-symbols-outlined text-lg">smart_toy</span>
+      <span class="text-label-md font-label-md">Assistant</span>
+    </a>
+    <a class="flex items-center gap-3 px-3 py-2 text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high/40 hover:border-primary/50 transition-all duration-150 rounded" href="tasks.html">
+      <span class="material-symbols-outlined text-lg">check_circle</span>
+      <span class="text-label-md font-label-md">Tasks</span>
+    </a>
+    <!-- 3: Memory (ACTIVE) -->
+    <a class="flex items-center gap-3 px-3 py-2 bg-primary/10 text-primary border-l-2 border-primary rounded-r transition-all duration-150 shadow-[inset_0_0_12px_rgba(39,211,255,0.08)]" href="memory.html">
+      <span class="material-symbols-outlined text-lg text-primary">memory</span>
+      <span class="text-label-md font-label-md font-bold tracking-wide">Memory</span>
+      <span class="ml-auto w-1.5 h-1.5 rounded-full bg-primary-container"></span>
+    </a>
+    <a class="flex items-center gap-3 px-3 py-2 text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high/40 hover:border-primary/50 transition-all duration-150 rounded" href="projects.html">
+      <span class="material-symbols-outlined text-lg">folder</span>
+      <span class="text-label-md font-label-md">Projects</span>
+    </a>
+    <a class="flex items-center gap-3 px-3 py-2 text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high/40 hover:border-primary/50 transition-all duration-150 rounded" href="activity.html">
+      <span class="material-symbols-outlined text-lg">timeline</span>
+      <span class="text-label-md font-label-md">Activity</span>
+    </a>
+    <a class="flex items-center gap-3 px-3 py-2 text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high/40 hover:border-primary/50 transition-all duration-150 rounded" href="settings.html">
+      <span class="material-symbols-outlined text-lg">settings</span>
+      <span class="text-label-md font-label-md">Settings</span>
+    </a>
+
+  </nav>
+</div>
+
+<!-- Telemetry Footer Status -->
+<div class="border-t border-outline-variant/40 pt-3 space-y-2">
+  <div class="flex items-center justify-between text-label-sm font-label-sm text-on-surface-variant px-2 py-1 bg-surface-container-low/60 rounded border border-outline-variant/20">
+    <span class="flex items-center gap-2">
+      <span class="material-symbols-outlined text-xs text-primary-container">sensors</span>
+      <span>Vector Index: Synced</span>
+    </span>
+    <span class="w-1.5 h-1.5 rounded-full bg-primary-container animate-pulse"></span>
+  </div>
+  <div class="flex items-center justify-between text-label-sm font-label-sm text-on-surface-variant px-2 py-1 bg-surface-container-low/60 rounded border border-outline-variant/20">
+    <span class="flex items-center gap-2">
+      <span class="material-symbols-outlined text-xs text-outline">storage</span>
+      <span>Storage: PostgreSQL</span>
+    </span>
+    <span class="text-primary text-[9px]">ONLINE</span>
+  </div>
+</div>
+</aside>
+
+<!-- ========================================== -->
+<!-- TOP COMMAND HEADER                         -->
+<!-- ========================================== -->
+<header class="fixed top-0 right-0 left-64 z-30 flex items-center justify-between px-6 py-3 docked full-width border-b border-outline-variant/40 bg-surface-container-lowest/80 backdrop-blur-md">
+  <div class="flex items-center gap-6">
+    <div class="flex items-center gap-2">
+      <a href="index.html" class="text-headline-sm font-headline-sm font-bold tracking-wider text-primary hover:underline">JARVIS // CORE HUD</a>
+      <span class="px-2 py-0.5 text-label-sm font-label-sm bg-surface-container text-on-surface-variant border border-outline-variant/50 rounded">NODE: VECTOR-ALPHA</span>
+    </div>
+    <div class="relative w-72">
+      <span class="material-symbols-outlined absolute left-2.5 top-1/2 -translate-y-1/2 text-outline text-sm">search</span>
+      <input id="header-search-input" oninput="handleMemorySearch(this.value)" class="w-full pl-8 pr-3 py-1 bg-surface-container-low border border-outline-variant/40 text-body-sm font-body-sm text-on-surface placeholder:text-outline/70 focus:outline-none focus:border-primary-container focus:ring-1 focus:ring-primary-container rounded" placeholder="Search memory vector..." type="text"/>
+    </div>
+  </div>
+  <div class="flex items-center gap-4">
+    <div class="hidden lg:flex items-center gap-2 px-3 py-1 bg-surface-container-low border border-primary/20 rounded">
+      <span class="w-2 h-2 rounded-full bg-primary-container animate-pulse"></span>
+      <span class="text-label-sm font-label-sm text-on-surface-variant">VECTOR CACHE:</span>
+      <span class="text-label-sm font-label-sm font-bold text-primary">HOT (100%)</span>
+    </div>
+    <div class="flex items-center gap-2 border-l border-outline-variant/40 pl-4">
+      <button class="relative p-1.5 text-on-surface-variant hover:text-primary transition-colors" title="Notifications">
+        <span class="material-symbols-outlined text-lg">notifications_active</span>
+        <span class="absolute top-1 right-1 w-1.5 h-1.5 bg-primary-container rounded-full"></span>
+      </button>
+      <div class="w-7 h-7 rounded border border-primary/50 bg-primary/10 flex items-center justify-center text-primary text-label-sm font-label-sm font-bold" title="Commander Node">
+        OP-1
+      </div>
+    </div>
+  </div>
+</header>
+
+<!-- ========================================== -->
+<!-- MAIN COMMAND CONTENT CANVAS                -->
+<!-- ========================================== -->
+<main class="ml-64 pt-20 p-8 space-y-6">
+
+  <!-- PAGE HEADER & CONTROLS -->
+  <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-outline-variant/30 pb-4">
+    <div>
+      <div class="flex items-center gap-2">
+        <span class="material-symbols-outlined text-primary text-xl">psychology</span>
+        <h1 class="text-headline-lg font-headline-lg text-on-surface tracking-tight">MEMORY // VECTOR KNOWLEDGE & SEMANTIC GRAPH</h1>
+      </div>
+      <p class="text-body-sm font-body-sm text-on-surface-variant mt-1">Autonomous associative knowledge base, user heuristics, and contextual memory vectors</p>
+    </div>
+    <div class="flex items-center gap-3">
+      <!-- Search filter -->
+      <div class="relative w-60">
+        <span class="material-symbols-outlined absolute left-2.5 top-1/2 -translate-y-1/2 text-outline text-xs">manage_search</span>
+        <input id="memory-search-input" oninput="handleMemorySearch(this.value)" class="w-full pl-8 pr-3 py-1.5 bg-surface-container-low border border-outline-variant/50 text-label-sm font-label-sm text-on-surface placeholder:text-outline rounded focus:border-primary-container focus:outline-none" placeholder="[CTRL+F] Filter memory..." type="text"/>
+      </div>
+      <!-- Primary Trigger: + RECORD MEMORY -->
+      <button onclick="openCreateMemoryModal()" class="flex items-center gap-2 px-4 py-2 bg-primary/10 hover:bg-primary/20 text-primary border border-primary-container text-label-md font-label-md font-bold rounded cyan-glow-pulse transition-all duration-150">
+        <span class="material-symbols-outlined text-base">add_circle</span>
+        <span>+ RECORD MEMORY</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- KPI SUMMARY HUD CARDS (Top Row - 4 Cards) -->
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+    <!-- KPI 1 -->
+    <div class="reticle-corner p-4 bg-surface-container-low/70 border border-outline-variant/40 backdrop-blur-md rounded">
+      <div class="flex items-center justify-between text-outline text-label-sm font-label-sm mb-1">
+        <span>TOTAL MEMORIES</span>
+        <span class="material-symbols-outlined text-sm text-outline">neurology</span>
+      </div>
+      <div id="stat-total-memories" class="text-headline-xl font-headline-xl text-primary font-bold tracking-tight">--</div>
+      <div class="text-label-sm font-label-sm text-on-surface-variant flex items-center gap-1.5 mt-1">
+        <span class="w-1.5 h-1.5 rounded-full bg-primary"></span>
+        <span>STORED NODES</span>
+      </div>
+    </div>
+    <!-- KPI 2 -->
+    <div class="reticle-corner p-4 bg-surface-container-low/70 border border-outline-variant/40 backdrop-blur-md rounded">
+      <div class="flex items-center justify-between text-outline text-label-sm font-label-sm mb-1">
+        <span>CODEBASE ANCHORS</span>
+        <span class="material-symbols-outlined text-sm text-primary-container">data_object</span>
+      </div>
+      <div id="stat-codebase-memories" class="text-headline-xl font-headline-xl text-primary-container font-bold tracking-tight">--</div>
+      <div class="text-label-sm font-label-sm text-on-surface-variant flex items-center gap-1.5 mt-1">
+        <span class="w-1.5 h-1.5 rounded-full bg-primary-container animate-ping"></span>
+        <span>ARCHITECTURE VECTORS</span>
+      </div>
+    </div>
+    <!-- KPI 3 -->
+    <div class="reticle-corner p-4 bg-surface-container-low/70 border border-outline-variant/40 backdrop-blur-md rounded">
+      <div class="flex items-center justify-between text-outline text-label-sm font-label-sm mb-1">
+        <span>USER PREFERENCES</span>
+        <span class="material-symbols-outlined text-sm text-secondary">tune</span>
+      </div>
+      <div id="stat-preference-memories" class="text-headline-xl font-headline-xl text-secondary font-bold tracking-tight">--</div>
+      <div class="text-label-sm font-label-sm text-on-surface-variant flex items-center gap-1.5 mt-1">
+        <span class="w-1.5 h-1.5 rounded-full bg-secondary"></span>
+        <span>HEURISTIC PROFILES</span>
+      </div>
+    </div>
+    <!-- KPI 4 -->
+    <div class="reticle-corner p-4 bg-surface-container-low/70 border border-outline-variant/40 backdrop-blur-md rounded">
+      <div class="flex items-center justify-between text-outline text-label-sm font-label-sm mb-1">
+        <span>HIGH IMPORTANCE</span>
+        <span class="material-symbols-outlined text-sm text-primary">star</span>
+      </div>
+      <div id="stat-high-importance" class="text-headline-xl font-headline-xl text-primary font-bold tracking-tight">--</div>
+      <div class="text-label-sm font-label-sm text-on-surface-variant flex items-center gap-1.5 mt-1">
+        <span class="w-1.5 h-1.5 rounded-full bg-primary"></span>
+        <span>PRIORITY WEIGHT &gt;= 0.8</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- MEMORY TYPE FILTER CHIPS -->
+  <div class="flex flex-wrap items-center justify-between gap-3 p-3 bg-surface-container-lowest border border-outline-variant/40 rounded">
+    <div class="flex items-center gap-2 overflow-x-auto">
+      <button onclick="setMemoryTypeFilter('ALL')" id="filter-all" class="px-3 py-1 bg-primary/20 border border-primary text-primary text-label-sm font-label-sm rounded">
+        All Vectors
+      </button>
+      <button onclick="setMemoryTypeFilter('PREFERENCE')" id="filter-preference" class="px-3 py-1 bg-surface-container-low border border-outline-variant/50 text-on-surface-variant hover:border-primary/40 hover:text-on-surface text-label-sm font-label-sm rounded">
+        Preferences
+      </button>
+      <button onclick="setMemoryTypeFilter('CODEBASE')" id="filter-codebase" class="px-3 py-1 bg-surface-container-low border border-outline-variant/50 text-on-surface-variant hover:border-primary/40 hover:text-on-surface text-label-sm font-label-sm rounded">
+        Codebase
+      </button>
+      <button onclick="setMemoryTypeFilter('FACT')" id="filter-fact" class="px-3 py-1 bg-surface-container-low border border-outline-variant/50 text-on-surface-variant hover:border-primary/40 hover:text-on-surface text-label-sm font-label-sm rounded">
+        Facts
+      </button>
+      <button onclick="setMemoryTypeFilter('EPISODIC')" id="filter-episodic" class="px-3 py-1 bg-surface-container-low border border-outline-variant/50 text-on-surface-variant hover:border-primary/40 hover:text-on-surface text-label-sm font-label-sm rounded">
+        Episodic
+      </button>
+      <button onclick="setMemoryTypeFilter('SEMANTIC')" id="filter-semantic" class="px-3 py-1 bg-surface-container-low border border-outline-variant/50 text-on-surface-variant hover:border-primary/40 hover:text-on-surface text-label-sm font-label-sm rounded">
+        Semantic
+      </button>
+    </div>
+    <div class="flex items-center gap-3 text-label-sm font-label-sm text-outline">
+      <button onclick="toggleMemorySort()" id="sort-toggle-btn" class="hover:text-primary transition-colors flex items-center gap-1">
+        <span>SORT: IMPORTANCE</span>
+        <span class="material-symbols-outlined text-xs">swap_vert</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- 2-COLUMN COMMAND GRID LAYOUT (60% / 40%) -->
+  <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+    <!-- LEFT COLUMN: MEMORY CARD LIST (7 Cols) -->
+    <div class="lg:col-span-7 space-y-4">
+      <div class="flex items-center justify-between px-1">
+        <span id="memory-count-badge" class="text-label-md font-label-md text-outline tracking-wider flex items-center gap-2">
+          <span class="material-symbols-outlined text-sm">hub</span>
+          STORED MEMORIES
+        </span>
+        <span class="text-label-sm font-label-sm text-outline">POSTGRESQL // FASTAPI /api/v1/memory</span>
+      </div>
+
+      <div id="memory-list-container" class="space-y-3">
+        <!-- Dynamic cards inserted via JS -->
+      </div>
+    </div>
+
+    <!-- RIGHT COLUMN: DETAILED MEMORY INTELLIGENCE INSPECTOR (5 Cols) -->
+    <div class="lg:col-span-5 space-y-5">
+      <div class="reticle-corner p-6 bg-surface-container/90 border border-outline-variant/50 rounded backdrop-blur-md space-y-5">
+        
+        <!-- Header & Overview -->
+        <div class="border-b border-outline-variant/40 pb-4">
+          <div class="flex items-center justify-between mb-1">
+            <span id="insp-node-id" class="text-label-sm font-label-sm text-primary tracking-widest">INSPECTION NODE // ID: #MEM-1</span>
+            <span id="insp-type-badge" class="px-2 py-0.5 text-label-sm font-label-sm bg-primary/20 text-primary border border-primary/40 rounded flex items-center gap-1">
+              <span class="w-1.5 h-1.5 rounded-full bg-primary animate-pulse"></span>
+              <span id="insp-type-text">PREFERENCE</span>
+            </span>
+          </div>
+          <h2 id="insp-memory-title" class="text-headline-md font-headline-md font-bold text-on-surface">MEMORY DETAIL</h2>
+          <div class="grid grid-cols-2 gap-2 mt-4 text-label-sm font-label-sm bg-surface-container-lowest p-3 border border-outline-variant/30 rounded">
+            <div>
+              <span class="text-outline">IMPORTANCE:</span>
+              <span id="insp-importance" class="text-primary font-bold ml-1">0.95</span>
+            </div>
+            <div>
+              <span class="text-outline">RELEVANCE:</span>
+              <span id="insp-relevance" class="text-primary font-bold ml-1">1.00</span>
+            </div>
+            <div class="col-span-2">
+              <span class="text-outline">CREATED:</span>
+              <span id="insp-created" class="text-on-surface ml-1 font-mono">2026-10-04 14:10</span>
+            </div>
+          </div>
+
+          <!-- Edit & Delete Buttons -->
+          <div class="flex items-center gap-2 mt-3 pt-3 border-t border-outline-variant/30">
+            <button onclick="openEditMemoryModal()" class="flex-1 py-1.5 px-3 bg-surface-container hover:bg-surface-container-high border border-outline-variant/50 text-label-sm font-label-sm text-on-surface hover:text-primary flex items-center justify-center gap-1.5 transition-all rounded">
+              <span class="material-symbols-outlined text-sm">edit</span>
+              <span>EDIT SPEC</span>
+            </button>
+            <button onclick="handleDeleteMemory()" class="py-1.5 px-3 bg-error-container/20 hover:bg-error-container/40 border border-error-container/50 text-label-sm font-label-sm text-error flex items-center justify-center gap-1.5 transition-all rounded">
+              <span class="material-symbols-outlined text-sm">delete</span>
+              <span>DELETE</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Section 2: Full Content Spec -->
+        <div>
+          <span class="text-label-md font-label-md text-on-surface font-semibold tracking-wider block mb-2">RAW MEMORY CONTENT</span>
+          <div id="insp-content" class="p-3 bg-surface-container-lowest border border-outline-variant/40 rounded text-body-sm font-body-sm text-on-surface font-mono leading-relaxed whitespace-pre-wrap select-text">
+            Select a memory node from the left telemetry list.
+          </div>
+        </div>
+
+        <!-- Section 3: Vector & Embedding Information -->
+        <div class="p-3.5 bg-surface-container-lowest border border-outline-variant/40 rounded space-y-2 text-label-sm font-label-sm">
+          <div class="flex items-center justify-between text-outline">
+            <span class="flex items-center gap-1 text-primary">
+              <span class="material-symbols-outlined text-xs">scatter_plot</span>
+              VECTOR ANCHOR
+            </span>
+            <span class="text-primary text-[10px]">GRAPH LEVEL 1</span>
+          </div>
+          <div class="flex items-center justify-between">
+            <span class="text-outline">EMBEDDING ID:</span>
+            <span id="insp-embedding-id" class="text-on-surface font-mono text-xs truncate max-w-[200px]">vec_emb_auto_001</span>
+          </div>
+          <div class="flex items-center justify-between">
+            <span class="text-outline">TAGS:</span>
+            <span id="insp-tags" class="text-primary font-mono text-xs">ui, dark-mode, system</span>
+          </div>
+        </div>
+
+        <!-- Section 4: Context Retrieval Trigger -->
+        <button id="btn-retrieve-context" onclick="handleRetrieveContext()" class="w-full py-2.5 px-3 bg-primary/20 hover:bg-primary/30 text-primary border border-primary-container text-label-md font-label-md font-bold rounded cyan-glow-pulse flex items-center justify-center gap-2 transition-all duration-150">
+          <span class="material-symbols-outlined text-sm">psychology</span>
+          <span id="btn-retrieve-text">⚡ RETRIEVE ASSOCIATIVE CONTEXT</span>
+        </button>
+
+        <!-- Dynamic AI Insight -->
+        <div id="insp-ai-insight" class="p-2.5 bg-surface-container-high/40 border-l-2 border-primary-container rounded-r text-body-sm font-body-sm text-on-surface-variant">
+          <span class="text-primary font-label-sm font-bold block mb-1">AI INSIGHT</span>
+          JARVIS associative memory network active. Selected memory vector can be injected into agent reasoning prompts.
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+
+</main>
+
+<!-- ========================================== -->
+<!-- MODAL: CREATE / EDIT MEMORY                -->
+<!-- ========================================== -->
+<div class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-surface-container-lowest/80 backdrop-blur-md" id="memory-modal">
+  <div class="reticle-corner w-full max-w-lg p-6 bg-surface-container/95 border border-primary-container/80 rounded shadow-2xl space-y-4 cyan-glow-pulse">
+    <div class="flex items-center justify-between border-b border-outline-variant/40 pb-3">
+      <div class="flex items-center gap-2">
+        <span class="material-symbols-outlined text-primary">memory</span>
+        <h2 id="memory-modal-header" class="text-headline-sm font-headline-sm font-bold text-on-surface">RECORD NEW MEMORY</h2>
+      </div>
+      <button class="text-outline hover:text-on-surface" onclick="closeMemoryModal()">
+        <span class="material-symbols-outlined text-lg">close</span>
+      </button>
+    </div>
+    <p class="text-body-sm font-body-sm text-outline">Anchor facts, preferences, or codebase knowledge into PostgreSQL /api/v1/memory.</p>
+    <form id="memory-form" class="space-y-4" onsubmit="handleMemorySubmit(event)">
+      <input type="hidden" id="memory-form-id" value="" />
+      <div>
+        <label class="block text-label-sm font-label-sm text-on-surface-variant mb-1">MEMORY CONTENT *</label>
+        <textarea id="memory-input-content" class="w-full px-3 py-2 bg-surface-container-lowest border border-outline-variant/60 text-body-sm font-body-sm text-on-surface rounded focus:outline-none focus:border-primary-container" placeholder="e.g. Always use dark HUD aesthetics with cyan accents for dashboard UI..." rows="3" required></textarea>
+      </div>
+      <div class="grid grid-cols-2 gap-3">
+        <div>
+          <label class="block text-label-sm font-label-sm text-on-surface-variant mb-1">MEMORY TYPE</label>
+          <select id="memory-input-type" class="w-full px-3 py-1.5 bg-surface-container-lowest border border-outline-variant/60 text-body-sm font-body-sm text-on-surface rounded focus:outline-none focus:border-primary-container">
+            <option value="PREFERENCE">PREFERENCE</option>
+            <option value="CODEBASE">CODEBASE</option>
+            <option value="FACT">FACT</option>
+            <option value="EPISODIC">EPISODIC</option>
+            <option value="SEMANTIC">SEMANTIC</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-label-sm font-label-sm text-on-surface-variant mb-1">IMPORTANCE (0.0 - 1.0)</label>
+          <input id="memory-input-importance" class="w-full px-3 py-1.5 bg-surface-container-lowest border border-outline-variant/60 text-body-sm font-body-sm text-on-surface rounded focus:outline-none focus:border-primary-container" type="number" step="0.05" min="0" max="1" value="0.8"/>
+        </div>
+      </div>
+      <div>
+        <label class="block text-label-sm font-label-sm text-on-surface-variant mb-1">TAGS (COMMA-SEPARATED)</label>
+        <input id="memory-input-tags" class="w-full px-3 py-1.5 bg-surface-container-lowest border border-outline-variant/60 text-body-sm font-body-sm text-on-surface rounded focus:outline-none focus:border-primary-container" placeholder="ui, preferences, python, database" type="text"/>
+      </div>
+      <div class="flex items-center justify-end gap-3 pt-3 border-t border-outline-variant/40">
+        <button class="px-4 py-2 text-label-sm font-label-sm text-outline hover:text-on-surface bg-surface-container hover:bg-surface-container-high rounded transition-colors" onclick="closeMemoryModal()" type="button">
+          Cancel
+        </button>
+        <button id="memory-form-submit-btn" class="px-5 py-2 text-label-sm font-label-sm font-bold bg-primary/20 hover:bg-primary/30 text-primary border border-primary-container rounded cyan-glow-subtle transition-all" type="submit">
+          <span id="memory-submit-text">Save Memory</span>
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- ========================================== -->
+<!-- HUD TOAST NOTIFICATION CONTAINER           -->
+<!-- ========================================== -->
+<div id="jarvis-toast-container" class="fixed bottom-6 right-6 z-50 flex flex-col gap-2 max-w-sm pointer-events-none"></div>
+
+<!-- Centralized API Service Layer -->
+<script type="module" src="src/services/api.js"></script>
+
+<script>
+  let allMemories = [];
+  let filteredMemories = [];
+  let selectedMemory = null;
+  let activeTypeFilter = 'ALL';
+  let searchQuery = '';
+  let sortOrder = 'importance_desc';
+
+  function showToast(message, type = 'info') {
+    const container = document.getElementById('jarvis-toast-container');
+    const toast = document.createElement('div');
+    const isError = type === 'error';
+    const borderColor = isError ? 'border-error/80' : 'border-primary/80';
+    const textColor = isError ? 'text-error' : 'text-primary';
+    const icon = isError ? 'error' : 'check_circle';
+
+    toast.className = `reticle-corner p-3 bg-surface-container/95 border ${borderColor} text-on-surface text-label-sm font-label-sm shadow-xl flex items-center gap-3 transition-all duration-300 transform translate-y-4 opacity-0 pointer-events-auto`;
+    toast.innerHTML = `
+      <span class="material-symbols-outlined text-sm ${textColor}">${icon}</span>
+      <span class="flex-1">${escapeHtml(message)}</span>
+      <span class="text-outline text-[10px]">JARVIS // OS</span>
+    `;
+
+    container.appendChild(toast);
+    requestAnimationFrame(() => {
+      toast.classList.remove('translate-y-4', 'opacity-0');
+      toast.classList.add('translate-y-0', 'opacity-100');
+    });
+
+    setTimeout(() => {
+      toast.classList.add('opacity-0', 'translate-y-2');
+      setTimeout(() => toast.remove(), 300);
+    }, 4000);
+  }
+
+  async function loadMemories() {
+    const container = document.getElementById('memory-list-container');
+    container.innerHTML = `
+      <div class="p-8 text-center text-outline text-label-sm font-label-sm flex items-center justify-center gap-3">
+        <span class="material-symbols-outlined animate-spin text-primary">cyclone</span>
+        <span>CONNECTING TO FASTAPI /api/v1/memory...</span>
+      </div>
+    `;
+
+    try {
+      allMemories = await window.jarvisApi.getMemories();
+      updateKPICards(allMemories);
+      applyFilters();
+    } catch (err) {
+      console.error("Failed to load memories from backend:", err);
+      container.innerHTML = `
+        <div class="reticle-corner p-8 bg-surface-container-low/80 border border-error/50 text-center text-label-sm font-label-sm space-y-3">
+          <span class="material-symbols-outlined text-3xl text-error">cloud_off</span>
+          <div class="text-error font-bold">MEMORY TELEMETRY DISCONNECTED</div>
+          <p class="text-outline">FastAPI backend at http://localhost:8000/api/v1/memory is unreachable.</p>
+          <button onclick="loadMemories()" class="px-4 py-2 bg-primary/10 border border-primary text-primary hover:bg-primary/20 transition-all">
+            ↻ RETRY CONNECTION
+          </button>
+        </div>
+      `;
+      showToast("Cannot connect to FastAPI memory backend.", "error");
+    }
+  }
+
+  function updateKPICards(memories) {
+    const total = memories.length;
+    const codebase = memories.filter(m => (m.memory_type || '').toUpperCase() === 'CODEBASE').length;
+    const preference = memories.filter(m => (m.memory_type || '').toUpperCase() === 'PREFERENCE').length;
+    const highImp = memories.filter(m => (m.importance || 0) >= 0.8).length;
+
+    document.getElementById('stat-total-memories').textContent = String(total).padStart(2, '0');
+    document.getElementById('stat-codebase-memories').textContent = String(codebase).padStart(2, '0');
+    document.getElementById('stat-preference-memories').textContent = String(preference).padStart(2, '0');
+    document.getElementById('stat-high-importance').textContent = String(highImp).padStart(2, '0');
+
+    document.getElementById('memory-count-badge').innerHTML = `
+      <span class="material-symbols-outlined text-sm">hub</span>
+      STORED MEMORIES (${total} ACTIVE VECTORS)
+    `;
+  }
+
+  function applyFilters() {
+    let list = [...allMemories];
+
+    if (activeTypeFilter !== 'ALL') {
+      list = list.filter(m => (m.memory_type || '').toUpperCase() === activeTypeFilter);
+    }
+
+    if (searchQuery) {
+      const q = searchQuery.toLowerCase();
+      list = list.filter(m =>
+        (m.content && m.content.toLowerCase().includes(q)) ||
+        (m.memory_type && m.memory_type.toLowerCase().includes(q)) ||
+        (m.tags && m.tags.toLowerCase().includes(q))
+      );
+    }
+
+    if (sortOrder === 'importance_desc') {
+      list.sort((a, b) => (b.importance || 0) - (a.importance || 0));
+    } else if (sortOrder === 'importance_asc') {
+      list.sort((a, b) => (a.importance || 0) - (b.importance || 0));
+    } else {
+      list.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+    }
+
+    filteredMemories = list;
+    renderMemories();
+  }
+
+  function renderMemories() {
+    const container = document.getElementById('memory-list-container');
+
+    if (filteredMemories.length === 0) {
+      container.innerHTML = `
+        <div class="reticle-corner bg-surface-container-lowest border border-outline-variant/40 p-8 text-center text-outline text-label-sm font-label-sm space-y-3">
+          <span class="material-symbols-outlined text-3xl text-outline/50">inbox</span>
+          <div class="text-on-surface font-semibold">NO MEMORIES FOUND</div>
+          <p class="text-outline">No knowledge nodes match the active query vector.</p>
+          <button onclick="openCreateMemoryModal()" class="px-4 py-2 bg-primary/10 border border-primary text-primary hover:bg-primary/20 transition-all">
+            + RECORD NEW MEMORY
+          </button>
+        </div>
+      `;
+      return;
+    }
+
+    container.innerHTML = filteredMemories.map(mem => {
+      const isSelected = selectedMemory && selectedMemory.id === mem.id;
+      const borderClass = isSelected
+        ? 'border-2 border-primary-container cyan-glow-pulse bg-surface-container/90'
+        : 'border border-outline-variant/40 hover:border-primary/50 bg-surface-container-low/70';
+
+      const typeUpper = (mem.memory_type || 'PREFERENCE').toUpperCase();
+      const importancePct = Math.round((mem.importance || 0.5) * 100);
+
+      const tagBadges = (mem.tags || '')
+        .split(',')
+        .map(t => t.trim())
+        .filter(Boolean)
+        .slice(0, 3)
+        .map(t => `<span class="px-1.5 py-0.5 text-label-sm font-label-sm bg-surface-container-high text-on-surface-variant border border-outline-variant/30 rounded">${escapeHtml(t)}</span>`)
+        .join('');
+
+      return `
+        <div onclick="selectMemory(${mem.id})" class="reticle-corner relative p-4 rounded cursor-pointer transition-all duration-200 ${borderClass}">
+          <div class="flex items-start justify-between gap-3 mb-2">
+            <div class="flex items-center gap-2">
+              <span class="px-2 py-0.5 text-[9px] font-label-sm font-bold bg-primary/15 text-primary border border-primary/30 rounded">
+                ${typeUpper}
+              </span>
+              <span class="text-label-sm font-label-sm text-outline font-mono">#MEM-${mem.id}</span>
+              ${isSelected ? '<span class="w-1.5 h-1.5 rounded-full bg-primary-container animate-pulse"></span>' : ''}
+            </div>
+            <div class="flex items-center gap-1.5 text-label-sm font-label-sm text-outline">
+              <span>IMP:</span>
+              <span class="text-primary font-bold font-mono">${(mem.importance || 0).toFixed(2)}</span>
+            </div>
+          </div>
+
+          <p class="text-body-sm font-body-sm text-on-surface font-medium line-clamp-2 mt-1">
+            ${escapeHtml(mem.content)}
+          </p>
+
+          <div class="flex flex-wrap items-center justify-between gap-2 mt-3 pt-2.5 border-t border-outline-variant/30 text-label-sm font-label-sm">
+            <div class="flex items-center gap-1.5">
+              ${tagBadges || '<span class="text-outline text-[10px]">untagged</span>'}
+            </div>
+            <div class="flex items-center gap-3 text-outline text-[11px] font-mono">
+              <span>${mem.created_at ? mem.created_at.split('T')[0] : 'Today'}</span>
+              <span class="text-primary">→</span>
+            </div>
+          </div>
+        </div>
+      `;
+    }).join('');
+
+    if (filteredMemories.length > 0) {
+      if (!selectedMemory || !filteredMemories.some(m => m.id === selectedMemory.id)) {
+        selectMemory(filteredMemories[0].id);
+      } else {
+        populateInspector(selectedMemory);
+      }
+    }
+  }
+
+  async function selectMemory(memoryId) {
+    try {
+      selectedMemory = await window.jarvisApi.getMemory(memoryId);
+      populateInspector(selectedMemory);
+      renderMemories();
+    } catch (err) {
+      console.warn("Could not fetch memory by ID, using local cache:", err);
+      selectedMemory = allMemories.find(m => m.id === memoryId);
+      if (selectedMemory) populateInspector(selectedMemory);
+    }
+  }
+
+  function populateInspector(mem) {
+    if (!mem) return;
+
+    document.getElementById('insp-node-id').textContent = `INSPECTION NODE // ID: #MEM-${mem.id}`;
+    document.getElementById('insp-type-text').textContent = (mem.memory_type || 'PREFERENCE').toUpperCase();
+    document.getElementById('insp-importance').textContent = (mem.importance ?? 0.5).toFixed(2);
+    document.getElementById('insp-relevance').textContent = (mem.relevance_score ?? 1.0).toFixed(2);
+    document.getElementById('insp-created').textContent = mem.created_at ? mem.created_at.replace('T', ' ').slice(0, 16) : 'Just now';
+    document.getElementById('insp-content').textContent = mem.content;
+    document.getElementById('insp-embedding-id').textContent = mem.embedding_id || `emb_vec_${mem.id}_synced`;
+    document.getElementById('insp-tags').textContent = mem.tags || 'baseline-heuristic';
+
+    document.getElementById('insp-ai-insight').innerHTML = `
+      <span class="text-primary font-label-sm font-bold block mb-1">AI INSIGHT</span>
+      Memory Node #${mem.id} [${escapeHtml(mem.memory_type || 'FACT')}] is available for automated contextual assembly. Heuristic score: ${Math.round((mem.importance || 0.5) * 100)}%.
+    `;
+  }
+
+  function setMemoryTypeFilter(type) {
+    activeTypeFilter = type;
+    const types = ['ALL', 'PREFERENCE', 'CODEBASE', 'FACT', 'EPISODIC', 'SEMANTIC'];
+    types.forEach(t => {
+      const btn = document.getElementById(`filter-${t.toLowerCase()}`);
+      if (btn) {
+        if (t === type) {
+          btn.className = 'px-3 py-1 bg-primary/20 border border-primary text-primary text-label-sm font-label-sm rounded';
+        } else {
+          btn.className = 'px-3 py-1 bg-surface-container-low border border-outline-variant/50 text-on-surface-variant hover:border-primary/40 hover:text-on-surface text-label-sm font-label-sm rounded';
+        }
+      }
+    });
+    applyFilters();
+  }
+
+  function handleMemorySearch(val) {
+    searchQuery = val;
+    applyFilters();
+  }
+
+  function toggleMemorySort() {
+    if (sortOrder === 'importance_desc') {
+      sortOrder = 'importance_asc';
+      document.getElementById('sort-toggle-btn').innerHTML = '<span>SORT: IMPORTANCE ASC</span><span class="material-symbols-outlined text-xs">swap_vert</span>';
+    } else if (sortOrder === 'importance_asc') {
+      sortOrder = 'created_desc';
+      document.getElementById('sort-toggle-btn').innerHTML = '<span>SORT: DATE CREATED</span><span class="material-symbols-outlined text-xs">swap_vert</span>';
+    } else {
+      sortOrder = 'importance_desc';
+      document.getElementById('sort-toggle-btn').innerHTML = '<span>SORT: IMPORTANCE DESC</span><span class="material-symbols-outlined text-xs">swap_vert</span>';
+    }
+    applyFilters();
+  }
+
+  function openCreateMemoryModal() {
+    document.getElementById('memory-modal-header').textContent = 'RECORD NEW MEMORY';
+    document.getElementById('memory-form-id').value = '';
+    document.getElementById('memory-input-content').value = '';
+    document.getElementById('memory-input-type').value = 'PREFERENCE';
+    document.getElementById('memory-input-importance').value = '0.8';
+    document.getElementById('memory-input-tags').value = '';
+    document.getElementById('memory-submit-text').textContent = 'Record Memory';
+    document.getElementById('memory-modal').classList.remove('hidden');
+  }
+
+  function openEditMemoryModal() {
+    if (!selectedMemory) return;
+    document.getElementById('memory-modal-header').textContent = `EDIT MEMORY [#MEM-${selectedMemory.id}]`;
+    document.getElementById('memory-form-id').value = selectedMemory.id;
+    document.getElementById('memory-input-content').value = selectedMemory.content || '';
+    document.getElementById('memory-input-type').value = selectedMemory.memory_type || 'PREFERENCE';
+    document.getElementById('memory-input-importance').value = selectedMemory.importance ?? 0.8;
+    document.getElementById('memory-input-tags').value = selectedMemory.tags || '';
+    document.getElementById('memory-submit-text').textContent = '💾 Update Memory';
+    document.getElementById('memory-modal').classList.remove('hidden');
+  }
+
+  function closeMemoryModal() {
+    document.getElementById('memory-modal').classList.add('hidden');
+  }
+
+  async function handleMemorySubmit(event) {
+    event.preventDefault();
+    const memId = document.getElementById('memory-form-id').value;
+    const content = document.getElementById('memory-input-content').value.trim();
+    const memory_type = document.getElementById('memory-input-type').value;
+    const importance = parseFloat(document.getElementById('memory-input-importance').value || '0.5');
+    const tags = document.getElementById('memory-input-tags').value.trim();
+
+    const btn = document.getElementById('memory-form-submit-btn');
+    btn.disabled = true;
+    btn.classList.add('opacity-50');
+
+    try {
+      if (memId) {
+        const updated = await window.jarvisApi.updateMemory(Number(memId), {
+          content,
+          memory_type,
+          importance,
+          tags
+        });
+        showToast(`Memory #${memId} updated successfully!`);
+        closeMemoryModal();
+        await loadMemories();
+        selectMemory(updated.id);
+      } else {
+        const created = await window.jarvisApi.createMemory({
+          content,
+          memory_type,
+          importance,
+          relevance_score: 1.0,
+          tags,
+          embedding_id: `emb_${Date.now()}`
+        });
+        showToast(`Memory #${created.id} recorded and anchored!`);
+        closeMemoryModal();
+        await loadMemories();
+        selectMemory(created.id);
+      }
+    } catch (err) {
+      console.error("Save memory failed:", err);
+      showToast(`Error saving memory: ${err.message}`, 'error');
+    } finally {
+      btn.disabled = false;
+      btn.classList.remove('opacity-50');
+    }
+  }
+
+  async function handleDeleteMemory() {
+    if (!selectedMemory) return;
+    const confirmed = confirm(`Are you sure you want to delete Memory #${selectedMemory.id}? This will remove the vector anchor from PostgreSQL.`);
+    if (!confirmed) return;
+
+    try {
+      await window.jarvisApi.deleteMemory(selectedMemory.id);
+      showToast(`Memory #${selectedMemory.id} deleted from database.`);
+      selectedMemory = null;
+      await loadMemories();
+    } catch (err) {
+      console.error("Delete memory failed:", err);
+      showToast(`Failed to delete memory: ${err.message}`, 'error');
+    }
+  }
+
+  async function handleRetrieveContext() {
+    if (!selectedMemory) return;
+    const btnText = document.getElementById('btn-retrieve-text');
+    btnText.textContent = 'RETRIEVING ASSOCIATIVE CONTEXT...';
+    showToast(`⚡ Context synthesis dispatched for Memory #${selectedMemory.id}...`);
+
+    try {
+      const res = await window.jarvisApi.sendChatMessage(
+        `Recall memory context: "${selectedMemory.content}" (Type: ${selectedMemory.memory_type})`
+      );
+      showToast(`JARVIS: ${res.message.slice(0, 60)}...`);
+      document.getElementById('insp-ai-insight').innerHTML = `
+        <span class="text-primary font-label-sm font-bold block mb-1">AI INSIGHT // CONTEXT GRAPH</span>
+        ${escapeHtml(res.message)}
+      `;
+    } catch (err) {
+      console.warn("Context retrieval fallback:", err);
+      showToast("Contextual graph synchronized locally.");
+    } finally {
+      btnText.textContent = '⚡ RETRIEVE ASSOCIATIVE CONTEXT';
+    }
+  }
+
+  function escapeHtml(str) {
+    if (!str) return '';
+    return String(str).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+  }
+
+  window.addEventListener('DOMContentLoaded', loadMemories);
+</script>
+
+</body>
+</html>

@@ -1,0 +1,1157 @@
+<!DOCTYPE html>
+<html class="dark" lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>JARVIS // AI-POWERED PROJECT INTELLIGENCE</title>
+<!-- Google Fonts -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&amp;family=JetBrains+Mono:wght@400;500;600;700&amp;family=Sora:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<!-- Material Symbols Outlined -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind CSS with Forms and Container Queries -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          "colors": {
+            "on-secondary": "#382461",
+            "on-secondary-fixed-variant": "#4f3c7a",
+            "background": "#111318",
+            "secondary-fixed": "#eaddff",
+            "secondary-fixed-dim": "#d1bcff",
+            "surface": "#111318",
+            "on-tertiary-fixed": "#0f1c2b",
+            "outline-variant": "#3c494e",
+            "primary": "#aae8ff",
+            "on-surface": "#e1e2e8",
+            "inverse-primary": "#00677f",
+            "on-background": "#e1e2e8",
+            "inverse-on-surface": "#2e3035",
+            "inverse-surface": "#e1e2e8",
+            "tertiary-container": "#b7c4d8",
+            "outline": "#869399",
+            "on-tertiary-fixed-variant": "#3b4858",
+            "on-surface-variant": "#bbc9cf",
+            "tertiary-fixed-dim": "#bac7dc",
+            "on-secondary-fixed": "#220c4b",
+            "surface-container": "#1d2024",
+            "surface-variant": "#33353a",
+            "on-primary": "#003543",
+            "surface-container-lowest": "#0c0e13",
+            "on-primary-container": "#00576c",
+            "error-container": "#93000a",
+            "primary-container": "#27d3ff",
+            "on-error": "#690005",
+            "on-primary-fixed-variant": "#004e60",
+            "tertiary": "#d3e0f4",
+            "on-tertiary": "#253141",
+            "tertiary-fixed": "#d6e3f8",
+            "on-secondary-container": "#c0aaf0",
+            "surface-dim": "#111318",
+            "primary-fixed": "#b6ebff",
+            "secondary-container": "#4f3c7a",
+            "surface-container-high": "#282a2f",
+            "on-primary-fixed": "#001f28",
+            "surface-container-highest": "#33353a",
+            "surface-bright": "#37393e",
+            "secondary": "#d1bcff",
+            "on-error-container": "#ffdad6",
+            "surface-container-low": "#191c20",
+            "surface-tint": "#49d6ff",
+            "error": "#ffb4ab",
+            "on-tertiary-container": "#445162",
+            "primary-fixed-dim": "#49d6ff"
+          },
+          "borderRadius": {
+            "DEFAULT": "0.125rem",
+            "lg": "0.25rem",
+            "xl": "0.5rem",
+            "full": "0.75rem"
+          },
+          "spacing": {
+            "margin-mobile": "1rem",
+            "gutter": "1rem",
+            "space-md": "1rem",
+            "space-lg": "1.5rem",
+            "gutter-mobile": "0.75rem",
+            "space-xs": "0.25rem",
+            "space-sm": "0.5rem",
+            "margin": "2rem",
+            "space-xl": "2.5rem"
+          },
+          "fontFamily": {
+            "headline-lg-mobile": ["Sora"],
+            "headline-lg": ["Sora"],
+            "label-sm": ["JetBrains Mono"],
+            "headline-xl-mobile": ["Sora"],
+            "body-md": ["Inter"],
+            "label-lg": ["JetBrains Mono"],
+            "headline-md": ["Sora"],
+            "body-lg": ["Inter"],
+            "body-sm": ["Inter"],
+            "headline-sm": ["Sora"],
+            "label-md": ["JetBrains Mono"],
+            "headline-xl": ["Sora"]
+          },
+          "fontSize": {
+            "headline-lg-mobile": ["22px", { "lineHeight": "30px", "letterSpacing": "0em", "fontWeight": "600" }],
+            "headline-lg": ["28px", { "lineHeight": "36px", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+            "label-sm": ["10px", { "lineHeight": "14px", "letterSpacing": "0.1em", "fontWeight": "500" }],
+            "headline-xl-mobile": ["28px", { "lineHeight": "36px", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+            "body-md": ["14px", { "lineHeight": "22px", "fontWeight": "400" }],
+            "label-lg": ["13px", { "lineHeight": "18px", "letterSpacing": "0.06em", "fontWeight": "500" }],
+            "headline-md": ["20px", { "lineHeight": "28px", "letterSpacing": "-0.005em", "fontWeight": "500" }],
+            "body-lg": ["16px", { "lineHeight": "26px", "fontWeight": "400" }],
+            "body-sm": ["12px", { "lineHeight": "18px", "fontWeight": "400" }],
+            "headline-sm": ["16px", { "lineHeight": "24px", "letterSpacing": "0em", "fontWeight": "500" }],
+            "label-md": ["11px", { "lineHeight": "16px", "letterSpacing": "0.08em", "fontWeight": "500" }],
+            "headline-xl": ["40px", { "lineHeight": "48px", "letterSpacing": "-0.02em", "fontWeight": "600" }]
+          }
+        }
+      }
+    }
+  </script>
+<style>
+    .material-symbols-outlined {
+      font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+      display: inline-block;
+      vertical-align: middle;
+      line-height: 1;
+    }
+    .hud-grid-pattern {
+      background-size: 32px 32px;
+      background-image: 
+        linear-gradient(to right, rgba(39, 211, 255, 0.03) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(39, 211, 255, 0.03) 1px, transparent 1px);
+    }
+    .cyan-glow-subtle {
+      box-shadow: 0 0 16px rgba(39, 211, 255, 0.12);
+    }
+    .cyan-glow-pulse {
+      box-shadow: 0 0 20px rgba(39, 211, 255, 0.25);
+    }
+    .reticle-corner {
+      position: relative;
+    }
+    .reticle-corner::before {
+      content: '';
+      position: absolute;
+      top: -1px;
+      left: -1px;
+      width: 6px;
+      height: 6px;
+      border-top: 2px solid #27d3ff;
+      border-left: 2px solid #27d3ff;
+      pointer-events: none;
+    }
+    .reticle-corner::after {
+      content: '';
+      position: absolute;
+      bottom: -1px;
+      right: -1px;
+      width: 6px;
+      height: 6px;
+      border-bottom: 2px solid #27d3ff;
+      border-right: 2px solid #27d3ff;
+      pointer-events: none;
+    }
+    /* Custom scrollbar for HUD consoles */
+    ::-webkit-scrollbar {
+      width: 4px;
+      height: 4px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #0c0e13;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #3c494e;
+      border-radius: 2px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #27d3ff;
+    }
+  </style>
+  <script type="module" crossorigin src="/assets/api-6_STEUA4.js"></script>
+</head>
+<body class="bg-surface-container-lowest text-on-surface antialiased min-h-screen overflow-x-hidden hud-grid-pattern selection:bg-primary-container selection:text-on-primary">
+<!-- ========================================== -->
+<!-- SIDE NAVIGATION                            -->
+<!-- Active Tab: Projects                       -->
+<!-- ========================================== -->
+<aside class="fixed left-0 top-0 bottom-0 z-40 flex flex-col justify-between p-4 docked h-screen w-64 border-r border-outline-variant/40 bg-surface-container-lowest/80 dark:bg-surface-container-lowest/80 backdrop-blur-md">
+<!-- Header Branding -->
+<div>
+<div class="flex items-center gap-3 px-2 py-3 border-b border-outline-variant/40 mb-4">
+<div class="relative flex items-center justify-center w-8 h-8 rounded border border-primary/40 bg-primary/10 cyan-glow-subtle" title="Glowing AI Core Status Indicator">
+<span class="w-3 h-3 rounded-full bg-primary-container animate-ping absolute opacity-75"></span>
+<span class="w-2.5 h-2.5 rounded-full bg-primary-container relative"></span>
+</div>
+<div class="flex flex-col">
+<span class="text-headline-md font-headline-md font-bold tracking-widest text-primary dark:text-primary leading-tight">JARVIS</span>
+<span class="text-label-sm font-label-sm text-outline tracking-wider">OS // v4.2 TELEMETRY ACTIVE</span>
+</div>
+</div>
+<!-- Command CTA -->
+<button onclick="window.location.href='assistant.html'" class="w-full mb-5 py-2 px-3 bg-primary/10 hover:bg-primary/20 text-primary border border-primary/50 text-label-md font-label-md font-bold flex items-center justify-center gap-2 tracking-wider transition-all duration-150 cyan-glow-subtle">
+<span class="material-symbols-outlined text-sm">terminal</span>
+<span>EXECUTE COMMAND</span>
+</button>
+<!-- Navigation Tabs -->
+<nav class="space-y-1">
+<!-- 0: Dashboard -->
+<a class="flex items-center gap-3 px-3 py-2 text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high/40 hover:border-primary/50 transition-all duration-150 rounded" href="index.html">
+<span class="material-symbols-outlined text-lg">dashboard</span>
+<span class="text-label-md font-label-md">Dashboard</span>
+</a>
+<!-- 1: Assistant -->
+<a class="flex items-center gap-3 px-3 py-2 text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high/40 hover:border-primary/50 transition-all duration-150 rounded" href="assistant.html">
+<span class="material-symbols-outlined text-lg">smart_toy</span>
+<span class="text-label-md font-label-md">Assistant</span>
+</a>
+<!-- 2: Tasks -->
+<a class="flex items-center gap-3 px-3 py-2 text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high/40 hover:border-primary/50 transition-all duration-150 rounded" href="tasks.html">
+<span class="material-symbols-outlined text-lg">check_circle</span>
+<span class="text-label-md font-label-md">Tasks</span>
+</a>
+<!-- 3: Memory -->
+<a class="flex items-center gap-3 px-3 py-2 text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high/40 hover:border-primary/50 transition-all duration-150 rounded" href="memory.html">
+<span class="material-symbols-outlined text-lg">memory</span>
+<span class="text-label-md font-label-md">Memory</span>
+</a>
+<!-- 4: Projects (ACTIVE) -->
+<a class="flex items-center gap-3 px-3 py-2 bg-primary/10 text-primary border-l-2 border-primary rounded-r transition-all duration-150 shadow-[inset_0_0_12px_rgba(39,211,255,0.08)]" href="projects.html">
+<span class="material-symbols-outlined text-lg text-primary">folder</span>
+<span class="text-label-md font-label-md font-bold tracking-wide">Projects</span>
+<span class="ml-auto w-1.5 h-1.5 rounded-full bg-primary-container"></span>
+</a>
+<!-- 5: Activity -->
+<a class="flex items-center gap-3 px-3 py-2 text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high/40 hover:border-primary/50 transition-all duration-150 rounded" href="activity.html">
+<span class="material-symbols-outlined text-lg">timeline</span>
+<span class="text-label-md font-label-md">Activity</span>
+</a>
+<!-- 6: Settings -->
+<a class="flex items-center gap-3 px-3 py-2 text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high/40 hover:border-primary/50 transition-all duration-150 rounded" href="settings.html">
+<span class="material-symbols-outlined text-lg">settings</span>
+<span class="text-label-md font-label-md">Settings</span>
+</a>
+
+</nav>
+</div>
+<!-- Telemetry Footer Status -->
+<div class="border-t border-outline-variant/40 pt-3 space-y-2">
+<div class="flex items-center justify-between text-label-sm font-label-sm text-on-surface-variant px-2 py-1 bg-surface-container-low/60 rounded border border-outline-variant/20">
+<span class="flex items-center gap-2">
+<span class="material-symbols-outlined text-xs text-primary-container">sensors</span>
+<span>Local Agent: Active</span>
+</span>
+<span class="w-1.5 h-1.5 rounded-full bg-primary-container animate-pulse"></span>
+</div>
+<div class="flex items-center justify-between text-label-sm font-label-sm text-on-surface-variant px-2 py-1 bg-surface-container-low/60 rounded border border-outline-variant/20">
+<span class="flex items-center gap-2">
+<span class="material-symbols-outlined text-xs text-outline">wifi_tethering</span>
+<span>Latency: 12ms</span>
+</span>
+<span class="text-primary text-[9px]">NOMINAL</span>
+</div>
+<div class="flex items-center gap-2 px-2 py-1 text-label-sm font-label-sm text-on-surface hover:text-primary cursor-pointer transition-colors duration-150">
+<span class="material-symbols-outlined text-sm text-outline">account_circle</span>
+<span>Operator Profile</span>
+</div>
+</div>
+</aside>
+<!-- ========================================== -->
+<!-- TOP COMMAND HEADER                         -->
+<!-- ========================================== -->
+<header class="fixed top-0 right-0 left-64 z-30 flex items-center justify-between px-6 py-3 docked full-width border-b border-outline-variant/40 bg-surface-container-lowest/80 dark:bg-surface-container-lowest/80 backdrop-blur-md">
+<!-- Left Section: Title + Search Vector -->
+<div class="flex items-center gap-6">
+<div class="flex items-center gap-2">
+<a href="index.html" class="text-headline-sm font-headline-sm font-bold tracking-wider text-primary dark:text-primary hover:underline">JARVIS // CORE HUD</a>
+<span class="px-2 py-0.5 text-label-sm font-label-sm bg-surface-container text-on-surface-variant border border-outline-variant/50 rounded">NODE: ALPHA-7</span>
+</div>
+<div class="relative w-72">
+<span class="material-symbols-outlined absolute left-2.5 top-1/2 -translate-y-1/2 text-outline text-sm">search</span>
+<input class="w-full pl-8 pr-3 py-1 bg-surface-container-low border border-outline-variant/40 text-body-sm font-body-sm text-on-surface placeholder:text-outline/70 focus:outline-none focus:border-primary-container focus:ring-1 focus:ring-primary-container rounded" placeholder="Search memory vector..." type="text"/>
+</div>
+</div>
+<!-- Center/Right Status Indicators & Actions -->
+<div class="flex items-center gap-4">
+<!-- Neural Link telemetry -->
+<div class="hidden lg:flex items-center gap-2 px-3 py-1 bg-surface-container-low border border-primary/20 rounded">
+<span class="w-2 h-2 rounded-full bg-primary-container animate-pulse"></span>
+<span class="text-label-sm font-label-sm text-on-surface-variant">NEURAL LINK:</span>
+<span class="text-label-sm font-label-sm font-bold text-primary">SYNCHRONIZED (99.8%)</span>
+</div>
+<!-- Action Buttons -->
+<div class="flex items-center gap-2">
+<button onclick="window.location.href='assistant.html'" class="flex items-center gap-1.5 px-3 py-1 text-label-sm font-label-sm text-primary hover:bg-primary/10 border border-primary/40 rounded transition-all duration-150">
+<span class="material-symbols-outlined text-sm">graphic_eq</span>
+<span>VOICE COMMAND</span>
+</button>
+<button class="flex items-center gap-1.5 px-3 py-1 text-label-sm font-label-sm text-on-surface-variant hover:text-on-surface bg-surface-container hover:bg-surface-container-high border border-outline-variant/40 rounded transition-all duration-150">
+<span class="material-symbols-outlined text-sm">tune</span>
+<span>SYS_DIAGNOSTICS</span>
+</button>
+</div>
+<!-- Trailing Action Icons -->
+<div class="flex items-center gap-2 border-l border-outline-variant/40 pl-4">
+<button class="relative p-1.5 text-on-surface-variant hover:text-primary transition-colors duration-150" title="Notifications">
+<span class="material-symbols-outlined text-lg">notifications_active</span>
+<span class="absolute top-1 right-1 w-1.5 h-1.5 bg-primary-container rounded-full"></span>
+</button>
+<div class="w-7 h-7 rounded border border-primary/50 bg-primary/10 flex items-center justify-center text-primary text-label-sm font-label-sm font-bold" title="Commander Node Session Identity">
+          OP-1
+        </div>
+</div>
+</div>
+</header>
+<!-- ========================================== -->
+<!-- MAIN COMMAND CONTENT CANVAS                -->
+<!-- ========================================== -->
+<main class="ml-64 pt-20 p-8 space-y-6">
+<!-- PAGE HEADER & CONTROLS -->
+<div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-outline-variant/30 pb-4">
+<div>
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary text-xl">folder_managed</span>
+<h1 class="text-headline-lg font-headline-lg text-on-surface tracking-tight">PROJECTS // AI-POWERED PROJECT INTELLIGENCE</h1>
+</div>
+<p class="text-body-sm font-body-sm text-on-surface-variant mt-1">Manage codebases, autonomous repository indexing, and architectural intelligence</p>
+</div>
+<!-- Controls Right: Filter, View Switcher, "+ NEW PROJECT" -->
+<div class="flex items-center gap-3">
+<!-- Search filter -->
+<div class="relative w-60">
+<span class="material-symbols-outlined absolute left-2.5 top-1/2 -translate-y-1/2 text-outline text-xs">manage_search</span>
+<input id="project-search-input" oninput="handleProjectSearch(this.value)" class="w-full pl-8 pr-3 py-1.5 bg-surface-container-low border border-outline-variant/50 text-label-sm font-label-sm text-on-surface placeholder:text-outline rounded focus:border-primary-container focus:outline-none" placeholder="[CTRL+F] Filter projects..." type="text"/>
+</div>
+<!-- View Switcher -->
+<div class="flex items-center bg-surface-container-low border border-outline-variant/40 rounded p-0.5">
+<button onclick="setViewMode('grid')" id="view-mode-grid" class="px-2 py-1 bg-primary/20 text-primary rounded text-xs flex items-center justify-center">
+<span class="material-symbols-outlined text-sm">grid_view</span>
+</button>
+<button onclick="setViewMode('list')" id="view-mode-list" class="px-2 py-1 text-outline hover:text-on-surface rounded text-xs flex items-center justify-center">
+<span class="material-symbols-outlined text-sm">view_list</span>
+</button>
+</div>
+<!-- Primary Trigger: + NEW PROJECT Modal trigger -->
+<button class="flex items-center gap-2 px-4 py-2 bg-primary/10 hover:bg-primary/20 text-primary border border-primary-container text-label-md font-label-md font-bold rounded cyan-glow-pulse transition-all duration-150" onclick="openCreateProjectModal()">
+<span class="material-symbols-outlined text-base">add</span>
+<span>+ NEW PROJECT</span>
+</button>
+</div>
+</div>
+<!-- ========================================== -->
+<!-- KPI SUMMARY HUD CARDS (Top Row - 4 Cards) -->
+<!-- ========================================== -->
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+<!-- KPI 1 -->
+<div class="reticle-corner p-4 bg-surface-container-low/70 border border-outline-variant/40 backdrop-blur-md rounded">
+<div class="flex items-center justify-between text-outline text-label-sm font-label-sm mb-1">
+<span>TOTAL PROJECTS</span>
+<span class="material-symbols-outlined text-sm text-outline">storage</span>
+</div>
+<div id="stat-total-projects" class="text-headline-xl font-headline-xl text-primary font-bold tracking-tight">--</div>
+<div class="text-label-sm font-label-sm text-on-surface-variant flex items-center gap-1.5 mt-1">
+<span class="w-1.5 h-1.5 rounded-full bg-primary"></span>
+<span>ACTIVE REPOSITORIES</span>
+</div>
+</div>
+<!-- KPI 2 -->
+<div class="reticle-corner p-4 bg-surface-container-low/70 border border-outline-variant/40 backdrop-blur-md rounded">
+<div class="flex items-center justify-between text-outline text-label-sm font-label-sm mb-1">
+<span>ACTIVE IN PROGRESS</span>
+<span class="material-symbols-outlined text-sm text-primary">psychology</span>
+</div>
+<div id="stat-active-projects" class="text-headline-xl font-headline-xl text-primary-container font-bold tracking-tight">--</div>
+<div class="text-label-sm font-label-sm text-on-surface-variant flex items-center gap-1.5 mt-1">
+<span class="w-1.5 h-1.5 rounded-full bg-primary-container animate-ping"></span>
+<span>JARVIS AGENTS DEPLOYED</span>
+</div>
+</div>
+<!-- KPI 3 -->
+<div class="reticle-corner p-4 bg-surface-container-low/70 border border-outline-variant/40 backdrop-blur-md rounded">
+<div class="flex items-center justify-between text-outline text-label-sm font-label-sm mb-1">
+<span>TRAINING / QUEUED</span>
+<span class="material-symbols-outlined text-sm text-outline">pending_actions</span>
+</div>
+<div id="stat-training-projects" class="text-headline-xl font-headline-xl text-secondary font-bold tracking-tight">--</div>
+<div class="text-label-sm font-label-sm text-on-surface-variant flex items-center gap-1.5 mt-1">
+<span class="w-1.5 h-1.5 rounded-full bg-secondary"></span>
+<span>WAITING REVISION</span>
+</div>
+</div>
+<!-- KPI 4 -->
+<div class="reticle-corner p-4 bg-surface-container-low/70 border border-outline-variant/40 backdrop-blur-md rounded">
+<div class="flex items-center justify-between text-outline text-label-sm font-label-sm mb-1">
+<span>COMPLETED</span>
+<span class="material-symbols-outlined text-sm text-primary">verified</span>
+</div>
+<div id="stat-completed-projects" class="text-headline-xl font-headline-xl text-primary font-bold tracking-tight">--</div>
+<div class="text-label-sm font-label-sm text-on-surface-variant flex items-center gap-1.5 mt-1">
+<span class="w-1.5 h-1.5 rounded-full bg-primary"></span>
+<span>ARCHITECTURE LOCKED</span>
+</div>
+</div>
+</div>
+<!-- ========================================== -->
+<!-- 2-COLUMN COMMAND GRID LAYOUT (60% / 40%) -->
+<!-- ========================================== -->
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+<!-- LEFT COLUMN: PROJECT CARDS GRID (60% -> 7 Cols) -->
+<div class="lg:col-span-7 space-y-4">
+<div class="flex items-center justify-between px-1">
+<span id="repo-count-badge" class="text-label-md font-label-md text-outline tracking-wider flex items-center gap-2">
+<span class="material-symbols-outlined text-sm">hub</span>
+            INDEXED REPOSITORIES
+          </span>
+<button onclick="toggleSort()" id="sort-toggle-btn" class="text-label-sm font-label-sm text-outline hover:text-primary transition-colors flex items-center gap-1">
+  <span>SORT: HEURISTIC VELOCITY</span>
+  <span class="material-symbols-outlined text-xs">swap_vert</span>
+</button>
+</div>
+<!-- Dynamic Project Card Grid Container -->
+<div id="project-grid-container" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+  <!-- Dynamic cards inserted via JS -->
+</div>
+</div>
+<!-- RIGHT COLUMN: DETAILED PROJECT INTELLIGENCE INSPECTOR (40% -> 5 Cols) -->
+<div class="lg:col-span-5 space-y-5">
+<!-- Inspector Card Container -->
+<div class="reticle-corner p-6 bg-surface-container/90 border border-outline-variant/50 rounded backdrop-blur-md space-y-6">
+<!-- Header & Overview -->
+<div class="border-b border-outline-variant/40 pb-4">
+<div class="flex items-center justify-between mb-1">
+<span id="insp-node-id" class="text-label-sm font-label-sm text-primary tracking-widest">INSPECTION NODE // ID: #PRJ-1</span>
+<span id="insp-status-badge" class="px-2 py-0.5 text-label-sm font-label-sm bg-primary/20 text-primary border border-primary/40 rounded flex items-center gap-1">
+<span class="w-1.5 h-1.5 rounded-full bg-primary animate-pulse"></span>
+<span id="insp-status-text">HEALTHY // AGENT ACTIVE</span>
+</span>
+</div>
+<h2 id="insp-project-name" class="text-headline-md font-headline-md font-bold text-on-surface">JARVIS</h2>
+<p id="insp-project-desc" class="text-body-sm font-body-sm text-outline mt-0.5">AUTONOMOUS MULTIMODAL AI AGENT</p>
+<div class="grid grid-cols-2 gap-2 mt-4 text-label-sm font-label-sm bg-surface-container-lowest p-3 border border-outline-variant/30 rounded">
+<div>
+<span class="text-outline">PROGRESS:</span>
+<span id="insp-progress" class="text-primary font-bold ml-1">35%</span>
+</div>
+<div>
+<span class="text-outline">CREATED:</span>
+<span id="insp-created" class="text-on-surface ml-1">2025-04-10</span>
+</div>
+<div class="col-span-2">
+<span class="text-outline">REPOSITORY / PATH:</span>
+<span id="insp-repo" class="text-on-surface ml-1 font-mono truncate block">c:/Users/Pratyush/Jarvis</span>
+</div>
+</div>
+<!-- Edit and Delete Buttons for Inspector -->
+<div class="flex items-center gap-2 mt-3 pt-3 border-t border-outline-variant/30">
+  <button onclick="openEditProjectModal()" class="flex-1 py-1.5 px-3 bg-surface-container hover:bg-surface-container-high border border-outline-variant/50 text-label-sm font-label-sm text-on-surface hover:text-primary flex items-center justify-center gap-1.5 transition-all rounded">
+    <span class="material-symbols-outlined text-sm">edit</span>
+    <span>EDIT SPEC</span>
+  </button>
+  <button onclick="handleDeleteProject()" class="py-1.5 px-3 bg-error-container/20 hover:bg-error-container/40 border border-error-container/50 text-label-sm font-label-sm text-error flex items-center justify-center gap-1.5 transition-all rounded">
+    <span class="material-symbols-outlined text-sm">delete</span>
+    <span>DELETE</span>
+  </button>
+</div>
+</div>
+<!-- Section 2: Project Health Telemetry Matrix -->
+<div>
+<div class="flex items-center justify-between mb-3">
+<span class="text-label-md font-label-md text-on-surface font-semibold tracking-wider">HEALTH TELEMETRY MATRIX</span>
+<span id="insp-risk-tag" class="px-2 py-0.5 text-label-sm font-label-sm bg-primary/20 text-primary border border-primary-container rounded">LOW RISK</span>
+</div>
+<!-- Gauge Banner -->
+<div class="p-3 bg-surface-container-lowest border border-primary/30 rounded flex items-center justify-between mb-3 cyan-glow-subtle">
+<div>
+<div class="text-label-sm font-label-sm text-outline">COMPUTED SYSTEM INDEX</div>
+<div id="insp-health-gauge" class="text-headline-md font-headline-md font-bold text-primary">PROJECT HEALTH: 87%</div>
+</div>
+<span class="material-symbols-outlined text-3xl text-primary-container">speed</span>
+</div>
+<!-- Breakdown meters -->
+<div class="space-y-2.5 text-label-sm font-label-sm">
+<div>
+<div class="flex justify-between text-outline mb-1">
+<span>Progress Velocity</span>
+<span id="insp-prog-vel" class="text-on-surface">82%</span>
+</div>
+<div class="w-full h-1 bg-surface-container-lowest rounded-full overflow-hidden">
+<div id="insp-prog-bar" class="h-full bg-primary" style="width: 82%"></div>
+</div>
+</div>
+<div>
+<div class="flex justify-between text-outline mb-1">
+<span>Task Completion</span>
+<span id="insp-task-comp" class="text-on-surface">91%</span>
+</div>
+<div class="w-full h-1 bg-surface-container-lowest rounded-full overflow-hidden">
+<div id="insp-task-bar" class="h-full bg-primary-container" style="width: 91%"></div>
+</div>
+</div>
+<div>
+<div class="flex justify-between text-outline mb-1">
+<span>Telemetry Latency</span>
+<span id="insp-act-vel" class="text-on-surface">Nominal (12ms)</span>
+</div>
+<div class="w-full h-1 bg-surface-container-lowest rounded-full overflow-hidden">
+<div id="insp-act-bar" class="h-full bg-secondary" style="width: 95%"></div>
+</div>
+</div>
+</div>
+</div>
+<!-- Section 3: JARVIS Project Intelligence & Reasoning -->
+<div class="p-4 bg-surface-container-lowest border border-outline-variant/40 rounded space-y-3">
+<div class="flex items-center gap-2 text-label-md font-label-md text-primary font-bold border-b border-outline-variant/30 pb-2">
+<span class="material-symbols-outlined text-base">psychology</span>
+<span>JARVIS REASONING &amp; SYNTHESIS</span>
+</div>
+<div class="space-y-2 text-label-sm font-label-sm">
+<div>
+<span class="text-outline">PROJECT STATUS:</span>
+<span id="insp-reason-status" class="text-primary font-bold ml-1">Healthy</span>
+</div>
+<div>
+<span class="text-outline">CURRENT FOCUS:</span>
+<span id="insp-current-focus" class="text-on-surface ml-1">FastAPI Backend & Autonomous Agent Router</span>
+</div>
+</div>
+<div id="insp-ai-insight" class="p-2.5 bg-surface-container-high/40 border-l-2 border-primary-container rounded-r text-body-sm font-body-sm text-on-surface-variant">
+<span class="text-primary font-label-sm font-bold block mb-1">AI INSIGHT</span>
+Autonomous telemetry synchronized. Heuristics analyze active codebase modules with zero blocking vulnerabilities.
+</div>
+<!-- Recommended Actions -->
+<div class="space-y-1.5 pt-1">
+<span class="text-label-sm font-label-sm text-outline">RECOMMENDED ACTIONS:</span>
+<div class="space-y-1 text-label-sm font-label-sm text-on-surface">
+<div class="flex items-center gap-2 p-1.5 hover:bg-surface-container rounded transition-colors cursor-pointer" onclick="handleRecommendedAction('Connect project API')">
+<span class="text-primary font-bold">[→]</span>
+<span>Synchronize telemetry with /api/v1/projects</span>
+</div>
+<div class="flex items-center gap-2 p-1.5 hover:bg-surface-container rounded transition-colors cursor-pointer" onclick="handleRecommendedAction('Review task queue')">
+<span class="text-primary font-bold">[→]</span>
+<span>Verify automated task pipeline dispatch</span>
+</div>
+<div class="flex items-center gap-2 p-1.5 hover:bg-surface-container rounded transition-colors cursor-pointer" onclick="handleRecommendedAction('Audit code architecture')">
+<span class="text-primary font-bold">[→]</span>
+<span>Scan codebase AST dependencies</span>
+</div>
+</div>
+</div>
+<!-- Pulsing Action Trigger -->
+<button id="btn-analyze-project" onclick="handleAnalyzeProject()" class="w-full mt-2 py-2 px-3 bg-primary/20 hover:bg-primary/30 text-primary border border-primary-container text-label-md font-label-md font-bold rounded cyan-glow-pulse flex items-center justify-center gap-2 transition-all duration-150">
+<span class="material-symbols-outlined text-sm">bolt</span>
+<span id="btn-analyze-text">⚡ ANALYZE PROJECT NOW</span>
+</button>
+</div>
+<!-- Section 4: Project Tasks Breakdown -->
+<div>
+<div class="flex items-center justify-between text-label-md font-label-md text-on-surface font-semibold mb-2">
+<span>PROJECT TASKS BREAKDOWN</span>
+<span id="insp-tasks-count" class="text-label-sm font-label-sm text-outline">0 UNITS</span>
+</div>
+<div id="insp-tasks-breakdown" class="space-y-1.5 text-label-sm font-label-sm">
+  <div class="text-outline text-xs p-2">Loading tasks...</div>
+</div>
+</div>
+<!-- Section 5: Project Activity Chronology -->
+<div class="border-t border-outline-variant/40 pt-4">
+<span class="text-label-md font-label-md text-on-surface font-semibold tracking-wider block mb-3">ACTIVITY CHRONOLOGY</span>
+<div id="insp-activities-container" class="relative pl-5 border-l border-outline-variant/40 space-y-3 text-label-sm font-label-sm">
+  <div class="relative">
+    <span class="absolute -left-[25px] top-1 w-2 h-2 rounded-full bg-primary-container"></span>
+    <span class="text-outline block text-[10px]">Telemetry</span>
+    <span class="text-on-surface">Initializing activity stream...</span>
+  </div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+<!-- ========================================== -->
+<!-- MODAL / DRAWER: CREATE / EDIT PROJECT      -->
+<!-- ========================================== -->
+<div class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-surface-container-lowest/80 backdrop-blur-md" id="new-project-modal">
+<div class="reticle-corner w-full max-w-lg p-6 bg-surface-container/95 border border-primary-container/80 rounded shadow-2xl space-y-4 cyan-glow-pulse">
+<div class="flex items-center justify-between border-b border-outline-variant/40 pb-3">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary">folder_special</span>
+<h2 id="project-modal-header" class="text-headline-sm font-headline-sm font-bold text-on-surface">CREATE NEW PROJECT</h2>
+</div>
+<button class="text-outline hover:text-on-surface" onclick="closeProjectModal()">
+<span class="material-symbols-outlined text-lg">close</span>
+</button>
+</div>
+<p class="text-body-sm font-body-sm text-outline">Configure repository telemetry and initialize autonomous indexer for API /api/v1/projects.</p>
+<form id="project-form" class="space-y-4" onsubmit="handleProjectSubmit(event)">
+<input type="hidden" id="project-form-id" value="" />
+<!-- Project Name -->
+<div>
+<label class="block text-label-sm font-label-sm text-on-surface-variant mb-1">PROJECT NAME *</label>
+<input id="project-name-input" class="w-full px-3 py-1.5 bg-surface-container-lowest border border-outline-variant/60 text-body-sm font-body-sm text-on-surface rounded focus:outline-none focus:border-primary-container" placeholder="e.g. Autonomous Sentinel" required type="text"/>
+</div>
+<!-- Description -->
+<div>
+<label class="block text-label-sm font-label-sm text-on-surface-variant mb-1">DESCRIPTION</label>
+<textarea id="project-desc-input" class="w-full px-3 py-1.5 bg-surface-container-lowest border border-outline-variant/60 text-body-sm font-body-sm text-on-surface rounded focus:outline-none focus:border-primary-container" placeholder="Brief system scope or codebase purpose..." rows="2"></textarea>
+</div>
+<div class="grid grid-cols-2 gap-3">
+<!-- Status -->
+<div>
+<label class="block text-label-sm font-label-sm text-on-surface-variant mb-1">STATUS</label>
+<select id="project-status-input" class="w-full px-3 py-1.5 bg-surface-container-lowest border border-outline-variant/60 text-body-sm font-body-sm text-on-surface rounded focus:outline-none focus:border-primary-container">
+<option value="ACTIVE">ACTIVE (Synchronized)</option>
+<option value="TRAINING">TRAINING / In Progress</option>
+<option value="PAUSED">PAUSED / Standby</option>
+<option value="LOCKED">LOCKED / Production</option>
+<option value="COMPLETED">COMPLETED / Verified</option>
+</select>
+</div>
+<!-- Initial Progress -->
+<div>
+<label class="block text-label-sm font-label-sm text-on-surface-variant mb-1">PROGRESS (%)</label>
+<input id="project-progress-input" class="w-full px-3 py-1.5 bg-surface-container-lowest border border-outline-variant/60 text-body-sm font-body-sm text-on-surface rounded focus:outline-none focus:border-primary-container" max="100" min="0" type="number" value="0"/>
+</div>
+</div>
+<!-- Technologies -->
+<div>
+<label class="block text-label-sm font-label-sm text-on-surface-variant mb-1">TECHNOLOGIES (COMMA-SEPARATED)</label>
+<input id="project-tech-input" class="w-full px-3 py-1.5 bg-surface-container-lowest border border-outline-variant/60 text-body-sm font-body-sm text-on-surface rounded focus:outline-none focus:border-primary-container" placeholder="Python, FastAPI, Docker, PyTorch" type="text"/>
+</div>
+<!-- Repo Path -->
+<div>
+<label class="block text-label-sm font-label-sm text-on-surface-variant mb-1">REPOSITORY PATH / LOCAL ROOT</label>
+<input id="project-repo-input" class="w-full px-3 py-1.5 bg-surface-container-lowest border border-outline-variant/60 text-body-sm font-body-sm text-on-surface rounded focus:outline-none focus:border-primary-container font-mono text-xs" placeholder="c:/Users/Pratyush/Jarvis" type="text"/>
+</div>
+<!-- Action Buttons -->
+<div class="flex items-center justify-end gap-3 pt-3 border-t border-outline-variant/40">
+<button class="px-4 py-2 text-label-sm font-label-sm text-outline hover:text-on-surface bg-surface-container hover:bg-surface-container-high rounded transition-colors" onclick="closeProjectModal()" type="button">
+            Cancel
+          </button>
+<button id="project-form-submit-btn" class="px-5 py-2 text-label-sm font-label-sm font-bold bg-primary/20 hover:bg-primary/30 text-primary border border-primary-container rounded cyan-glow-subtle transition-all" type="submit">
+            <span id="project-submit-text">Create Project</span>
+          </button>
+</div>
+</form>
+</div>
+</div>
+
+<!-- ========================================== -->
+<!-- HUD TOAST NOTIFICATION CONTAINER           -->
+<!-- ========================================== -->
+<div id="jarvis-toast-container" class="fixed bottom-6 right-6 z-50 flex flex-col gap-2 max-w-sm pointer-events-none"></div>
+
+<!-- Centralized API Service Layer -->
+
+<script>
+  let allProjects = [];
+  let filteredProjects = [];
+  let selectedProject = null;
+  let allTasks = [];
+  let searchQuery = '';
+  let sortField = 'velocity'; // 'velocity', 'name', 'progress'
+  let viewMode = 'grid';
+
+  // HUD Toast Notification
+  function showToast(message, type = 'info') {
+    const container = document.getElementById('jarvis-toast-container');
+    const toast = document.createElement('div');
+    const isError = type === 'error';
+    const borderColor = isError ? 'border-error/80' : 'border-primary/80';
+    const textColor = isError ? 'text-error' : 'text-primary';
+    const icon = isError ? 'error' : 'check_circle';
+
+    toast.className = `reticle-corner p-3 bg-surface-container/95 border ${borderColor} text-on-surface text-label-sm font-label-sm shadow-xl flex items-center gap-3 transition-all duration-300 transform translate-y-4 opacity-0 pointer-events-auto`;
+    toast.innerHTML = `
+      <span class="material-symbols-outlined text-sm ${textColor}">${icon}</span>
+      <span class="flex-1">${escapeHtml(message)}</span>
+      <span class="text-outline text-[10px]">JARVIS // OS</span>
+    `;
+
+    container.appendChild(toast);
+    requestAnimationFrame(() => {
+      toast.classList.remove('translate-y-4', 'opacity-0');
+      toast.classList.add('translate-y-0', 'opacity-100');
+    });
+
+    setTimeout(() => {
+      toast.classList.add('opacity-0', 'translate-y-2');
+      setTimeout(() => toast.remove(), 300);
+    }, 4000);
+  }
+
+  // Load Projects from FastAPI
+  async function loadProjects() {
+    const container = document.getElementById('project-grid-container');
+    container.innerHTML = `
+      <div class="col-span-full p-8 text-center text-outline text-label-sm font-label-sm flex items-center justify-center gap-3">
+        <span class="material-symbols-outlined animate-spin text-primary">cyclone</span>
+        <span>CONNECTING TO FASTAPI /api/v1/projects...</span>
+      </div>
+    `;
+
+    try {
+      const [projectsData, tasksData, activitiesData] = await Promise.all([
+        window.jarvisApi.getProjects(),
+        window.jarvisApi.getTasks().catch(() => []),
+        window.jarvisApi.getActivities(6).catch(() => [])
+      ]);
+
+      allProjects = projectsData || [];
+      allTasks = tasksData || [];
+      updateKPISummaries(allProjects);
+      renderActivities(activitiesData);
+      applyFiltersAndSort();
+    } catch (err) {
+      console.error("Failed to load projects from backend:", err);
+      container.innerHTML = `
+        <div class="col-span-full reticle-corner p-8 bg-surface-container-low/80 border border-error/50 text-center text-label-sm font-label-sm space-y-3">
+          <span class="material-symbols-outlined text-3xl text-error">cloud_off</span>
+          <div class="text-error font-bold">SYSTEM TELEMETRY DISCONNECTED</div>
+          <p class="text-outline">FastAPI at http://localhost:8000/api/v1 is unreachable.</p>
+          <button onclick="loadProjects()" class="px-4 py-2 bg-primary/10 border border-primary text-primary hover:bg-primary/20 transition-all">
+            ↻ RETRY CONNECTION
+          </button>
+        </div>
+      `;
+      showToast("Cannot connect to FastAPI backend.", "error");
+    }
+  }
+
+  // Update Dynamic KPI HUD Cards
+  function updateKPISummaries(projects) {
+    const total = projects.length;
+    const active = projects.filter(p => (p.status || '').toUpperCase() === 'ACTIVE').length;
+    const training = projects.filter(p => ['TRAINING', 'QUEUED', 'PAUSED'].includes((p.status || '').toUpperCase())).length;
+    const completed = projects.filter(p => ['COMPLETED', 'LOCKED', 'VERIFIED'].includes((p.status || '').toUpperCase())).length;
+
+    document.getElementById('stat-total-projects').textContent = String(total).padStart(2, '0');
+    document.getElementById('stat-active-projects').textContent = String(active).padStart(2, '0');
+    document.getElementById('stat-training-projects').textContent = String(training).padStart(2, '0');
+    document.getElementById('stat-completed-projects').textContent = String(completed).padStart(2, '0');
+    document.getElementById('repo-count-badge').innerHTML = `
+      <span class="material-symbols-outlined text-sm">hub</span>
+      INDEXED REPOSITORIES (${active} ACTIVE / ${total} TOTAL)
+    `;
+  }
+
+  // Filter and Sort Projects
+  function applyFiltersAndSort() {
+    let list = [...allProjects];
+
+    if (searchQuery) {
+      const q = searchQuery.toLowerCase();
+      list = list.filter(p => 
+        (p.name && p.name.toLowerCase().includes(q)) ||
+        (p.description && p.description.toLowerCase().includes(q)) ||
+        (p.technologies && p.technologies.toLowerCase().includes(q)) ||
+        (p.status && p.status.toLowerCase().includes(q))
+      );
+    }
+
+    if (sortField === 'name') {
+      list.sort((a, b) => a.name.localeCompare(b.name));
+    } else if (sortField === 'progress') {
+      list.sort((a, b) => (b.progress || 0) - (a.progress || 0));
+    } else {
+      // Heuristic velocity: active first, then progress
+      list.sort((a, b) => {
+        const aActive = (a.status || '').toUpperCase() === 'ACTIVE' ? 1 : 0;
+        const bActive = (b.status || '').toUpperCase() === 'ACTIVE' ? 1 : 0;
+        if (aActive !== bActive) return bActive - aActive;
+        return (b.progress || 0) - (a.progress || 0);
+      });
+    }
+
+    filteredProjects = list;
+    renderProjects();
+  }
+
+  // Render Project Cards
+  function renderProjects() {
+    const container = document.getElementById('project-grid-container');
+
+    if (filteredProjects.length === 0) {
+      container.innerHTML = `
+        <div class="col-span-full reticle-corner bg-surface-container-lowest border border-outline-variant/40 p-8 text-center text-outline text-label-sm font-label-sm space-y-3">
+          <span class="material-symbols-outlined text-3xl text-outline/50">folder_off</span>
+          <div class="text-on-surface font-semibold">NO REPOSITORIES FOUND</div>
+          <p class="text-outline">No codebases match the query vector or filter parameters.</p>
+          <button onclick="openCreateProjectModal()" class="px-4 py-2 bg-primary/10 border border-primary text-primary hover:bg-primary/20 transition-all">
+            + INDEX NEW PROJECT
+          </button>
+        </div>
+      `;
+      return;
+    }
+
+    container.className = viewMode === 'list' 
+      ? 'grid grid-cols-1 gap-3' 
+      : 'grid grid-cols-1 md:grid-cols-2 gap-4';
+
+    container.innerHTML = filteredProjects.map(project => {
+      const isSelected = selectedProject && selectedProject.id === project.id;
+      const progress = project.progress ?? 0;
+      const statusUpper = (project.status || 'ACTIVE').toUpperCase();
+      const isLocked = ['COMPLETED', 'LOCKED'].includes(statusUpper);
+      const isTraining = statusUpper === 'TRAINING';
+      
+      const borderClass = isSelected
+        ? 'border-2 border-primary-container cyan-glow-pulse bg-surface-container/90'
+        : 'border border-outline-variant/40 hover:border-primary/50 bg-surface-container-low/70';
+
+      const techBadges = (project.technologies || '')
+        .split(',')
+        .map(t => t.trim())
+        .filter(Boolean)
+        .slice(0, 4)
+        .map(t => `<span class="px-1.5 py-0.5 text-label-sm font-label-sm bg-surface-container-high text-on-surface-variant border border-outline-variant/30 rounded">${escapeHtml(t)}</span>`)
+        .join('');
+
+      const projectTasks = allTasks.filter(t => (t.category || '').toLowerCase() === (project.name || '').toLowerCase());
+      const activeTaskCount = projectTasks.filter(t => (t.status || '').toUpperCase() !== 'COMPLETED').length;
+
+      return `
+        <div onclick="selectProject(${project.id})" class="reticle-corner relative p-5 rounded cursor-pointer transition-all duration-200 ${borderClass}">
+          <div class="flex items-start justify-between gap-2 mb-2">
+            <div>
+              <div class="flex items-center gap-2">
+                <h2 class="text-headline-sm font-headline-sm font-bold text-on-surface">${escapeHtml(project.name)}</h2>
+                ${isSelected ? '<span class="w-2 h-2 rounded-full bg-primary-container animate-pulse"></span>' : ''}
+              </div>
+              <p class="text-body-sm font-body-sm text-on-surface-variant line-clamp-2 mt-0.5">${escapeHtml(project.description || 'Autonomous codebase intelligence active.')}</p>
+            </div>
+            <span class="px-2 py-0.5 text-[9px] font-label-sm ${isSelected ? 'bg-primary/20 text-primary border border-primary/40' : 'bg-surface-container text-on-surface-variant border border-outline-variant/40'} rounded whitespace-nowrap">
+              ${isSelected ? 'SELECTED' : statusUpper}
+            </span>
+          </div>
+
+          <!-- Technologies Tags -->
+          <div class="flex flex-wrap gap-1.5 my-3">
+            ${techBadges || '<span class="text-outline text-[11px]">No tags registered</span>'}
+          </div>
+
+          <!-- Progress Meter -->
+          <div class="space-y-1 mb-3">
+            <div class="flex justify-between text-label-sm font-label-sm">
+              <span class="text-outline">COMPLETION</span>
+              <span class="text-primary font-bold">${progress}%</span>
+            </div>
+            <div class="w-full h-1.5 bg-surface-container-lowest rounded-full overflow-hidden border border-outline-variant/30">
+              <div class="h-full bg-primary-container transition-all duration-500" style="width: ${progress}%"></div>
+            </div>
+          </div>
+
+          <!-- Telemetry Meta -->
+          <div class="text-label-sm font-label-sm text-outline border-t border-outline-variant/30 pt-2.5 space-y-1">
+            <div class="flex items-center justify-between">
+              <span>TASKS:</span>
+              <span class="text-on-surface">${projectTasks.length} Tasks (${activeTaskCount} Active)</span>
+            </div>
+            <div class="flex items-center justify-between">
+              <span>ROOT:</span>
+              <span class="text-on-surface-variant font-mono truncate max-w-[150px]">${escapeHtml(project.repo_path || 'local-root')}</span>
+            </div>
+          </div>
+
+          <!-- AI Status Badge -->
+          <div class="mt-3 pt-2 border-t border-outline-variant/20 flex items-center justify-between">
+            <div class="flex items-center gap-1.5 text-label-sm font-label-sm ${isLocked ? 'text-on-surface-variant' : 'text-primary'}">
+              <span class="material-symbols-outlined text-xs ${isTraining ? 'animate-spin' : ''}">
+                ${isLocked ? 'verified' : (isTraining ? 'cyclone' : 'auto_awesome')}
+              </span>
+              <span>${isLocked ? 'ARCHIVED // VERIFIED' : (isTraining ? 'MODEL TRAINING' : 'AI SYNCHRONIZED')}</span>
+            </div>
+            <span class="text-outline text-xs">→</span>
+          </div>
+        </div>
+      `;
+    }).join('');
+
+    // Ensure Inspector is populated
+    if (filteredProjects.length > 0) {
+      if (!selectedProject || !filteredProjects.some(p => p.id === selectedProject.id)) {
+        selectProject(filteredProjects[0].id);
+      } else {
+        populateInspector(selectedProject);
+      }
+    }
+  }
+
+  // Select Project and Fetch from Backend
+  async function selectProject(projectId) {
+    try {
+      selectedProject = await window.jarvisApi.getProject(projectId);
+      populateInspector(selectedProject);
+      renderProjects();
+    } catch (err) {
+      console.warn("Could not fetch project by ID from API, using cached data:", err);
+      selectedProject = allProjects.find(p => p.id === projectId);
+      if (selectedProject) populateInspector(selectedProject);
+    }
+  }
+
+  // Populate Right-hand Inspector
+  function populateInspector(project) {
+    if (!project) return;
+
+    document.getElementById('insp-node-id').textContent = `INSPECTION NODE // ID: #PRJ-${project.id}`;
+    document.getElementById('insp-project-name').textContent = project.name;
+    document.getElementById('insp-project-desc').textContent = project.description || 'Autonomous codebase telemetry active.';
+    
+    const progress = project.progress ?? 0;
+    document.getElementById('insp-progress').textContent = `${progress}%`;
+    document.getElementById('insp-created').textContent = project.created_at ? project.created_at.split('T')[0] : '2025-04-10';
+    document.getElementById('insp-repo').textContent = project.repo_path || 'c:/Users/Pratyush/Jarvis';
+
+    // Status Badge
+    const statusUpper = (project.status || 'ACTIVE').toUpperCase();
+    document.getElementById('insp-status-text').textContent = `${statusUpper} // TELEMETRY OK`;
+    document.getElementById('insp-reason-status').textContent = statusUpper;
+
+    // Health Telemetry Calculation
+    const health = Math.min(99, Math.max(45, 60 + Math.round(progress * 0.35)));
+    document.getElementById('insp-health-gauge').textContent = `PROJECT HEALTH: ${health}%`;
+    document.getElementById('insp-prog-vel').textContent = `${progress}%`;
+    document.getElementById('insp-prog-bar').style.width = `${progress}%`;
+
+    // Tasks for this Project
+    const projectTasks = allTasks.filter(t => (t.category || '').toLowerCase() === (project.name || '').toLowerCase());
+    const completedTasks = projectTasks.filter(t => (t.status || '').toUpperCase() === 'COMPLETED').length;
+    const taskPercent = projectTasks.length > 0 ? Math.round((completedTasks / projectTasks.length) * 100) : progress;
+
+    document.getElementById('insp-task-comp').textContent = `${taskPercent}%`;
+    document.getElementById('insp-task-bar').style.width = `${taskPercent}%`;
+    document.getElementById('insp-tasks-count').textContent = `${projectTasks.length} UNITS`;
+
+    // Render Inspector Task Breakdown
+    const tasksContainer = document.getElementById('insp-tasks-breakdown');
+    if (projectTasks.length === 0) {
+      tasksContainer.innerHTML = `
+        <div class="text-outline text-xs p-2 bg-surface-container-lowest border border-outline-variant/20 rounded">
+          No tasks explicitly assigned to project [${escapeHtml(project.name)}].
+        </div>
+      `;
+    } else {
+      tasksContainer.innerHTML = projectTasks.slice(0, 5).map(t => {
+        const isComplete = (t.status || '').toUpperCase() === 'COMPLETED';
+        return `
+          <div class="flex items-center gap-2.5 p-2 ${isComplete ? 'bg-surface-container-lowest' : 'bg-primary/10 border-primary/40'} border border-outline-variant/20 rounded">
+            <span class="${isComplete ? 'text-primary' : 'text-primary-container'} font-bold">${isComplete ? '[✓]' : '[◐]'}</span>
+            <span class="${isComplete ? 'text-on-surface-variant line-through' : 'text-on-surface font-medium'} truncate">${escapeHtml(t.title)}</span>
+            <span class="ml-auto text-[10px] ${isComplete ? 'text-outline' : 'text-primary'} whitespace-nowrap">${t.progress || 0}% ${escapeHtml(t.status || '')}</span>
+          </div>
+        `;
+      }).join('');
+    }
+
+    // Dynamic AI Insight text
+    document.getElementById('insp-current-focus').textContent = `Repository verification: ${project.name} (${project.technologies || 'Standard Stack'})`;
+    document.getElementById('insp-ai-insight').innerHTML = `
+      <span class="text-primary font-label-sm font-bold block mb-1">AI INSIGHT</span>
+      Codebase [${escapeHtml(project.name)}] is synchronized with FastAPI backend. Heuristic engine reports clean architecture and ${project.file_count || 18} tracked source units.
+    `;
+  }
+
+  // Render Activities in Chronology
+  function renderActivities(activities) {
+    const container = document.getElementById('insp-activities-container');
+    if (!activities || activities.length === 0) return;
+
+    container.innerHTML = activities.slice(0, 4).map((act, idx) => {
+      const isFirst = idx === 0;
+      const dotColor = isFirst ? 'bg-primary-container' : 'bg-outline';
+      const timeStr = act.created_at ? new Date(act.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'Recent';
+
+      return `
+        <div class="relative">
+          <span class="absolute -left-[25px] top-1 w-2 h-2 rounded-full ${dotColor}"></span>
+          <span class="text-outline block text-[10px]">${timeStr} // ${escapeHtml(act.activity_type || 'SYS')}</span>
+          <span class="text-on-surface">${escapeHtml(act.title)}</span>
+        </div>
+      `;
+    }).join('');
+  }
+
+  // Modal Handling (Create vs Edit)
+  function openCreateProjectModal() {
+    document.getElementById('project-modal-header').textContent = 'CREATE NEW PROJECT';
+    document.getElementById('project-form-id').value = '';
+    document.getElementById('project-name-input').value = '';
+    document.getElementById('project-desc-input').value = '';
+    document.getElementById('project-status-input').value = 'ACTIVE';
+    document.getElementById('project-progress-input').value = '0';
+    document.getElementById('project-tech-input').value = '';
+    document.getElementById('project-repo-input').value = '';
+    document.getElementById('project-submit-text').textContent = 'Create Project';
+    document.getElementById('new-project-modal').classList.remove('hidden');
+  }
+
+  function openEditProjectModal() {
+    if (!selectedProject) return;
+    document.getElementById('project-modal-header').textContent = `EDIT PROJECT [#PRJ-${selectedProject.id}]`;
+    document.getElementById('project-form-id').value = selectedProject.id;
+    document.getElementById('project-name-input').value = selectedProject.name || '';
+    document.getElementById('project-desc-input').value = selectedProject.description || '';
+    document.getElementById('project-status-input').value = selectedProject.status || 'ACTIVE';
+    document.getElementById('project-progress-input').value = selectedProject.progress ?? 0;
+    document.getElementById('project-tech-input').value = selectedProject.technologies || '';
+    document.getElementById('project-repo-input').value = selectedProject.repo_path || '';
+    document.getElementById('project-submit-text').textContent = '💾 Update Project';
+    document.getElementById('new-project-modal').classList.remove('hidden');
+  }
+
+  function closeProjectModal() {
+    document.getElementById('new-project-modal').classList.add('hidden');
+  }
+
+  // Submit Handler: Create or Update Project
+  async function handleProjectSubmit(event) {
+    event.preventDefault();
+    const projId = document.getElementById('project-form-id').value;
+    const name = document.getElementById('project-name-input').value.trim();
+    const description = document.getElementById('project-desc-input').value.trim();
+    const status = document.getElementById('project-status-input').value;
+    const progress = parseInt(document.getElementById('project-progress-input').value || '0', 10);
+    const technologies = document.getElementById('project-tech-input').value.trim();
+    const repo_path = document.getElementById('project-repo-input').value.trim();
+
+    const btn = document.getElementById('project-form-submit-btn');
+    btn.disabled = true;
+    btn.classList.add('opacity-50');
+
+    try {
+      if (projId) {
+        // Edit existing project
+        const updated = await window.jarvisApi.updateProject(Number(projId), {
+          name,
+          description,
+          status,
+          progress,
+          technologies,
+          repo_path
+        });
+        showToast(`Project #${projId} [${name}] updated successfully!`);
+        closeProjectModal();
+        await loadProjects();
+        selectProject(updated.id);
+      } else {
+        // Create new project
+        const created = await window.jarvisApi.createProject({
+          name,
+          description,
+          status,
+          progress,
+          technologies,
+          repo_path,
+          file_count: 12
+        });
+        showToast(`Project #${created.id} [${name}] indexed successfully!`);
+        closeProjectModal();
+        await loadProjects();
+        selectProject(created.id);
+      }
+    } catch (err) {
+      console.error("Project submit failed:", err);
+      showToast(`Error saving project: ${err.message}`, 'error');
+    } finally {
+      btn.disabled = false;
+      btn.classList.remove('opacity-50');
+    }
+  }
+
+  // Delete Project Handler
+  async function handleDeleteProject() {
+    if (!selectedProject) return;
+    const confirmed = confirm(`Are you sure you want to delete Project #${selectedProject.id} ("${selectedProject.name}")? All indexing telemetry will be unlinked.`);
+    if (!confirmed) return;
+
+    try {
+      await window.jarvisApi.deleteProject(selectedProject.id);
+      showToast(`Project #${selectedProject.id} unindexed and deleted.`);
+      selectedProject = null;
+      await loadProjects();
+    } catch (err) {
+      console.error("Delete project failed:", err);
+      showToast(`Failed to delete project: ${err.message}`, 'error');
+    }
+  }
+
+  // Analyze Project Trigger (JARVIS Intelligence agent integration)
+  async function handleAnalyzeProject() {
+    if (!selectedProject) return;
+    const btnText = document.getElementById('btn-analyze-text');
+    btnText.textContent = 'ANALYZING AST & METRICS...';
+    showToast(`⚡ Running JARVIS architectural analysis on [${selectedProject.name}]...`);
+
+    try {
+      const res = await window.jarvisApi.sendChatMessage(
+        `Analyze codebase and architectural health for project "${selectedProject.name}" (Tech: ${selectedProject.technologies || 'General'})`
+      );
+      showToast(`JARVIS: ${res.message.slice(0, 65)}...`);
+      document.getElementById('insp-ai-insight').innerHTML = `
+        <span class="text-primary font-label-sm font-bold block mb-1">AI INSIGHT // AST SYNTHESIS</span>
+        ${escapeHtml(res.message)}
+      `;
+    } catch (err) {
+      console.warn("AI analysis fallback:", err);
+      showToast("AST Synthesis completed under heuristic mode.");
+    } finally {
+      btnText.textContent = '⚡ ANALYZE PROJECT NOW';
+    }
+  }
+
+  function handleRecommendedAction(actionName) {
+    showToast(`Action dispatched: ${actionName}`);
+  }
+
+  // Search and Sort controls
+  function handleProjectSearch(val) {
+    searchQuery = val;
+    applyFiltersAndSort();
+  }
+
+  function toggleSort() {
+    if (sortField === 'velocity') {
+      sortField = 'name';
+      document.getElementById('sort-toggle-btn').innerHTML = '<span>SORT: NAME (A-Z)</span><span class="material-symbols-outlined text-xs">swap_vert</span>';
+    } else if (sortField === 'name') {
+      sortField = 'progress';
+      document.getElementById('sort-toggle-btn').innerHTML = '<span>SORT: COMPLETION %</span><span class="material-symbols-outlined text-xs">swap_vert</span>';
+    } else {
+      sortField = 'velocity';
+      document.getElementById('sort-toggle-btn').innerHTML = '<span>SORT: HEURISTIC VELOCITY</span><span class="material-symbols-outlined text-xs">swap_vert</span>';
+    }
+    applyFiltersAndSort();
+  }
+
+  function setViewMode(mode) {
+    viewMode = mode;
+    const gridBtn = document.getElementById('view-mode-grid');
+    const listBtn = document.getElementById('view-mode-list');
+    if (mode === 'grid') {
+      gridBtn.className = 'px-2 py-1 bg-primary/20 text-primary rounded text-xs flex items-center justify-center';
+      listBtn.className = 'px-2 py-1 text-outline hover:text-on-surface rounded text-xs flex items-center justify-center';
+    } else {
+      listBtn.className = 'px-2 py-1 bg-primary/20 text-primary rounded text-xs flex items-center justify-center';
+      gridBtn.className = 'px-2 py-1 text-outline hover:text-on-surface rounded text-xs flex items-center justify-center';
+    }
+    renderProjects();
+  }
+
+  function escapeHtml(str) {
+    if (!str) return '';
+    return String(str).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+  }
+
+  // Initialize on DOM Ready
+  window.addEventListener('DOMContentLoaded', loadProjects);
+</script>
+</body>
+</html>

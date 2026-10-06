@@ -1,0 +1,292 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>JARVIS // LIVE SYSTEM DIAGNOSTIC</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet"/>
+<style>
+  body { font-family: "JetBrains Mono", monospace; background: #080B10; color: #e1e2e8; }
+  .st-pass { color: #27D3FF; border-color: rgba(39,211,255,0.27); background: rgba(39,211,255,0.07); }
+  .st-fail { color: #FFB4AB; border-color: rgba(255,180,171,0.27); background: rgba(255,180,171,0.07); }
+  .st-warn { color: #d1bcff; border-color: rgba(209,188,255,0.27); background: rgba(209,188,255,0.07); }
+  .st-running { color: #FFD700; border-color: rgba(255,215,0,0.27); background: rgba(255,215,0,0.07); }
+  .st-pending { color: #869399; border-color: rgba(134,147,153,0.27); background: rgba(134,147,153,0.07); }
+  .logline { font-size: 11px; padding: 2px 0; border-bottom: 1px solid #1d2024; }
+</style>
+</head>
+<body class="min-h-screen p-6">
+<div class="max-w-5xl mx-auto">
+  <div class="flex items-center justify-between mb-8 pb-4 border-b border-white/10">
+    <div>
+      <h1 class="text-2xl font-bold text-cyan-400 tracking-wider">JARVIS // LIVE SYSTEM DIAGNOSTIC</h1>
+      <p class="text-gray-500 text-sm mt-1">Real end-to-end verification - no fake results</p>
+    </div>
+    <div class="flex gap-3">
+      <button onclick="runAllTests()" class="px-4 py-2 bg-cyan-500/20 border border-cyan-500/60 text-cyan-400 hover:bg-cyan-500/30 text-sm font-bold tracking-wider">RUN ALL TESTS</button>
+      <a href="assistant.html" class="px-4 py-2 bg-white/5 border border-white/20 text-gray-400 hover:text-white text-sm">Assistant</a>
+    </div>
+  </div>
+  <div id="test-grid" class="space-y-1 mb-6"></div>
+  <div class="p-4 bg-black/60 border border-white/10 rounded">
+    <div class="font-bold text-cyan-400 text-xs tracking-wider mb-2 flex items-center justify-between">
+      <span>EXECUTION LOG</span>
+      <button onclick="clearLog()" class="text-gray-600 hover:text-gray-400 text-xs">CLEAR</button>
+    </div>
+    <div id="log-container" class="max-h-72 overflow-y-auto"></div>
+  </div>
+  <div id="final-summary" class="hidden mt-6 p-5 border rounded"></div>
+</div>
+<script>
+var API='http://127.0.0.1:8000/api/v1';
+var AGENT='http://127.0.0.1:8001';
+var TOKEN='jarvis_windows_local_agent_secret_2026';
+var testResults={};
+var TESTS=[
+  {id:'backend',label:'Backend Health',group:'Infrastructure'},
+  {id:'db',label:'Database (via settings)',group:'Infrastructure'},
+  {id:'frontend',label:'Frontend Server',group:'Infrastructure'},
+  {id:'agent_exec',label:'Local Agent Execute /execute',group:'Local Agent'},
+  {id:'agent_reg',label:'Local Agent Registered + Online',group:'Local Agent'},
+  {id:'agent_hb',label:'Local Agent Heartbeat Fresh',group:'Local Agent'},
+  {id:'agent_health',label:'Local Agent GET /health',group:'Local Agent'},
+  {id:'tool_reg',label:'Tool Registry (AI tools)',group:'Tools'},
+  {id:'chrome_direct',label:'Chrome via Direct Local Agent',group:'Tools'},
+  {id:'chrome_ai',label:'Chrome via Full AI Pipeline',group:'Tools'},
+  {id:'vscode_ai',label:'VS Code via AI Pipeline',group:'Tools'},
+  {id:'fake_deny',label:'Fake App = DENIED (security)',group:'Tools'},
+  {id:'stt',label:'Browser SpeechRecognition API',group:'Voice'},
+  {id:'tts',label:'Browser SpeechSynthesis (TTS)',group:'Voice'},
+  {id:'mic',label:'Microphone Access',group:'Voice'},
+  {id:'wake_api',label:'Wake Word API (backend)',group:'Wake Word'},
+  {id:'wake_browser',label:'Wake Word Browser Support',group:'Wake Word'},
+  {id:'ai_time',label:'AI: What time is it?',group:'AI Pipeline'},
+  {id:'ai_chrome',label:'AI Full E2E: Open Chrome',group:'AI Pipeline'},
+];
+
+function log(msg,type){
+  var c={info:'#869399',pass:'#27D3FF',fail:'#FFB4AB',warn:'#d1bcff',exec:'#FFD700'};
+  var ts=new Date().toTimeString().split(' ')[0];
+  var el=document.createElement('div');
+  el.className='logline';
+  el.innerHTML='<span style="color:#3c494e">'+ts+'</span> <span style="color:'+(c[type]||c.info)+'">'+msg+'</span>';
+  var container=document.getElementById('log-container');
+  container.appendChild(el);
+  container.scrollTop=container.scrollHeight;
+}
+function clearLog(){document.getElementById('log-container').innerHTML='';}
+
+function setState(id,state,detail){
+  var el=document.getElementById('t-'+id);
+  if(!el)return;
+  var icons={pending:'○',running:'◌',pass:'✓',fail:'✗',warn:'!'};
+  var cls={pending:'st-pending',running:'st-running',pass:'st-pass',fail:'st-fail',warn:'st-warn'};
+  el.className='flex items-center justify-between p-3 border rounded text-sm '+(cls[state]||'st-pending');
+  el.querySelector('.ic').textContent=icons[state]||'○';
+  el.querySelector('.st').textContent=state.toUpperCase();
+  if(detail)el.querySelector('.dt').textContent=detail.substring(0,120);
+  testResults[id]={state:state,detail:detail||''};
+}
+
+function renderGrid(){
+  var grid=document.getElementById('test-grid');
+  grid.innerHTML='';
+  var groups={};
+  TESTS.forEach(function(t){if(!groups[t.group])groups[t.group]=[];groups[t.group].push(t);});
+  Object.keys(groups).forEach(function(g){
+    var h=document.createElement('div');
+    h.innerHTML='<div class="text-xs text-gray-600 tracking-widest uppercase font-bold mt-4 mb-1 pl-1">'+g+'</div>';
+    grid.appendChild(h);
+    groups[g].forEach(function(t){
+      var row=document.createElement('div');
+      row.id='t-'+t.id;
+      row.className='flex items-center justify-between p-3 border rounded text-sm st-pending';
+      row.innerHTML='<div class="flex items-center gap-3"><span class="ic w-5 text-center">○</span><span class="font-mono">'+t.label+'</span></div><div class="flex items-center gap-4"><span class="dt text-xs opacity-60 max-w-xs truncate"></span><span class="st text-xs font-bold w-16 text-right">PENDING</span></div>';
+      grid.appendChild(row);
+    });
+  });
+}
+
+async function tBackend(){
+  setState('backend','running');
+  try{var r=await fetch('http://127.0.0.1:8000/health');var d=await r.json();if(d.status==='online'){setState('backend','pass','v'+d.version);log('Backend: ONLINE v'+d.version,'pass');return true;}}catch(e){setState('backend','fail',e.message);log('Backend FAIL: '+e.message,'fail');}return false;
+}
+async function tDb(){
+  setState('db','running');
+  try{var r=await fetch(API+'/settings');if(r.ok){setState('db','pass','Settings accessible');log('Database: PASS','pass');return true;}}catch(e){}
+  setState('db','warn','Fallback SQLite active');log('Database: WARN fallback mode','warn');return false;
+}
+async function tFrontend(){
+  setState('frontend','running');
+  try{var r=await fetch('http://localhost:5173/assistant.html');if(r.ok){setState('frontend','pass','Port 5173 OK');log('Frontend: PASS','pass');return true;}}catch(e){setState('frontend','fail','localhost:5173 not reachable');log('Frontend FAIL','fail');}return false;
+}
+async function tAgentExec(){
+  setState('agent_exec','running');log('Testing local agent POST /execute...','exec');
+  try{
+    var r=await fetch(AGENT+'/execute',{method:'POST',headers:{'Content-Type':'application/json','X-Local-Agent-Token':TOKEN},body:JSON.stringify({tool:'get_current_time',parameters:{}})});
+    var d=await r.json();
+    if(d.status==='SUCCESS'){setState('agent_exec','pass',d.output&&d.output.formatted||'OK');log('Local Agent execute: PASS - '+JSON.stringify(d.output&&d.output.formatted),'pass');return true;}
+    setState('agent_exec','fail',d.error||'unexpected');log('Agent exec FAIL: '+JSON.stringify(d),'fail');
+  }catch(e){setState('agent_exec','fail','Cannot reach 127.0.0.1:8001 - run python local_agent/agent.py');log('Local Agent NOT running: '+e.message,'fail');}return false;
+}
+async function tAgentReg(){
+  setState('agent_reg','running');
+  try{var r=await fetch(API+'/local-agent/status');var d=await r.json();if(d.is_online){setState('agent_reg','pass',d.device_name+' ONLINE tools:'+d.available_tools.length);log('Agent registered: PASS '+d.device_name,'pass');return true;}setState('agent_reg','fail','Status: '+d.status+' - heartbeat expired or not started');log('Agent not registered: '+d.status,'fail');}catch(e){setState('agent_reg','fail',e.message);}return false;
+}
+async function tAgentHB(){
+  setState('agent_hb','running');
+  try{var r=await fetch(API+'/local-agent/status');var d=await r.json();if(d.is_online&&d.last_heartbeat){var age=Math.round((Date.now()-new Date(d.last_heartbeat+'Z').getTime())/1000);if(age<35){setState('agent_hb','pass','Last: '+age+'s ago');log('Heartbeat: PASS '+age+'s ago','pass');return true;}setState('agent_hb','warn','Stale: '+age+'s ago (>35s)');log('Heartbeat STALE: '+age+'s','warn');return false;}setState('agent_hb','fail','No heartbeat');}catch(e){setState('agent_hb','fail',e.message);}return false;
+}
+async function tAgentHealth(){
+  setState('agent_health','running');
+  try{var r=await fetch(AGENT+'/health');var d=await r.json();setState('agent_health','pass','Status: '+d.status);log('Agent GET /health: PASS','pass');return true;}
+  catch(e){setState('agent_health','fail','Restart agent.py to apply GET /health fix');log('Agent /health FAIL - restart agent.py to apply fix','warn');}return false;
+}
+async function tToolReg(){
+  setState('tool_reg','running');
+  try{var r=await fetch(API+'/assistant/tools');var d=await r.json();var local=(d||[]).filter(function(t){return t.name&&t.name.startsWith('local_');});setState('tool_reg','pass',d.length+' tools, '+local.length+' local');log('Tools: PASS '+d.length+' registered','pass');return true;}catch(e){setState('tool_reg','fail',e.message);}return false;
+}
+async function tChromeDirect(){
+  setState('chrome_direct','running');log('Launching Chrome directly via agent...','exec');
+  try{
+    var r=await fetch(AGENT+'/execute',{method:'POST',headers:{'Content-Type':'application/json','X-Local-Agent-Token':TOKEN},body:JSON.stringify({tool:'open_application',parameters:{application:'chrome'}})});
+    var d=await r.json();
+    if(d.status==='SUCCESS'&&d.verified){setState('chrome_direct','pass','PID:'+d.output.pid+' running:'+d.output.running);log('CHROME DIRECT LAUNCH: PASS PID='+d.output.pid,'pass');return true;}
+    setState('chrome_direct','fail',d.error||JSON.stringify(d));log('Chrome direct FAIL: '+JSON.stringify(d),'fail');
+  }catch(e){setState('chrome_direct','fail',e.message);log('Chrome direct FAIL: '+e.message,'fail');}return false;
+}
+async function tChromeAI(){
+  setState('chrome_ai','running');log('Chrome via AI pipeline: intent->plan->tool->verify...','exec');
+  try{
+    var t0=Date.now();
+    var r=await fetch(API+'/assistant/message',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:'Open Chrome',conversation_id:null,input_type:'text'})});
+    var d=await r.json();var ms=Date.now()-t0;
+    if(d.verified&&d.intent==='OPEN_APPLICATION'){var pid=d.actions&&d.actions[0]&&d.actions[0].output&&d.actions[0].output.pid;setState('chrome_ai','pass','"'+d.response+'" PID:'+pid+' '+ms+'ms');log('Chrome AI PIPELINE: PASS "'+d.response+'" PID='+pid+' in '+ms+'ms','pass');return true;}
+    setState('chrome_ai','warn','"'+d.response+'" verified:'+d.verified);log('Chrome AI WARN: '+JSON.stringify(d).substring(0,200),'warn');
+  }catch(e){setState('chrome_ai','fail',e.message);log('Chrome AI FAIL: '+e.message,'fail');}return false;
+}
+async function tVSCodeAI(){
+  setState('vscode_ai','running');log('VS Code via AI pipeline...','exec');
+  try{
+    var r=await fetch(API+'/assistant/message',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:'Open VS Code',conversation_id:null,input_type:'text'})});
+    var d=await r.json();
+    if(d.verified&&d.intent==='OPEN_APPLICATION'){setState('vscode_ai','pass','"'+d.response+'"');log('VS Code: PASS "'+d.response+'"','pass');return true;}
+    if(d.response&&(d.response.toLowerCase().includes('not found')||d.error)){setState('vscode_ai','warn','VS Code not installed at expected path');log('VS Code: WARN not found','warn');return false;}
+    setState('vscode_ai','warn','"'+d.response+'"');log('VS Code WARN: '+d.response,'warn');
+  }catch(e){setState('vscode_ai','fail',e.message);}return false;
+}
+async function tFakeDeny(){
+  setState('fake_deny','running');log('Security test: fake app must be DENIED...','exec');
+  try{
+    var r=await fetch(API+'/local-agent/execute',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({tool:'open_application',parameters:{application:'fakebrowser_xyz_test_1234'}})});
+    var d=await r.json();
+    if(d.status==='DENIED'){setState('fake_deny','pass','Security OK: '+d.error);log('Security: PASS fake app DENIED','pass');return true;}
+    setState('fake_deny','fail','SECURITY BREACH: got '+d.status+'!');log('SECURITY FAIL: fake app NOT denied!','fail');
+  }catch(e){setState('fake_deny','fail',e.message);}return false;
+}
+function tSTT(){
+  setState('stt','running');
+  var SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  if(SR){setState('stt','pass',(window.SpeechRecognition?'SpeechRecognition':'webkitSpeechRecognition')+' available');log('STT: PASS','pass');return true;}
+  setState('stt','fail','Not available - use Chrome or Edge');log('STT: FAIL - use Chrome or Edge','fail');return false;
+}
+function tTTS(){
+  setState('tts','running');
+  if('speechSynthesis'in window){var v=window.speechSynthesis.getVoices();setState('tts','pass',v.length+' voices');log('TTS: PASS '+v.length+' voices','pass');return true;}
+  setState('tts','fail','speechSynthesis not available');log('TTS: FAIL','fail');return false;
+}
+async function tMic(){
+  setState('mic','running');log('Requesting mic permission...','exec');
+  if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia){setState('mic','fail','mediaDevices API not available');return false;}
+  try{var s=await navigator.mediaDevices.getUserMedia({audio:true});s.getTracks().forEach(function(t){t.stop();});setState('mic','pass','Access granted');log('Mic: PASS access granted','pass');return true;}
+  catch(e){if(e.name==='NotAllowedError'){setState('mic','fail','DENIED - allow mic in browser address bar');log('Mic: DENIED - grant in browser','fail');}else{setState('mic','fail',e.message);log('Mic: FAIL '+e.message,'fail');}return false;}
+}
+async function tWakeAPI(){
+  setState('wake_api','running');
+  try{var r=await fetch(API+'/voice/wake-word/status');var d=await r.json();setState('wake_api','pass','phrase:"'+d.wake_phrase+'" state:'+d.state);log('Wake API: PASS phrase="'+d.wake_phrase+'"','pass');return true;}catch(e){setState('wake_api','fail',e.message);}return false;
+}
+function tWakeBrowser(){
+  setState('wake_browser','running');
+  var SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  if(!SR){setState('wake_browser','fail','Requires Chrome or Edge');log('Wake browser: FAIL - use Chrome/Edge','fail');return false;}
+  setState('wake_browser','pass','Continuous SpeechRecognition supported');log('Wake browser: PASS','pass');return true;
+}
+async function tAITime(){
+  setState('ai_time','running');log('AI: What time is it?...','exec');
+  try{var r=await fetch(API+'/assistant/message',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:'What time is it?',conversation_id:null,input_type:'text'})});var d=await r.json();if(d.response){setState('ai_time','pass','"'+d.response.substring(0,80)+'"');log('AI time: PASS "'+d.response+'"','pass');return true;}}catch(e){setState('ai_time','fail',e.message);}return false;
+}
+async function tAIChrome(){
+  setState('ai_chrome','running');log('FULL E2E: "Open Chrome" -> AI -> local agent -> PID verify...','exec');
+  try{
+    var t0=Date.now();
+    var r=await fetch(API+'/assistant/message',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:'Open Google Chrome',conversation_id:null,input_type:'text'})});
+    var d=await r.json();var ms=Date.now()-t0;
+    var pid=d.actions&&d.actions[0]&&d.actions[0].output&&d.actions[0].output.pid;
+    var running=d.actions&&d.actions[0]&&d.actions[0].output&&d.actions[0].output.running;
+    if(d.verified&&pid){setState('ai_chrome','pass','"'+d.response+'" PID:'+pid+' running:'+running+' '+ms+'ms');log('FULL E2E CHROME: PASS "'+d.response+'" PID='+pid+' '+ms+'ms','pass');return true;}
+    setState('ai_chrome','warn','"'+d.response+'" verified:'+d.verified);log('Full E2E WARN: '+JSON.stringify(d).substring(0,200),'warn');
+  }catch(e){setState('ai_chrome','fail',e.message);log('Full E2E FAIL: '+e.message,'fail');}return false;
+}
+
+async function runAllTests(){
+  renderGrid();
+  document.getElementById('log-container').innerHTML='';
+  document.getElementById('final-summary').classList.add('hidden');
+  log('=== JARVIS LIVE DIAGNOSTIC STARTED ===','exec');
+
+  var pass=[],warn=[],fail=[];
+  async function run(id,fn){try{var r=await Promise.resolve(fn());if(r===true)pass.push(id);else if(r===false)fail.push(id);else warn.push(id);}catch(e){setState(id,'fail',e.message);fail.push(id);log('Exception in '+id+': '+e.message,'fail');}}
+
+  await run('backend',tBackend);
+  await run('db',tDb);
+  await run('frontend',tFrontend);
+  await run('agent_exec',tAgentExec);
+  await run('agent_reg',tAgentReg);
+  await run('agent_hb',tAgentHB);
+  await run('agent_health',tAgentHealth);
+  await run('tool_reg',tToolReg);
+  await run('chrome_direct',tChromeDirect);
+  await run('chrome_ai',tChromeAI);
+  await run('vscode_ai',tVSCodeAI);
+  await run('fake_deny',tFakeDeny);
+  await run('stt',function(){return tSTT();});
+  await run('tts',function(){return tTTS();});
+  await run('mic',tMic);
+  await run('wake_api',tWakeAPI);
+  await run('wake_browser',function(){return tWakeBrowser();});
+  await run('ai_time',tAITime);
+  await run('ai_chrome',tAIChrome);
+
+  log('','info');log('=== COMPLETE: PASS='+pass.length+' WARN='+warn.length+' FAIL='+fail.length+' ===','exec');
+  showSummary(pass,warn,fail);
+}
+
+function showSummary(pass,warn,fail){
+  var el=document.getElementById('final-summary');
+  var total=TESTS.length;
+  var pct=Math.round(pass.length/total*100);
+  el.className='mt-6 p-5 border rounded '+(fail.length===0?'st-pass':(fail.length>5?'st-fail':'st-warn'));
+  el.classList.remove('hidden');
+  var fixes=[];
+  if(fail.includes('backend'))fixes.push('Start backend: cd jarvis-backend &amp;&amp; python -m uvicorn app.main:app --reload --host 127.0.0.1 --port 8000');
+  if(fail.includes('agent_exec')||fail.includes('agent_reg'))fixes.push('Start local agent: python local_agent\\agent.py');
+  if(fail.includes('agent_health'))fixes.push('Restart local agent.py to apply GET /health fix (code already updated)');
+  if(fail.includes('stt')||fail.includes('wake_browser'))fixes.push('Use Chrome or Edge browser for voice and wake-word support');
+  if(fail.includes('mic'))fixes.push('Allow microphone: click lock icon in browser address bar -> Site settings -> Microphone -> Allow');
+  if(fail.includes('frontend'))fixes.push('Start frontend: npm run dev');
+  el.innerHTML='<div class="flex items-center justify-between mb-4"><h2 class="text-lg font-bold tracking-wider">DIAGNOSTIC RESULTS</h2><span class="text-3xl font-black">'+pct+'%</span></div>'
+    +'<div class="grid grid-cols-3 gap-4 mb-4 text-center">'
+    +'<div class="p-3 bg-black/30 rounded"><div class="text-2xl font-black text-cyan-400">'+pass.length+'</div><div class="text-xs opacity-60">PASS</div></div>'
+    +'<div class="p-3 bg-black/30 rounded"><div class="text-2xl font-black text-purple-400">'+warn.length+'</div><div class="text-xs opacity-60">WARN</div></div>'
+    +'<div class="p-3 bg-black/30 rounded"><div class="text-2xl font-black text-red-400">'+fail.length+'</div><div class="text-xs opacity-60">FAIL</div></div>'
+    +'</div>'
+    +(fixes.length>0?'<div class="mt-3 p-3 bg-black/40 rounded text-xs"><div class="font-bold mb-2 tracking-wider">ACTION REQUIRED:</div>'+fixes.map(function(f){return'<div class="py-1 border-b border-white/5 last:border-0 font-mono opacity-90">'+f+'</div>';}).join('')+'</div>':'<div class="text-sm opacity-70 mt-2">All systems operational. Open assistant.html to use JARVIS.</div>');
+}
+
+renderGrid();
+log('Click RUN ALL TESTS or wait for auto-run...','info');
+window.addEventListener('load',function(){setTimeout(runAllTests,500);});
+</script>
+</body>
+</html>

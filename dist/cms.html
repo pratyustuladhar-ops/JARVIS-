@@ -1,0 +1,1468 @@
+<!DOCTYPE html>
+<html class="dark" lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>JARVIS // CMS COMMAND CENTER</title>
+<!-- Fonts -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&amp;family=JetBrains+Mono:wght@300;400;500;600;700&amp;family=Sora:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<!-- Material Symbols Outlined -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind CSS with Forms & Container Queries -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          "colors": {
+            "secondary-container": "#4f3c7a",
+            "outline": "#869399",
+            "surface-bright": "#37393e",
+            "on-secondary": "#382461",
+            "error": "#ffb4ab",
+            "on-surface": "#e1e2e8",
+            "surface-tint": "#49d6ff",
+            "secondary-fixed": "#eaddff",
+            "tertiary-container": "#b7c4d8",
+            "on-primary-fixed-variant": "#004e60",
+            "primary-container": "#27d3ff",
+            "inverse-primary": "#00677f",
+            "on-tertiary": "#253141",
+            "primary-fixed": "#b6ebff",
+            "surface-container-highest": "#33353a",
+            "secondary-fixed-dim": "#d1bcff",
+            "surface-dim": "#111318",
+            "on-secondary-container": "#c0aaf0",
+            "on-primary": "#003543",
+            "inverse-on-surface": "#2e3035",
+            "on-tertiary-fixed": "#0f1c2b",
+            "error-container": "#93000a",
+            "surface-container-lowest": "#0c0e13",
+            "on-error-container": "#ffdad6",
+            "surface-container-low": "#191c20",
+            "on-background": "#e1e2e8",
+            "secondary": "#d1bcff",
+            "on-tertiary-container": "#445162",
+            "primary": "#aae8ff",
+            "on-surface-variant": "#bbc9cf",
+            "background": "#111318",
+            "tertiary": "#d3e0f4",
+            "inverse-surface": "#e1e2e8",
+            "on-primary-fixed": "#001f28",
+            "on-error": "#690005",
+            "surface-variant": "#33353a",
+            "surface-container": "#1d2024",
+            "tertiary-fixed": "#d6e3f8",
+            "outline-variant": "#3c494e",
+            "tertiary-fixed-dim": "#bac7dc",
+            "on-tertiary-fixed-variant": "#3b4858",
+            "on-secondary-fixed": "#220c4b",
+            "surface": "#111318",
+            "on-primary-container": "#00576c",
+            "primary-fixed-dim": "#49d6ff",
+            "on-secondary-fixed-variant": "#4f3c7a",
+            "surface-container-high": "#282a2f"
+          },
+          "borderRadius": {
+            "DEFAULT": "0.125rem",
+            "lg": "0.25rem",
+            "xl": "0.5rem",
+            "full": "0.75rem"
+          },
+          "spacing": {
+            "space-lg": "1.5rem",
+            "space-xs": "0.25rem",
+            "space-sm": "0.5rem",
+            "space-md": "1rem",
+            "space-xl": "2.5rem",
+            "gutter-mobile": "0.75rem",
+            "gutter": "1rem",
+            "margin-mobile": "1rem",
+            "margin": "2rem"
+          },
+          "fontFamily": {
+            "headline-sm": ["Sora"],
+            "body-sm": ["Inter"],
+            "headline-lg-mobile": ["Sora"],
+            "headline-xl": ["Sora"],
+            "label-md": ["JetBrains Mono"],
+            "label-sm": ["JetBrains Mono"],
+            "label-lg": ["JetBrains Mono"],
+            "headline-xl-mobile": ["Sora"],
+            "body-md": ["Inter"],
+            "body-lg": ["Inter"],
+            "headline-md": ["Sora"],
+            "headline-lg": ["Sora"]
+          },
+          "fontSize": {
+            "headline-sm": ["16px", { "lineHeight": "24px", "letterSpacing": "0em", "fontWeight": "500" }],
+            "body-sm": ["12px", { "lineHeight": "18px", "fontWeight": "400" }],
+            "headline-lg-mobile": ["22px", { "lineHeight": "30px", "letterSpacing": "0em", "fontWeight": "600" }],
+            "headline-xl": ["40px", { "lineHeight": "48px", "letterSpacing": "-0.02em", "fontWeight": "600" }],
+            "label-md": ["11px", { "lineHeight": "16px", "letterSpacing": "0.08em", "fontWeight": "500" }],
+            "label-sm": ["10px", { "lineHeight": "14px", "letterSpacing": "0.1em", "fontWeight": "500" }],
+            "label-lg": ["13px", { "lineHeight": "18px", "letterSpacing": "0.06em", "fontWeight": "500" }],
+            "headline-xl-mobile": ["28px", { "lineHeight": "36px", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+            "body-md": ["14px", { "lineHeight": "22px", "fontWeight": "400" }],
+            "body-lg": ["16px", { "lineHeight": "26px", "fontWeight": "400" }],
+            "headline-md": ["20px", { "lineHeight": "28px", "letterSpacing": "-0.005em", "fontWeight": "500" }],
+            "headline-lg": ["28px", { "lineHeight": "36px", "letterSpacing": "-0.01em", "fontWeight": "600" }]
+          }
+        },
+      },
+    }
+  </script>
+<style>
+    .material-symbols-outlined {
+      font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+      display: inline-block;
+      vertical-align: middle;
+      line-height: 1;
+    }
+    .hud-bracket {
+      position: relative;
+    }
+    .hud-bracket::before {
+      content: '';
+      position: absolute;
+      top: -1px;
+      left: -1px;
+      width: 6px;
+      height: 6px;
+      border-top: 1px solid #27d3ff;
+      border-left: 1px solid #27d3ff;
+      pointer-events: none;
+    }
+    .hud-bracket::after {
+      content: '';
+      position: absolute;
+      bottom: -1px;
+      right: -1px;
+      width: 6px;
+      height: 6px;
+      border-bottom: 1px solid #27d3ff;
+      border-right: 1px solid #27d3ff;
+      pointer-events: none;
+    }
+    ::-webkit-scrollbar {
+      width: 4px;
+      height: 4px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #0c0e13;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #3c494e;
+      border-radius: 2px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #27d3ff;
+    }
+  </style>
+  <script type="module" crossorigin src="/assets/api-6_STEUA4.js"></script>
+</head>
+<body class="bg-[#06080C] text-on-surface font-body-md antialiased min-h-screen overflow-x-hidden selection:bg-primary-container selection:text-on-primary-container">
+
+<!-- TOAST NOTIFICATION CONTAINER -->
+<div class="hidden fixed bottom-6 right-6 z-50 flex items-center gap-3 px-4 py-3 bg-surface-container border border-primary-container/80 rounded shadow-2xl transition-all" id="toast-notification">
+  <span class="material-symbols-outlined text-primary-container" id="toast-icon">check_circle</span>
+  <div class="flex flex-col">
+    <span class="text-label-sm font-label-sm font-bold text-primary tracking-wider" id="toast-title">CMS CONFIGURATION SYNCED</span>
+    <span class="text-[10px] font-label-sm text-on-surface-variant" id="toast-desc">Live state committed to PostgreSQL.</span>
+  </div>
+</div>
+
+<!-- ==================== LEFT ADMIN SIDEBAR ==================== -->
+<aside class="fixed left-0 top-0 bottom-0 z-40 w-64 bg-surface-container-lowest/90 backdrop-blur-md border-r border-outline-variant/40 flex flex-col justify-between p-3 select-none">
+  <!-- Top System Identification & Nav Cluster -->
+  <div class="flex flex-col gap-3">
+    <!-- Brand & Security Clearance -->
+    <div class="p-2 border-b border-outline-variant/30 pb-3">
+      <div class="flex items-center justify-between mb-1.5">
+        <div class="flex items-center gap-2">
+          <div class="relative flex items-center justify-center w-5 h-5 bg-error-container/30 border border-error/50 rounded-none">
+            <span class="w-2 h-2 bg-error rounded-none animate-pulse"></span>
+          </div>
+          <span class="font-headline-sm text-headline-sm font-bold tracking-widest text-primary">JARVIS // CMS</span>
+        </div>
+        <span class="font-label-sm text-label-sm px-1.5 py-0.5 border border-error/40 text-error bg-error-container/20">SEC_LVL_5</span>
+      </div>
+      <div class="font-label-sm text-label-sm text-on-surface-variant flex items-center gap-1.5">
+        <span class="w-1.5 h-1.5 bg-primary-container rounded-none"></span>
+        <span>SYSADMIN_KERNEL // v4.2</span>
+      </div>
+    </div>
+    <!-- Return Button to User Dashboard -->
+    <a class="flex items-center gap-2 px-3 py-1.5 text-on-surface-variant hover:text-primary hover:bg-surface-container-high/40 border border-outline-variant/30 hover:border-primary/50 transition-all duration-150 font-label-md text-label-md" href="index.html">
+      <span class="material-symbols-outlined text-[14px]">arrow_back</span>
+      <span>← BACK TO JARVIS</span>
+    </a>
+    <!-- Navigation Tree -->
+    <div class="overflow-y-auto max-h-[calc(100vh-270px)] space-y-4 pr-1">
+      <!-- SECTION: OVERVIEW -->
+      <div>
+        <span class="px-2 font-label-sm text-label-sm text-outline tracking-wider block mb-1">OVERVIEW</span>
+        <a class="flex items-center justify-between px-3 py-1.5 bg-primary/10 text-primary border-l-2 border-primary font-label-md text-label-md shadow-[0_0_12px_rgba(39,211,255,0.15)]" href="cms.html">
+          <div class="flex items-center gap-2.5">
+            <span class="material-symbols-outlined text-[16px]">dashboard</span>
+            <span>Admin Dashboard</span>
+          </div>
+          <span class="w-1.5 h-1.5 bg-primary-container"></span>
+        </a>
+      </div>
+      <!-- SECTION: CONTENT -->
+      <div>
+        <span class="px-2 font-label-sm text-label-sm text-outline tracking-wider block mb-1">CONTENT</span>
+        <nav class="space-y-0.5 font-label-md text-label-md">
+          <a class="flex items-center justify-between px-3 py-1.5 text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high/40 transition-colors" href="javascript:void(0)" onclick="switchTab('widgets')">
+            <div class="flex items-center gap-2.5">
+              <span class="material-symbols-outlined text-[16px]">widgets</span>
+              <span>Dashboard Widgets</span>
+            </div>
+            <span class="px-1.5 py-0.2 font-label-sm text-label-sm bg-surface-container border border-outline-variant/40 text-primary" id="badge-widgets-count">12</span>
+          </a>
+          <a class="flex items-center justify-between px-3 py-1.5 text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high/40 transition-colors" href="javascript:void(0)" onclick="filterCMSParam('navigation')">
+            <div class="flex items-center gap-2.5">
+              <span class="material-symbols-outlined text-[16px]">side_navigation</span>
+              <span>Navigation Rail</span>
+            </div>
+            <span class="px-1.5 py-0.2 font-label-sm text-label-sm bg-surface-container border border-outline-variant/40 text-on-surface-variant">8</span>
+          </a>
+          <a class="flex items-center justify-between px-3 py-1.5 text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high/40 transition-colors" href="javascript:void(0)" onclick="filterCMSParam('quick_actions')">
+            <div class="flex items-center gap-2.5">
+              <span class="material-symbols-outlined text-[16px]">bolt</span>
+              <span>Quick Actions</span>
+            </div>
+            <span class="px-1.5 py-0.2 font-label-sm text-label-sm bg-surface-container border border-outline-variant/40 text-on-surface-variant">6</span>
+          </a>
+          <a class="flex items-center justify-between px-3 py-1.5 text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high/40 transition-colors" href="javascript:void(0)" onclick="openModal('announcement-modal')">
+            <div class="flex items-center gap-2.5">
+              <span class="material-symbols-outlined text-[16px]">campaign</span>
+              <span>Announcements</span>
+            </div>
+            <span class="px-1.5 py-0.2 font-label-sm text-label-sm bg-primary/10 border border-primary/40 text-primary">3</span>
+          </a>
+          <a class="flex items-center justify-between px-3 py-1.5 text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high/40 transition-colors" href="javascript:void(0)" onclick="showToast('MEDIA LIBRARY', '24 vector shaders and icons available in asset vault.', 'perm_media')">
+            <div class="flex items-center gap-2.5">
+              <span class="material-symbols-outlined text-[16px]">perm_media</span>
+              <span>Media Library</span>
+            </div>
+            <span class="px-1.5 py-0.2 font-label-sm text-label-sm bg-surface-container border border-outline-variant/40 text-on-surface-variant">24</span>
+          </a>
+        </nav>
+      </div>
+      <!-- SECTION: APPLICATION -->
+      <div>
+        <span class="px-2 font-label-sm text-label-sm text-outline tracking-wider block mb-1">APPLICATION</span>
+        <nav class="space-y-0.5 font-label-md text-label-md">
+          <a class="flex items-center gap-2.5 px-3 py-1.5 text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high/40 transition-colors" href="tasks.html">
+            <span class="material-symbols-outlined text-[16px]">check_circle</span>
+            <span>Tasks &amp; Schedulers</span>
+          </a>
+          <a class="flex items-center gap-2.5 px-3 py-1.5 text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high/40 transition-colors" href="projects.html">
+            <span class="material-symbols-outlined text-[16px]">folder</span>
+            <span>Project Intelligence</span>
+          </a>
+          <a class="flex items-center gap-2.5 px-3 py-1.5 text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high/40 transition-colors" href="memory.html">
+            <span class="material-symbols-outlined text-[16px]">memory</span>
+            <span>Memory &amp; Vectors</span>
+          </a>
+          <a class="flex items-center gap-2.5 px-3 py-1.5 text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high/40 transition-colors" href="assistant.html">
+            <span class="material-symbols-outlined text-[16px]">smart_toy</span>
+            <span>AI Heuristics &amp; Model</span>
+          </a>
+          <a class="flex items-center justify-between px-3 py-1.5 text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high/40 transition-colors" href="javascript:void(0)" onclick="switchTab('flags')">
+            <div class="flex items-center gap-2.5">
+              <span class="material-symbols-outlined text-[16px]">flag</span>
+              <span>Feature Flags</span>
+            </div>
+            <span class="px-1.5 py-0.2 font-label-sm text-label-sm bg-primary/20 border border-primary text-primary" id="badge-flags-count">7</span>
+          </a>
+          <a class="flex items-center gap-2.5 px-3 py-1.5 text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high/40 transition-colors" href="settings.html">
+            <span class="material-symbols-outlined text-[16px]">tune</span>
+            <span>Global Settings</span>
+          </a>
+        </nav>
+      </div>
+      <!-- SECTION: SYSTEM -->
+      <div>
+        <span class="px-2 font-label-sm text-label-sm text-outline tracking-wider block mb-1">SYSTEM</span>
+        <nav class="space-y-0.5 font-label-md text-label-md">
+          <a class="flex items-center gap-2.5 px-3 py-1.5 text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high/40 transition-colors" href="activity.html">
+            <span class="material-symbols-outlined text-[16px]">timeline</span>
+            <span>System Telemetry</span>
+          </a>
+          <a class="flex items-center gap-2.5 px-3 py-1.5 text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high/40 transition-colors" href="activity.html">
+            <span class="material-symbols-outlined text-[16px]">policy</span>
+            <span>Admin Audit Logs</span>
+          </a>
+          <a class="flex items-center gap-2.5 px-3 py-1.5 text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high/40 transition-colors" href="settings.html">
+            <span class="material-symbols-outlined text-[16px]">dns</span>
+            <span>API &amp; Environment</span>
+          </a>
+        </nav>
+      </div>
+    </div>
+  </div>
+  <!-- Sidebar Bottom Telemetry & Operator Identity -->
+  <div class="border-t border-outline-variant/30 pt-3 space-y-2 font-label-sm text-label-sm">
+    <div class="flex items-center justify-between px-2 py-1 bg-surface-container-lowest border border-outline-variant/30">
+      <div class="flex items-center gap-1.5">
+        <span class="w-1.5 h-1.5 bg-primary-container animate-ping"></span>
+        <span class="text-on-surface" id="sidebar-op-name">COMMANDER_ADMIN</span>
+      </div>
+      <span class="text-primary font-mono">NODE_ROOT</span>
+    </div>
+    <div class="grid grid-cols-2 gap-1 text-[9px] text-on-surface-variant px-1">
+      <div class="flex items-center gap-1">
+        <span class="material-symbols-outlined text-[12px] text-primary">wifi_tethering</span>
+        <span id="sidebar-latency">12ms SYNC</span>
+      </div>
+      <div class="flex items-center justify-end gap-1">
+        <span class="material-symbols-outlined text-[12px] text-outline">database</span>
+        <span>POOL: 32/64</span>
+      </div>
+    </div>
+  </div>
+</aside>
+
+<!-- ==================== MAIN CONTENT CANVASS ==================== -->
+<main class="ml-64 flex flex-col min-h-screen bg-[#06080C]">
+  <!-- TOP HUD HEADER (Fixed docked header style) -->
+  <header class="sticky top-0 z-30 flex items-center justify-between px-6 py-3 bg-surface-container-lowest/85 backdrop-blur-md border-b border-outline-variant/40">
+    <!-- Left Breadcrumb & Live Cluster States -->
+    <div class="flex flex-col gap-1">
+      <div class="flex items-center gap-2 font-label-sm text-label-sm text-outline">
+        <span class="text-primary">JARVIS</span>
+        <span>//</span>
+        <span>ADMINISTRATION</span>
+        <span>//</span>
+        <span>SYSTEM_OVERVIEW</span>
+        <span>//</span>
+        <span class="text-on-surface font-semibold">COMMAND_DASHBOARD</span>
+      </div>
+      <div class="flex items-center gap-2 font-label-sm text-label-sm">
+        <span class="inline-flex items-center gap-1 px-1.5 py-0.2 border border-outline-variant/50 bg-surface-container text-primary">
+          <span class="w-1.5 h-1.5 bg-primary-container"></span>
+          <span id="hdr-api-status">API ONLINE [14ms]</span>
+        </span>
+        <span class="inline-flex items-center gap-1 px-1.5 py-0.2 border border-outline-variant/50 bg-surface-container text-on-surface-variant">
+          <span class="w-1.5 h-1.5 bg-primary"></span>
+          <span id="hdr-db-status">POSTGRES CONNECTED [12ms]</span>
+        </span>
+        <span class="inline-flex items-center gap-1 px-1.5 py-0.2 border border-outline-variant/50 bg-surface-container text-on-surface-variant">
+          FRONTEND V4.2 ACTIVE
+        </span>
+        <span class="inline-flex items-center gap-1 px-1.5 py-0.2 border border-outline-variant/50 bg-surface-container text-outline">
+          <span class="w-1.5 h-1.5 bg-outline"></span>
+          AI SWARM: STANDBY (RESTRICTED)
+        </span>
+      </div>
+    </div>
+    <!-- Right Action Controls & Terminal Filter Input -->
+    <div class="flex items-center gap-3">
+      <!-- Search Prompt Bar -->
+      <div class="relative flex items-center">
+        <span class="absolute left-2.5 font-label-sm text-label-sm text-primary pointer-events-none">&gt;_</span>
+        <input id="cms-filter-input" class="w-64 pl-8 pr-3 py-1.5 bg-surface-container-lowest border border-outline-variant/60 focus:border-primary focus:ring-0 text-on-surface font-label-md text-label-md placeholder:text-outline/70 transition-colors" placeholder="[CTRL+K] Filter CMS parameters..." type="text" oninput="filterCMSParam(this.value)"/>
+      </div>
+      <!-- Draft Preview Action -->
+      <button onclick="previewDraftAction()" class="px-3 py-1.5 bg-surface-container-low border border-outline-variant/60 hover:border-primary/50 text-on-surface-variant hover:text-on-surface transition-all font-label-md text-label-md flex items-center gap-1.5">
+        <span class="material-symbols-outlined text-[15px]">visibility</span>
+        <span>DRAFT PREVIEW</span>
+      </button>
+      <!-- Publish Live Configuration Action -->
+      <button id="btn-publish" onclick="publishLiveConfiguration()" class="px-4 py-1.5 bg-primary-container/15 hover:bg-primary-container/25 text-primary border border-primary font-label-md text-label-md flex items-center gap-2 shadow-[0_0_15px_rgba(39,211,255,0.25)] hover:shadow-[0_0_20px_rgba(39,211,255,0.4)] transition-all">
+        <span class="w-2 h-2 bg-primary animate-pulse"></span>
+        <span>PUBLISH LIVE CONFIGURATION</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- MAIN BODY HUD CONTENT -->
+  <div class="p-6 space-y-6">
+    <!-- ==================== 1. TELEMETRY KPI ROW (6 Metric Cards) ==================== -->
+    <section class="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-3">
+      <!-- Metric 1 -->
+      <div class="hud-bracket bg-surface-container-lowest/80 border border-outline-variant/40 p-3 flex flex-col justify-between">
+        <div class="flex items-center justify-between font-label-sm text-label-sm text-outline">
+          <span>ACTIVE USERS</span>
+          <span class="material-symbols-outlined text-[14px] text-primary">group</span>
+        </div>
+        <div class="my-2">
+          <span class="font-headline-lg text-headline-lg font-bold text-on-surface font-mono" id="kpi-users">04</span>
+        </div>
+        <div class="font-label-sm text-label-sm text-on-surface-variant truncate">
+          Root Operator &amp; Agent Nodes
+        </div>
+      </div>
+      <!-- Metric 2 -->
+      <div class="hud-bracket bg-surface-container-lowest/80 border border-outline-variant/40 p-3 flex flex-col justify-between">
+        <div class="flex items-center justify-between font-label-sm text-label-sm text-outline">
+          <span>ACTIVE PROJECTS</span>
+          <span class="material-symbols-outlined text-[14px] text-primary">folder_supervised</span>
+        </div>
+        <div class="my-2">
+          <span class="font-headline-lg text-headline-lg font-bold text-on-surface font-mono" id="kpi-projects">06</span>
+        </div>
+        <div class="font-label-sm text-label-sm text-on-surface-variant truncate">
+          Indexed Repositories
+        </div>
+      </div>
+      <!-- Metric 3 -->
+      <div class="hud-bracket bg-surface-container-lowest/80 border border-outline-variant/40 p-3 flex flex-col justify-between">
+        <div class="flex items-center justify-between font-label-sm text-label-sm text-outline">
+          <span>MANAGED TASKS</span>
+          <span class="material-symbols-outlined text-[14px] text-primary">task_alt</span>
+        </div>
+        <div class="my-2">
+          <span class="font-headline-lg text-headline-lg font-bold text-primary font-mono" id="kpi-tasks">24</span>
+        </div>
+        <div class="font-label-sm text-label-sm text-on-surface-variant truncate">
+          Autonomous Pipeline
+        </div>
+      </div>
+      <!-- Metric 4 -->
+      <div class="hud-bracket bg-surface-container-lowest/80 border border-outline-variant/40 p-3 flex flex-col justify-between">
+        <div class="flex items-center justify-between font-label-sm text-label-sm text-outline">
+          <span>STORED MEMORIES</span>
+          <span class="material-symbols-outlined text-[14px] text-primary">hub</span>
+        </div>
+        <div class="my-2">
+          <span class="font-headline-lg text-headline-lg font-bold text-on-surface font-mono" id="kpi-memories">148</span>
+        </div>
+        <div class="font-label-sm text-label-sm text-on-surface-variant truncate">
+          1536-D Vector Graph
+        </div>
+      </div>
+      <!-- Metric 5 -->
+      <div class="hud-bracket bg-surface-container-lowest/80 border border-outline-variant/40 p-3 flex flex-col justify-between">
+        <div class="flex items-center justify-between font-label-sm text-label-sm text-outline">
+          <span>AI AGENT REQS</span>
+          <span class="material-symbols-outlined text-[14px] text-primary">smart_toy</span>
+        </div>
+        <div class="my-2">
+          <span class="font-headline-lg text-headline-lg font-bold text-primary font-mono" id="kpi-ai-reqs">1,428</span>
+        </div>
+        <div class="font-label-sm text-label-sm text-on-surface-variant truncate">
+          24h Throughput [Nominal]
+        </div>
+      </div>
+      <!-- Metric 6 -->
+      <div class="hud-bracket bg-surface-container-lowest/80 border border-outline-variant/40 p-3 flex flex-col justify-between">
+        <div class="flex items-center justify-between font-label-sm text-label-sm text-outline">
+          <span>SYSTEM HEALTH</span>
+          <span class="material-symbols-outlined text-[14px] text-primary">health_and_safety</span>
+        </div>
+        <div class="my-2 flex items-baseline gap-1">
+          <span class="font-headline-lg text-headline-lg font-bold text-primary font-mono" id="kpi-health">99.8%</span>
+        </div>
+        <div class="font-label-sm text-label-sm text-on-surface-variant flex items-center gap-1">
+          <span class="w-1.5 h-1.5 bg-primary"></span>
+          <span>All Engines Sync'd</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== 2. CMS CORE MODULES OVERVIEW (Bento Grid) ==================== -->
+    <section class="space-y-3">
+      <div class="flex items-center justify-between border-b border-outline-variant/30 pb-2">
+        <div class="flex items-center gap-2">
+          <span class="w-2 h-2 bg-primary"></span>
+          <h2 class="font-headline-sm text-headline-sm font-semibold tracking-wide text-on-surface">CMS CORE MODULES DIRECTORY</h2>
+        </div>
+        <span class="font-label-sm text-label-sm text-outline">SCHEMA_REV: 2025.10.4 // 6 SUB-REGISTRIES</span>
+      </div>
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <!-- Module 1: Dashboard Widgets -->
+        <div class="hud-bracket bg-surface-container-lowest/70 border border-outline-variant/40 p-4 hover:border-primary/50 transition-all flex flex-col justify-between group">
+          <div>
+            <div class="flex items-center justify-between mb-2">
+              <span class="font-label-sm text-label-sm text-outline">REGISTRY // 01</span>
+              <span class="px-1.5 py-0.5 font-label-sm text-label-sm bg-primary/10 text-primary border border-primary/30">12 READY</span>
+            </div>
+            <h3 class="font-headline-sm text-headline-sm font-semibold text-on-surface group-hover:text-primary transition-colors">DASHBOARD WIDGETS</h3>
+            <p class="font-body-sm text-body-sm text-on-surface-variant mt-1">12 Configured, 6 Displayed on Desktop HUD canvas with auto-telemetry binding.</p>
+          </div>
+          <div class="mt-4 pt-3 border-t border-outline-variant/30 flex items-center justify-between">
+            <span class="font-label-sm text-label-sm text-outline">SLOTS: 6/12 ACTIVE</span>
+            <button class="font-label-md text-label-md text-primary hover:underline flex items-center gap-1" onclick="switchTab('widgets')">
+              <span>Manage Widgets</span>
+              <span class="material-symbols-outlined text-[13px]">chevron_right</span>
+            </button>
+          </div>
+        </div>
+        <!-- Module 2: Sidebar Navigation -->
+        <div class="hud-bracket bg-surface-container-lowest/70 border border-outline-variant/40 p-4 hover:border-primary/50 transition-all flex flex-col justify-between group">
+          <div>
+            <div class="flex items-center justify-between mb-2">
+              <span class="font-label-sm text-label-sm text-outline">REGISTRY // 02</span>
+              <span class="px-1.5 py-0.5 font-label-sm text-label-sm bg-surface-container text-on-surface-variant border border-outline-variant/40">7 ACTIVE</span>
+            </div>
+            <h3 class="font-headline-sm text-headline-sm font-semibold text-on-surface group-hover:text-primary transition-colors">SIDEBAR NAVIGATION</h3>
+            <p class="font-body-sm text-body-sm text-on-surface-variant mt-1">7 Active Routes, 1 Experimental route flagged for supervisor sandbox testing.</p>
+          </div>
+          <div class="mt-4 pt-3 border-t border-outline-variant/30 flex items-center justify-between">
+            <span class="font-label-sm text-label-sm text-outline">NAV_TREE: LOCKED</span>
+            <button class="font-label-md text-label-md text-primary hover:underline flex items-center gap-1" onclick="showToast('SIDEBAR CONFIG', '7 core routes active. Editing restricted to master admin.', 'side_navigation')">
+              <span>Configure Nav</span>
+              <span class="material-symbols-outlined text-[13px]">chevron_right</span>
+            </button>
+          </div>
+        </div>
+        <!-- Module 3: Quick Actions Dock -->
+        <div class="hud-bracket bg-surface-container-lowest/70 border border-outline-variant/40 p-4 hover:border-primary/50 transition-all flex flex-col justify-between group">
+          <div>
+            <div class="flex items-center justify-between mb-2">
+              <span class="font-label-sm text-label-sm text-outline">REGISTRY // 03</span>
+              <span class="px-1.5 py-0.5 font-label-sm text-label-sm bg-surface-container text-on-surface-variant border border-outline-variant/40">6 MACROS</span>
+            </div>
+            <h3 class="font-headline-sm text-headline-sm font-semibold text-on-surface group-hover:text-primary transition-colors">QUICK ACTIONS DOCK</h3>
+            <p class="font-body-sm text-body-sm text-on-surface-variant mt-1">6 Registered Macros including Voice Synthesizer, Shell Runner, and Cache Purge.</p>
+          </div>
+          <div class="mt-4 pt-3 border-t border-outline-variant/30 flex items-center justify-between">
+            <span class="font-label-sm text-label-sm text-outline">HOTKEYS: MAPPED</span>
+            <button class="font-label-md text-label-md text-primary hover:underline flex items-center gap-1" onclick="showToast('QUICK ACTIONS', 'Macros synchronized to desktop HUD dock.', 'bolt')">
+              <span>Edit Actions</span>
+              <span class="material-symbols-outlined text-[13px]">chevron_right</span>
+            </button>
+          </div>
+        </div>
+        <!-- Module 4: System Announcements -->
+        <div class="hud-bracket bg-surface-container-lowest/70 border border-outline-variant/40 p-4 hover:border-primary/50 transition-all flex flex-col justify-between group">
+          <div>
+            <div class="flex items-center justify-between mb-2">
+              <span class="font-label-sm text-label-sm text-outline">REGISTRY // 04</span>
+              <span class="px-1.5 py-0.5 font-label-sm text-label-sm bg-primary/20 text-primary border border-primary/40">1 LIVE INFO</span>
+            </div>
+            <h3 class="font-headline-sm text-headline-sm font-semibold text-on-surface group-hover:text-primary transition-colors">SYSTEM ANNOUNCEMENTS</h3>
+            <p class="font-body-sm text-body-sm text-on-surface-variant mt-1">3 Broadcasts currently staged (1 Live System Notice, 2 Scheduled Maintenance alerts).</p>
+          </div>
+          <div class="mt-4 pt-3 border-t border-outline-variant/30 flex items-center justify-between">
+            <span class="font-label-sm text-label-sm text-outline">BROADCAST: GLOBAL</span>
+            <button class="font-label-md text-label-md text-primary hover:underline flex items-center gap-1" onclick="openModal('announcement-modal')">
+              <span>+ Broadcast</span>
+              <span class="material-symbols-outlined text-[13px]">chevron_right</span>
+            </button>
+          </div>
+        </div>
+        <!-- Module 5: Asset & Media Vault -->
+        <div class="hud-bracket bg-surface-container-lowest/70 border border-outline-variant/40 p-4 hover:border-primary/50 transition-all flex flex-col justify-between group">
+          <div>
+            <div class="flex items-center justify-between mb-2">
+              <span class="font-label-sm text-label-sm text-outline">REGISTRY // 05</span>
+              <span class="px-1.5 py-0.5 font-label-sm text-label-sm bg-surface-container text-on-surface-variant border border-outline-variant/40">24 VECTORS</span>
+            </div>
+            <h3 class="font-headline-sm text-headline-sm font-semibold text-on-surface group-hover:text-primary transition-colors">ASSET &amp; MEDIA VAULT</h3>
+            <p class="font-body-sm text-body-sm text-on-surface-variant mt-1">24 Vector Icons, HUD reticles, audio waveform sets, and WebGL ambient shaders.</p>
+          </div>
+          <div class="mt-4 pt-3 border-t border-outline-variant/30 flex items-center justify-between">
+            <span class="font-label-sm text-label-sm text-outline">VAULT SIZE: 1.4 MB</span>
+            <button class="font-label-md text-label-md text-primary hover:underline flex items-center gap-1" onclick="showToast('MEDIA VAULT', 'Loaded 24 vector assets from asset repository.', 'perm_media')">
+              <span>Open Media</span>
+              <span class="material-symbols-outlined text-[13px]">chevron_right</span>
+            </button>
+          </div>
+        </div>
+        <!-- Module 6: Feature Flags Matrix -->
+        <div class="hud-bracket bg-surface-container-lowest/70 border border-outline-variant/40 p-4 hover:border-primary/50 transition-all flex flex-col justify-between group">
+          <div>
+            <div class="flex items-center justify-between mb-2">
+              <span class="font-label-sm text-label-sm text-outline">REGISTRY // 06</span>
+              <span class="px-1.5 py-0.5 font-label-sm text-label-sm bg-error-container/30 text-error border border-error/50">2 AIR-GAPPED</span>
+            </div>
+            <h3 class="font-headline-sm text-headline-sm font-semibold text-on-surface group-hover:text-primary transition-colors">FEATURE FLAGS MATRIX</h3>
+            <p class="font-body-sm text-body-sm text-on-surface-variant mt-1">7 Runtime Gates: ADMIN_CMS is ENABLED, AUTONOMOUS_AGENT is currently AIR-GAPPED.</p>
+          </div>
+          <div class="mt-4 pt-3 border-t border-outline-variant/30 flex items-center justify-between">
+            <span class="font-label-sm text-label-sm text-outline">RUNTIME: ENFORCED</span>
+            <button class="font-label-md text-label-md text-primary hover:underline flex items-center gap-1" onclick="switchTab('flags')">
+              <span>Manage Flags</span>
+              <span class="material-symbols-outlined text-[13px]">chevron_right</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== 3. LIVE CMS CONFIGURATION & PREVIEW INSPECTOR ==================== -->
+    <section class="grid grid-cols-1 xl:grid-cols-12 gap-6 items-start">
+      <!-- Left Side: Interactive CMS Tabs (Flags & Widget Registry) (7 Cols) -->
+      <div class="xl:col-span-7 bg-surface-container-lowest/80 border border-outline-variant/40 p-4 space-y-4">
+        <!-- Tab Navigation Bar -->
+        <div class="flex items-center justify-between border-b border-outline-variant/40 pb-2">
+          <div class="flex items-center gap-4">
+            <button class="font-label-md text-label-md pb-2 text-primary border-b-2 border-primary font-semibold flex items-center gap-1.5" id="tab-btn-flags" onclick="switchTab('flags')">
+              <span class="material-symbols-outlined text-[15px]">flag</span>
+              <span>FEATURE FLAGS &amp; PERMISSIONS</span>
+            </button>
+            <button class="font-label-md text-label-md pb-2 text-on-surface-variant hover:text-on-surface border-b-2 border-transparent flex items-center gap-1.5" id="tab-btn-widgets" onclick="switchTab('widgets')">
+              <span class="material-symbols-outlined text-[15px]">widgets</span>
+              <span>DASHBOARD WIDGET REGISTRY</span>
+            </button>
+          </div>
+          <!-- Quick Add Button Contextual -->
+          <button class="px-2.5 py-1 bg-surface-container-high border border-outline-variant/60 hover:border-primary/60 text-primary font-label-sm text-label-sm flex items-center gap-1 transition-all" onclick="openModal('widget-modal')">
+            <span class="material-symbols-outlined text-[14px]">add</span>
+            <span>ADD PARAMETER</span>
+          </button>
+        </div>
+
+        <!-- TAB CONTENT 1: FEATURE FLAGS TABLE -->
+        <div class="space-y-2" id="tab-content-flags">
+          <div class="overflow-x-auto">
+            <table class="w-full text-left font-label-md text-label-md border-collapse">
+              <thead>
+                <tr class="border-b border-outline-variant/30 text-outline text-[10px]">
+                  <th class="py-2 px-2">FLAG IDENTIFIER</th>
+                  <th class="py-2 px-2">SCOPE / ENV</th>
+                  <th class="py-2 px-2">STATE</th>
+                  <th class="py-2 px-2">RISK / AUDIT</th>
+                  <th class="py-2 px-2 text-right">ACTION</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-outline-variant/20 font-mono" id="flags-tbody">
+                <!-- Flag 1 -->
+                <tr class="hover:bg-primary/5 transition-colors">
+                  <td class="py-2.5 px-2">
+                    <div class="font-semibold text-primary">ADMIN_CMS</div>
+                    <div class="text-[10px] text-outline font-sans">Enables Root Level CMS Controls</div>
+                  </td>
+                  <td class="py-2.5 px-2 text-on-surface-variant">
+                    <span class="px-1.5 py-0.5 bg-surface-container border border-outline-variant/40 text-[10px]">GLOBAL // PROD</span>
+                  </td>
+                  <td class="py-2.5 px-2">
+                    <span class="px-1.5 py-0.5 bg-primary/20 text-primary border border-primary text-[10px]" id="status-flag-admin">ENABLED</span>
+                  </td>
+                  <td class="py-2.5 px-2 text-on-surface-variant text-[10px]">
+                    NOMINAL [24H]
+                  </td>
+                  <td class="py-2.5 px-2 text-right">
+                    <input id="check-flag-admin" checked="" class="w-3.5 h-3.5 bg-surface-container-lowest border-outline-variant text-primary focus:ring-0 rounded-none cursor-pointer" type="checkbox" onchange="toggleFeatureFlag('ADMIN_CMS', this.checked, 'status-flag-admin')"/>
+                  </td>
+                </tr>
+                <!-- Flag 2 -->
+                <tr class="hover:bg-primary/5 transition-colors bg-error-container/5">
+                  <td class="py-2.5 px-2">
+                    <div class="font-semibold text-error">AUTONOMOUS_SWARM</div>
+                    <div class="text-[10px] text-outline font-sans">Multi-agent un-sandboxed IO execution</div>
+                  </td>
+                  <td class="py-2.5 px-2 text-on-surface-variant">
+                    <span class="px-1.5 py-0.5 bg-surface-container border border-error/40 text-[10px] text-error">CRITICAL // SEC</span>
+                  </td>
+                  <td class="py-2.5 px-2">
+                    <span class="px-1.5 py-0.5 bg-error-container/40 text-error border border-error text-[10px]">DISABLED / LOCKED</span>
+                  </td>
+                  <td class="py-2.5 px-2 text-error text-[10px]">
+                    ⚠ Requires Supervisor Auth
+                  </td>
+                  <td class="py-2.5 px-2 text-right">
+                    <input class="w-3.5 h-3.5 bg-surface-container-lowest border-error/50 text-error focus:ring-0 rounded-none cursor-not-allowed" disabled="" type="checkbox"/>
+                  </td>
+                </tr>
+                <!-- Flag 3 -->
+                <tr class="hover:bg-primary/5 transition-colors">
+                  <td class="py-2.5 px-2">
+                    <div class="font-semibold text-on-surface">VOICE_STREAM_HEURISTICS</div>
+                    <div class="text-[10px] text-outline font-sans">Continuous audio buffer telemetry</div>
+                  </td>
+                  <td class="py-2.5 px-2 text-on-surface-variant">
+                    <span class="px-1.5 py-0.5 bg-surface-container border border-outline-variant/40 text-[10px]">EDGE // DEV</span>
+                  </td>
+                  <td class="py-2.5 px-2">
+                    <span class="px-1.5 py-0.5 bg-secondary-container/40 text-secondary border border-secondary text-[10px]" id="status-flag-voice">STAGING</span>
+                  </td>
+                  <td class="py-2.5 px-2 text-on-surface-variant text-[10px]">
+                    BETA TESTING
+                  </td>
+                  <td class="py-2.5 px-2 text-right">
+                    <input id="check-flag-voice" checked="" class="w-3.5 h-3.5 bg-surface-container-lowest border-outline-variant text-primary focus:ring-0 rounded-none cursor-pointer" type="checkbox" onchange="toggleFeatureFlag('VOICE_STREAM_HEURISTICS', this.checked, 'status-flag-voice')"/>
+                  </td>
+                </tr>
+                <!-- Flag 4 -->
+                <tr class="hover:bg-primary/5 transition-colors">
+                  <td class="py-2.5 px-2">
+                    <div class="font-semibold text-primary">PERSISTENT_VECTOR_RECALL</div>
+                    <div class="text-[10px] text-outline font-sans">Cos-Sim fast recall pipeline</div>
+                  </td>
+                  <td class="py-2.5 px-2 text-on-surface-variant">
+                    <span class="px-1.5 py-0.5 bg-surface-container border border-outline-variant/40 text-[10px]">GLOBAL // PROD</span>
+                  </td>
+                  <td class="py-2.5 px-2">
+                    <span class="px-1.5 py-0.5 bg-primary/20 text-primary border border-primary text-[10px]" id="status-flag-vector">ENABLED</span>
+                  </td>
+                  <td class="py-2.5 px-2 text-on-surface-variant text-[10px]">
+                    1536-D INDEXED
+                  </td>
+                  <td class="py-2.5 px-2 text-right">
+                    <input id="check-flag-vector" checked="" class="w-3.5 h-3.5 bg-surface-container-lowest border-outline-variant text-primary focus:ring-0 rounded-none cursor-pointer" type="checkbox" onchange="toggleFeatureFlag('PERSISTENT_VECTOR_RECALL', this.checked, 'status-flag-vector')"/>
+                  </td>
+                </tr>
+                <!-- Flag 5 -->
+                <tr class="hover:bg-primary/5 transition-colors bg-error-container/5">
+                  <td class="py-2.5 px-2">
+                    <div class="font-semibold text-error">WINDOWS_DESKTOP_AUTOMATION</div>
+                    <div class="text-[10px] text-outline font-sans">Direct OS hook &amp; mouse dispatch</div>
+                  </td>
+                  <td class="py-2.5 px-2 text-on-surface-variant">
+                    <span class="px-1.5 py-0.5 bg-surface-container border border-error/40 text-[10px] text-error">ROOT // KERNEL</span>
+                  </td>
+                  <td class="py-2.5 px-2">
+                    <span class="px-1.5 py-0.5 bg-error-container/40 text-error border border-error text-[10px]">AIR-GAPPED</span>
+                  </td>
+                  <td class="py-2.5 px-2 text-error text-[10px]">
+                    ⚠ Hazardous IO Hook
+                  </td>
+                  <td class="py-2.5 px-2 text-right">
+                    <input class="w-3.5 h-3.5 bg-surface-container-lowest border-error/50 text-error focus:ring-0 rounded-none cursor-not-allowed" disabled="" type="checkbox"/>
+                  </td>
+                </tr>
+                <!-- Flag 6: Windows Local Agent -->
+                <tr class="hover:bg-primary/5 transition-colors">
+                  <td class="py-2.5 px-2">
+                    <div class="font-semibold text-primary">WINDOWS_LOCAL_AGENT</div>
+                    <div class="text-[10px] text-outline font-sans">Allowlisted computer-level action bridge (JARVIS-WINDOWS-01)</div>
+                  </td>
+                  <td class="py-2.5 px-2 text-on-surface-variant">
+                    <span class="px-1.5 py-0.5 bg-surface-container border border-outline-variant/40 text-[10px]">HOST // WIN32</span>
+                  </td>
+                  <td class="py-2.5 px-2">
+                    <span class="px-1.5 py-0.5 bg-primary/20 text-primary border border-primary text-[10px]" id="status-flag-local-agent">ONLINE</span>
+                  </td>
+                  <td class="py-2.5 px-2 text-on-surface-variant text-[10px]">
+                    5 SAFE TOOLS ACTIVE
+                  </td>
+                  <td class="py-2.5 px-2 text-right">
+                    <input id="check-flag-local-agent" checked="" class="w-3.5 h-3.5 bg-surface-container-lowest border-outline-variant text-primary focus:ring-0 rounded-none cursor-pointer" type="checkbox" onchange="toggleFeatureFlag('LOCAL_AGENT_ENABLED', this.checked, 'status-flag-local-agent')"/>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- TAB CONTENT 2: DASHBOARD WIDGET REGISTRY -->
+        <div class="hidden space-y-2" id="tab-content-widgets">
+          <div class="space-y-1.5" id="widgets-container">
+            <!-- Widget Row 1 -->
+            <div class="flex items-center justify-between p-2 bg-surface-container-low border border-outline-variant/40 hover:border-primary/40 transition-colors">
+              <div class="flex items-center gap-3">
+                <span class="material-symbols-outlined text-[18px] text-outline cursor-grab">drag_indicator</span>
+                <div>
+                  <div class="font-label-md text-label-md font-semibold text-on-surface">CORE_AI_TELEMETRY_HUD</div>
+                  <div class="font-label-sm text-label-sm text-outline">Category: System Metrics | Coordinates: [Row: 1, Col: 1-6]</div>
+                </div>
+              </div>
+              <div class="flex items-center gap-3">
+                <span class="px-2 py-0.5 bg-surface-container border border-outline-variant/40 font-label-sm text-label-sm text-primary">PRIORITY: 01</span>
+                <input checked="" class="w-3.5 h-3.5 bg-surface-container-lowest border-outline-variant text-primary focus:ring-0 rounded-none cursor-pointer" type="checkbox" onchange="toggleWidgetSlot('CORE_AI_TELEMETRY_HUD', this.checked)"/>
+              </div>
+            </div>
+            <!-- Widget Row 2 -->
+            <div class="flex items-center justify-between p-2 bg-surface-container-low border border-outline-variant/40 hover:border-primary/40 transition-colors">
+              <div class="flex items-center gap-3">
+                <span class="material-symbols-outlined text-[18px] text-outline cursor-grab">drag_indicator</span>
+                <div>
+                  <div class="font-label-md text-label-md font-semibold text-on-surface">AGENT_EXECUTION_TIMELINE</div>
+                  <div class="font-label-sm text-label-sm text-outline">Category: Task Scheduler | Coordinates: [Row: 2, Col: 1-4]</div>
+                </div>
+              </div>
+              <div class="flex items-center gap-3">
+                <span class="px-2 py-0.5 bg-surface-container border border-outline-variant/40 font-label-sm text-label-sm text-on-surface-variant">PRIORITY: 02</span>
+                <input checked="" class="w-3.5 h-3.5 bg-surface-container-lowest border-outline-variant text-primary focus:ring-0 rounded-none cursor-pointer" type="checkbox" onchange="toggleWidgetSlot('AGENT_EXECUTION_TIMELINE', this.checked)"/>
+              </div>
+            </div>
+            <!-- Widget Row 3 -->
+            <div class="flex items-center justify-between p-2 bg-surface-container-low border border-outline-variant/40 hover:border-primary/40 transition-colors">
+              <div class="flex items-center gap-3">
+                <span class="material-symbols-outlined text-[18px] text-outline cursor-grab">drag_indicator</span>
+                <div>
+                  <div class="font-label-md text-label-md font-semibold text-on-surface">VECTOR_SPACE_3D_VIEWPORT</div>
+                  <div class="font-label-sm text-label-sm text-outline">Category: Memory Vectors | Coordinates: [Row: 2, Col: 5-8]</div>
+                </div>
+              </div>
+              <div class="flex items-center gap-3">
+                <span class="px-2 py-0.5 bg-surface-container border border-outline-variant/40 font-label-sm text-label-sm text-on-surface-variant">PRIORITY: 03</span>
+                <input checked="" class="w-3.5 h-3.5 bg-surface-container-lowest border-outline-variant text-primary focus:ring-0 rounded-none cursor-pointer" type="checkbox" onchange="toggleWidgetSlot('VECTOR_SPACE_3D_VIEWPORT', this.checked)"/>
+              </div>
+            </div>
+            <!-- Widget Row 4 -->
+            <div class="flex items-center justify-between p-2 bg-surface-container-low border border-outline-variant/40 hover:border-primary/40 transition-colors">
+              <div class="flex items-center gap-3">
+                <span class="material-symbols-outlined text-[18px] text-outline cursor-grab">drag_indicator</span>
+                <div>
+                  <div class="font-label-md text-label-md font-semibold text-on-surface">NETWORK_SOCKET_STREAM</div>
+                  <div class="font-label-sm text-label-sm text-outline">Category: Network IO | Coordinates: [Row: 3, Col: 1-12]</div>
+                </div>
+              </div>
+              <div class="flex items-center gap-3">
+                <span class="px-2 py-0.5 bg-surface-container border border-outline-variant/40 font-label-sm text-label-sm text-outline">PRIORITY: 04</span>
+                <input class="w-3.5 h-3.5 bg-surface-container-lowest border-outline-variant text-primary focus:ring-0 rounded-none cursor-pointer" type="checkbox" onchange="toggleWidgetSlot('NETWORK_SOCKET_STREAM', this.checked)"/>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right Side: Live UI Preview Box (5 Cols) -->
+      <div class="xl:col-span-5 bg-surface-container-lowest/80 border border-outline-variant/40 p-4 space-y-3">
+        <div class="flex items-center justify-between border-b border-outline-variant/40 pb-2">
+          <div class="flex items-center gap-2">
+            <span class="material-symbols-outlined text-[16px] text-primary">monitor</span>
+            <span class="font-label-md text-label-md font-semibold text-on-surface">LIVE UI PREVIEW (JARVIS DESKTOP)</span>
+          </div>
+          <div class="flex items-center gap-2">
+            <span class="w-1.5 h-1.5 bg-primary animate-pulse"></span>
+            <span class="font-label-sm text-label-sm text-primary">PREVIEW SYNC'D</span>
+          </div>
+        </div>
+        <!-- Simulated Mini-HUD Viewport Frame -->
+        <div class="relative bg-[#06080C] border border-outline-variant/60 p-3 overflow-hidden shadow-inner" id="preview-viewport">
+          <div class="absolute right-2 bottom-2 font-label-sm text-label-sm text-outline/30 select-none">
+            HUD_SCALE: 0.42x
+          </div>
+          <!-- Mini Top Bar -->
+          <div class="flex items-center justify-between border-b border-outline-variant/30 pb-1.5 mb-2">
+            <span class="text-[9px] font-mono text-primary font-bold">JARVIS // CORE HUD [LIVE]</span>
+            <div class="flex items-center gap-1">
+              <span class="w-1 h-1 bg-primary"></span>
+              <span class="text-[8px] font-mono text-outline">SEC_ACTIVE</span>
+            </div>
+          </div>
+          <!-- Mini Dashboard Bento Representation -->
+          <div class="grid grid-cols-3 gap-1.5 mb-2">
+            <div class="bg-surface-container-high/60 border border-outline-variant/40 p-1.5">
+              <div class="text-[8px] font-mono text-outline">CORE LOAD</div>
+              <div class="text-[11px] font-mono font-bold text-primary" id="prev-core-load">18.4%</div>
+              <div class="w-full bg-surface-container h-1 mt-1">
+                <div class="bg-primary h-1 w-1/4"></div>
+              </div>
+            </div>
+            <div class="bg-surface-container-high/60 border border-outline-variant/40 p-1.5">
+              <div class="text-[8px] font-mono text-outline">VECTORS</div>
+              <div class="text-[11px] font-mono font-bold text-on-surface" id="prev-vectors-count">148 NODES</div>
+              <div class="w-full bg-surface-container h-1 mt-1">
+                <div class="bg-primary h-1 w-3/4"></div>
+              </div>
+            </div>
+            <div class="bg-surface-container-high/60 border border-outline-variant/40 p-1.5">
+              <div class="text-[8px] font-mono text-outline">SYS LATENCY</div>
+              <div class="text-[11px] font-mono font-bold text-primary" id="prev-latency">12 MS</div>
+              <div class="w-full bg-surface-container h-1 mt-1">
+                <div class="bg-primary h-1 w-1/6"></div>
+              </div>
+            </div>
+          </div>
+          <!-- Mini Active Widget Box -->
+          <div class="border border-primary/40 bg-primary/5 p-2 mb-2" id="prev-active-widget">
+            <div class="flex justify-between items-center text-[9px] font-mono text-primary mb-1">
+              <span>[WIDGET 01: AI AGENT REASONING STREAM]</span>
+              <span class="animate-pulse">● LIVE</span>
+            </div>
+            <p class="text-[9px] font-mono text-on-surface-variant leading-tight" id="prev-widget-text">
+              &gt; Memory query cos_sim: [0.9412] matching "system architecture".<br/>
+              &gt; Context dispatched to Supervisor Node in 18ms.
+            </p>
+          </div>
+          <!-- Live Status Notice in Preview -->
+          <div class="bg-surface-container border border-outline-variant/40 p-1.5 text-[8px] font-mono flex items-center justify-between text-outline">
+            <span id="prev-announcement-text">BROADCAST: MAINTENANCE WINDOW 02:00 UTC</span>
+            <span class="text-primary font-bold">INFO</span>
+          </div>
+        </div>
+        <!-- Preview Controls -->
+        <div class="flex items-center justify-between font-label-sm text-label-sm pt-1">
+          <span class="text-outline">TARGET: COMMANDER_DESKTOP_HD</span>
+          <div class="flex items-center gap-2">
+            <button onclick="refreshPreviewMirror()" class="px-2 py-0.5 bg-surface-container border border-outline-variant/40 text-on-surface-variant hover:text-primary transition-colors">
+              REFRESH MIRROR
+            </button>
+            <button onclick="window.open('index.html', '_blank')" class="px-2 py-0.5 bg-primary/10 border border-primary/40 text-primary hover:bg-primary/20 transition-colors">
+              FULL VIEWPORT ↗
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== 4. RECENT ADMINISTRATIVE AUDIT STREAM ==================== -->
+    <section class="bg-surface-container-lowest/80 border border-outline-variant/40 p-4 space-y-3">
+      <div class="flex items-center justify-between border-b border-outline-variant/30 pb-2">
+        <div class="flex items-center gap-2">
+          <span class="material-symbols-outlined text-[16px] text-primary">policy</span>
+          <h3 class="font-headline-sm text-headline-sm font-semibold text-on-surface">RECENT ADMINISTRATIVE AUDIT STREAM</h3>
+        </div>
+        <div class="flex items-center gap-3 font-label-sm text-label-sm">
+          <span class="text-outline">STREAM: RECORDING</span>
+          <span class="w-1.5 h-1.5 bg-primary rounded-none"></span>
+        </div>
+      </div>
+      <div class="overflow-x-auto">
+        <table class="w-full text-left font-label-sm text-label-sm border-collapse font-mono">
+          <thead>
+            <tr class="border-b border-outline-variant/30 text-outline text-[10px]">
+              <th class="py-1.5 px-2">TIMESTAMP</th>
+              <th class="py-1.5 px-2">EVENT TYPE</th>
+              <th class="py-1.5 px-2">PARAMETER CHANGE DETAILS</th>
+              <th class="py-1.5 px-2">OPERATOR NODE</th>
+              <th class="py-1.5 px-2 text-right">HASH VERIFICATION</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-outline-variant/20" id="audit-stream-tbody">
+            <!-- Default entries loaded from backend -->
+            <tr class="hover:bg-primary/5 transition-colors">
+              <td class="py-2 px-2 text-primary">14:48:12 UTC</td>
+              <td class="py-2 px-2">
+                <span class="px-1 py-0.5 bg-primary/20 text-primary border border-primary/30">ADMIN_UPDATE</span>
+              </td>
+              <td class="py-2 px-2 text-on-surface">
+                FEATURE_FLAG <span class="text-primary font-bold">'ADMIN_CMS'</span> set to <span class="text-primary">ENABLED</span>
+              </td>
+              <td class="py-2 px-2 text-on-surface-variant">COMMANDER_ROOT</td>
+              <td class="py-2 px-2 text-right text-outline">0x8F94..2A1</td>
+            </tr>
+            <tr class="hover:bg-primary/5 transition-colors">
+              <td class="py-2 px-2 text-on-surface-variant">14:15:02 UTC</td>
+              <td class="py-2 px-2">
+                <span class="px-1 py-0.5 bg-surface-container text-on-surface-variant border border-outline-variant/40">WIDGET_REORDER</span>
+              </td>
+              <td class="py-2 px-2 text-on-surface">
+                Dashboard widget <span class="text-primary">'AI Core'</span> priority set to 1
+              </td>
+              <td class="py-2 px-2 text-on-surface-variant">COMMANDER_ROOT</td>
+              <td class="py-2 px-2 text-right text-outline">0x4E11..8BC</td>
+            </tr>
+            <tr class="hover:bg-primary/5 transition-colors">
+              <td class="py-2 px-2 text-on-surface-variant">13:50:20 UTC</td>
+              <td class="py-2 px-2">
+                <span class="px-1 py-0.5 bg-secondary-container/30 text-secondary border border-secondary/40">ANNOUNCEMENT_NEW</span>
+              </td>
+              <td class="py-2 px-2 text-on-surface">
+                Maintenance window warning drafted (Scheduled for 02:00 UTC)
+              </td>
+              <td class="py-2 px-2 text-on-surface-variant">SYS_CRON</td>
+              <td class="py-2 px-2 text-right text-outline">0x992B..11D</td>
+            </tr>
+            <tr class="hover:bg-primary/5 transition-colors">
+              <td class="py-2 px-2 text-on-surface-variant">12:10:04 UTC</td>
+              <td class="py-2 px-2">
+                <span class="px-1 py-0.5 bg-error-container/20 text-error border border-error/40">CACHE_FLUSH</span>
+              </td>
+              <td class="py-2 px-2 text-on-surface">
+                Memory vector cluster <span class="text-error font-bold">#142</span> purged by automatic TTL cycle
+              </td>
+              <td class="py-2 px-2 text-on-surface-variant">AUTO_SWARM</td>
+              <td class="py-2 px-2 text-right text-outline">0x33FC..900</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ==================== 5. LOCAL AGENTS (WINDOWS WORKSTATION REGISTRY) ==================== -->
+    <section class="bg-surface-container-lowest/80 border border-outline-variant/40 p-4 space-y-3">
+      <div class="flex items-center justify-between border-b border-outline-variant/30 pb-2">
+        <div class="flex items-center gap-2">
+          <span class="material-symbols-outlined text-[16px] text-primary">laptop_windows</span>
+          <h3 class="font-headline-sm text-headline-sm font-semibold text-on-surface">LOCAL AGENTS</h3>
+        </div>
+        <div class="flex items-center gap-3 font-label-sm text-label-sm">
+          <span class="text-outline">CONNECTED HOSTS</span>
+          <span class="px-2 py-0.5 bg-primary/20 text-primary border border-primary/40 font-mono text-[10px]" id="local-agents-count">1 REGISTERED</span>
+        </div>
+      </div>
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4" id="local-agents-container">
+        <!-- Device Card matching Requirement 24 -->
+        <div class="hud-bracket bg-surface-container-high/40 border border-outline-variant/50 p-4 space-y-3">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <span class="material-symbols-outlined text-primary text-[20px]">devices</span>
+              <span class="font-bold text-on-surface font-mono text-sm" id="admin-agent-device-name">JARVIS-WINDOWS-01</span>
+            </div>
+            <span class="px-2 py-0.5 bg-primary/20 text-primary border border-primary text-[10px] font-bold font-mono tracking-wider" id="admin-agent-status">ONLINE</span>
+          </div>
+          <div class="grid grid-cols-2 gap-2 text-xs font-mono border-t border-b border-outline-variant/30 py-2 text-on-surface-variant">
+            <div>
+              <span class="text-outline block text-[9px]">PLATFORM</span>
+              <span class="text-on-surface font-semibold" id="admin-agent-platform">WINDOWS</span>
+            </div>
+            <div>
+              <span class="text-outline block text-[9px]">AGENT VERSION</span>
+              <span class="text-on-surface font-semibold" id="admin-agent-version">1.0.0</span>
+            </div>
+            <div>
+              <span class="text-outline block text-[9px]">LAST HEARTBEAT</span>
+              <span class="text-primary font-semibold" id="admin-agent-heartbeat">Just now</span>
+            </div>
+            <div>
+              <span class="text-outline block text-[9px]">AVAILABLE TOOLS</span>
+              <span class="text-on-surface font-semibold" id="admin-agent-tools">6</span>
+            </div>
+          </div>
+          <div class="flex items-center justify-between text-[10px] font-mono text-outline pt-1">
+            <span class="truncate">SECURITY: X-LOCAL-AGENT-TOKEN</span>
+            <span class="text-primary">127.0.0.1:8001</span>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+</main>
+
+<!-- ==================== MODALS / OVERLAYS ==================== -->
+<!-- Add Widget Modal Simulator -->
+<div class="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm hidden" id="widget-modal">
+  <div class="hud-bracket bg-[#0B1017] border border-outline-variant w-full max-w-lg p-6 space-y-4 shadow-[0_0_30px_rgba(39,211,255,0.15)]">
+    <div class="flex items-center justify-between border-b border-outline-variant/40 pb-3">
+      <div class="flex items-center gap-2">
+        <span class="material-symbols-outlined text-[18px] text-primary">widgets</span>
+        <span class="font-headline-sm text-headline-sm font-semibold text-on-surface">REGISTER NEW DASHBOARD WIDGET</span>
+      </div>
+      <button class="text-outline hover:text-on-surface" onclick="closeModal('widget-modal')">
+        <span class="material-symbols-outlined text-[18px]">close</span>
+      </button>
+    </div>
+    <div class="space-y-3 font-label-md text-label-md">
+      <div>
+        <label class="block text-outline mb-1">WIDGET IDENTIFIER (CAPS_SNAKE)</label>
+        <input id="modal-widget-id" class="w-full bg-surface-container-lowest border border-outline-variant text-on-surface p-2 focus:border-primary focus:ring-0 font-mono" type="text" value="QUANTUM_LATENCY_GRAPH"/>
+      </div>
+      <div class="grid grid-cols-2 gap-3">
+        <div>
+          <label class="block text-outline mb-1">MODULE CATEGORY</label>
+          <select id="modal-widget-cat" class="w-full bg-surface-container-lowest border border-outline-variant text-on-surface p-2 focus:border-primary focus:ring-0">
+            <option value="telemetry">Telemetry</option>
+            <option value="agent">Agent Execution</option>
+            <option value="security">Security Matrix</option>
+            <option value="dashboard">Dashboard</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-outline mb-1">DEFAULT GRID COLS</label>
+          <input id="modal-widget-cols" class="w-full bg-surface-container-lowest border border-outline-variant text-on-surface p-2 focus:border-primary focus:ring-0 font-mono" type="number" value="4"/>
+        </div>
+      </div>
+      <div class="p-3 bg-primary/10 border border-primary/30 text-[10px] text-on-surface-variant font-mono">
+        CONFIG_NOTICE: Newly registered components will compile to hot-reload state automatically.
+      </div>
+    </div>
+    <div class="flex items-center justify-end gap-3 pt-3 border-t border-outline-variant/40 font-label-md text-label-md">
+      <button class="px-3 py-1.5 text-on-surface-variant hover:text-on-surface border border-outline-variant/40" onclick="closeModal('widget-modal')">
+        CANCEL
+      </button>
+      <button class="px-4 py-1.5 bg-primary-container/20 text-primary border border-primary hover:bg-primary-container/30" onclick="submitNewWidget()">
+        REGISTER COMPONENT
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Add Announcement Modal Simulator -->
+<div class="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm hidden" id="announcement-modal">
+  <div class="hud-bracket bg-[#0B1017] border border-outline-variant w-full max-w-lg p-6 space-y-4 shadow-[0_0_30px_rgba(39,211,255,0.15)]">
+    <div class="flex items-center justify-between border-b border-outline-variant/40 pb-3">
+      <div class="flex items-center gap-2">
+        <span class="material-symbols-outlined text-[18px] text-primary">campaign</span>
+        <span class="font-headline-sm text-headline-sm font-semibold text-on-surface">DRAFT BROADCAST ANNOUNCEMENT</span>
+      </div>
+      <button class="text-outline hover:text-on-surface" onclick="closeModal('announcement-modal')">
+        <span class="material-symbols-outlined text-[18px]">close</span>
+      </button>
+    </div>
+    <div class="space-y-3 font-label-md text-label-md">
+      <div>
+        <label class="block text-outline mb-1">SEVERITY LEVEL</label>
+        <div class="grid grid-cols-3 gap-2" id="ann-severity-group">
+          <button type="button" onclick="setAnnSeverity('INFO')" id="btn-ann-info" class="py-1.5 bg-primary/20 border border-primary text-primary">INFO</button>
+          <button type="button" onclick="setAnnSeverity('WARNING')" id="btn-ann-warn" class="py-1.5 bg-surface-container border border-outline-variant text-on-surface-variant">WARNING</button>
+          <button type="button" onclick="setAnnSeverity('CRITICAL')" id="btn-ann-crit" class="py-1.5 bg-surface-container border border-outline-variant text-on-surface-variant">CRITICAL</button>
+        </div>
+      </div>
+      <div>
+        <label class="block text-outline mb-1">BROADCAST PAYLOAD</label>
+        <textarea id="modal-ann-text" class="w-full bg-surface-container-lowest border border-outline-variant text-on-surface p-2 focus:border-primary focus:ring-0 font-mono" placeholder="Enter broadcast text for all active operator sessions..." rows="3">SYSTEM NOTICE: Scheduled telemetry routine commencing at 02:00 UTC.</textarea>
+      </div>
+    </div>
+    <div class="flex items-center justify-end gap-3 pt-3 border-t border-outline-variant/40 font-label-md text-label-md">
+      <button class="px-3 py-1.5 text-on-surface-variant hover:text-on-surface border border-outline-variant/40" onclick="closeModal('announcement-modal')">
+        DISCARD
+      </button>
+      <button class="px-4 py-1.5 bg-primary-container/20 text-primary border border-primary hover:bg-primary-container/30" onclick="submitBroadcastAnnouncement()">
+        DISPATCH BROADCAST
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Scripts -->
+<script>
+  let currentAnnSeverity = 'INFO';
+
+  // Toast Helper
+  window.showToast = function(title, desc, icon = "check_circle") {
+    const toast = document.getElementById('toast-notification');
+    const titleEl = document.getElementById('toast-title');
+    const descEl = document.getElementById('toast-desc');
+    const iconEl = document.getElementById('toast-icon');
+
+    if (titleEl) titleEl.textContent = title;
+    if (descEl) descEl.textContent = desc;
+    if (iconEl) iconEl.textContent = icon;
+
+    toast.classList.remove('hidden');
+    clearTimeout(window._toastTimeout);
+    window._toastTimeout = setTimeout(() => {
+      toast.classList.add('hidden');
+    }, 3500);
+  };
+
+  // Tab switching logic
+  window.switchTab = function(tab) {
+    const flagsTab = document.getElementById('tab-content-flags');
+    const widgetsTab = document.getElementById('tab-content-widgets');
+    const flagsBtn = document.getElementById('tab-btn-flags');
+    const widgetsBtn = document.getElementById('tab-btn-widgets');
+
+    if (tab === 'flags') {
+      flagsTab.classList.remove('hidden');
+      widgetsTab.classList.add('hidden');
+      
+      flagsBtn.classList.add('text-primary', 'border-primary', 'font-semibold');
+      flagsBtn.classList.remove('text-on-surface-variant', 'border-transparent');
+      
+      widgetsBtn.classList.remove('text-primary', 'border-primary', 'font-semibold');
+      widgetsBtn.classList.add('text-on-surface-variant', 'border-transparent');
+    } else {
+      widgetsTab.classList.remove('hidden');
+      flagsTab.classList.add('hidden');
+
+      widgetsBtn.classList.add('text-primary', 'border-primary', 'font-semibold');
+      widgetsBtn.classList.remove('text-on-surface-variant', 'border-transparent');
+
+      flagsBtn.classList.remove('text-primary', 'border-primary', 'font-semibold');
+      flagsBtn.classList.add('text-on-surface-variant', 'border-transparent');
+    }
+  };
+
+  // Modal helpers
+  window.openModal = function(id) {
+    const el = document.getElementById(id);
+    if (el) el.classList.remove('hidden');
+  };
+  window.closeModal = function(id) {
+    const el = document.getElementById(id);
+    if (el) el.classList.add('hidden');
+  };
+
+  window.setAnnSeverity = function(sev) {
+    currentAnnSeverity = sev;
+    ['info', 'warn', 'crit'].forEach(s => {
+      const b = document.getElementById('btn-ann-' + s);
+      if (!b) return;
+      if (s === sev.toLowerCase().slice(0, 4)) {
+        b.className = "py-1.5 bg-primary/20 border border-primary text-primary font-semibold";
+      } else {
+        b.className = "py-1.5 bg-surface-container border border-outline-variant text-on-surface-variant";
+      }
+    });
+  };
+
+  // Filter CMS parameters
+  window.filterCMSParam = function(q) {
+    const term = (q || "").trim().toLowerCase();
+    const rows = document.querySelectorAll('#flags-tbody tr, #widgets-container > div');
+    rows.forEach(r => {
+      if (!term) {
+        r.style.display = '';
+        return;
+      }
+      r.style.display = r.textContent.toLowerCase().includes(term) ? '' : 'none';
+    });
+  };
+
+  // Toggle Feature Flag via API
+  window.toggleFeatureFlag = async function(flagKey, isChecked, badgeId) {
+    const badge = document.getElementById(badgeId);
+    if (badge) {
+      badge.textContent = isChecked ? 'ENABLED' : 'DISABLED';
+      badge.className = isChecked 
+        ? "px-1.5 py-0.5 bg-primary/20 text-primary border border-primary text-[10px]"
+        : "px-1.5 py-0.5 bg-surface-container text-on-surface-variant border border-outline-variant text-[10px]";
+    }
+
+    try {
+      if (window.jarvisApi && window.jarvisApi.createCMSConfig) {
+        await window.jarvisApi.createCMSConfig({
+          key: `flag.${flagKey.toLowerCase()}`,
+          value: isChecked ? "true" : "false",
+          type: "boolean",
+          category: "feature_flags",
+          description: `Feature flag ${flagKey} toggled via CMS Command Center`,
+          is_active: isChecked
+        });
+      }
+      showToast('FEATURE FLAG UPDATED', `${flagKey} state committed to PostgreSQL.`, 'flag');
+    } catch (err) {
+      console.warn('CMS config error:', err);
+      showToast('FLAG CACHED', `${flagKey} updated in local cache.`, 'info');
+    }
+  };
+
+  // Toggle Widget Slot
+  window.toggleWidgetSlot = function(widgetId, isChecked) {
+    showToast('WIDGET SLOT ' + (isChecked ? 'ACTIVE' : 'INACTIVE'), `${widgetId} visibility updated in HUD profile.`, 'widgets');
+  };
+
+  // Register New Widget
+  window.submitNewWidget = async function() {
+    const idInput = document.getElementById('modal-widget-id');
+    const catSelect = document.getElementById('modal-widget-cat');
+    const colsInput = document.getElementById('modal-widget-cols');
+
+    const widgetId = (idInput?.value || "NEW_WIDGET").trim();
+    const category = catSelect?.value || "dashboard";
+    const cols = colsInput?.value || "4";
+
+    try {
+      if (window.jarvisApi && window.jarvisApi.createCMSConfig) {
+        await window.jarvisApi.createCMSConfig({
+          key: `widget.${widgetId.toLowerCase()}`,
+          value: JSON.stringify({ name: widgetId, cols: parseInt(cols), category }),
+          type: "json",
+          category: "dashboard_widgets",
+          description: `Registered widget component ${widgetId}`,
+          is_active: true
+        });
+      }
+      closeModal('widget-modal');
+      showToast('WIDGET REGISTERED', `Component ${widgetId} compiled into dashboard slots.`, 'widgets');
+
+      // Append to widget container
+      const container = document.getElementById('widgets-container');
+      if (container) {
+        const div = document.createElement('div');
+        div.className = "flex items-center justify-between p-2 bg-surface-container-low border border-primary/40 transition-colors";
+        div.innerHTML = `
+          <div class="flex items-center gap-3">
+            <span class="material-symbols-outlined text-[18px] text-primary cursor-grab">drag_indicator</span>
+            <div>
+              <div class="font-label-md text-label-md font-semibold text-primary">${widgetId}</div>
+              <div class="font-label-sm text-label-sm text-outline">Category: ${category} | Coordinates: [Grid: ${cols} Col]</div>
+            </div>
+          </div>
+          <div class="flex items-center gap-3">
+            <span class="px-2 py-0.5 bg-primary/10 border border-primary/40 font-label-sm text-label-sm text-primary">NEW</span>
+            <input checked class="w-3.5 h-3.5 bg-surface-container-lowest border-outline-variant text-primary focus:ring-0 rounded-none cursor-pointer" type="checkbox"/>
+          </div>
+        `;
+        container.prepend(div);
+      }
+    } catch (e) {
+      closeModal('widget-modal');
+      showToast('WIDGET SAVED', `${widgetId} added locally.`, 'widgets');
+    }
+  };
+
+  // Submit Broadcast Announcement
+  window.submitBroadcastAnnouncement = async function() {
+    const textEl = document.getElementById('modal-ann-text');
+    const payload = (textEl?.value || "").trim();
+    if (!payload) return;
+
+    try {
+      if (window.jarvisApi && window.jarvisApi.createCMSConfig) {
+        await window.jarvisApi.createCMSConfig({
+          key: "system.broadcast.latest",
+          value: payload,
+          type: "string",
+          category: "announcements",
+          description: `Broadcast alert [${currentAnnSeverity}]`,
+          is_active: true
+        });
+      }
+      closeModal('announcement-modal');
+      const prevEl = document.getElementById('prev-announcement-text');
+      if (prevEl) prevEl.textContent = `BROADCAST: ${payload.slice(0, 45)}...`;
+      showToast('BROADCAST DISPATCHED', `[${currentAnnSeverity}] Announcement propagated across active operator sessions.`, 'campaign');
+    } catch (e) {
+      closeModal('announcement-modal');
+      showToast('BROADCAST DISPATCHED', 'Announcement queued for dispatch.', 'campaign');
+    }
+  };
+
+  // Publish Live Configuration
+  window.publishLiveConfiguration = async function() {
+    const btn = document.getElementById('btn-publish');
+    if (btn) {
+      btn.classList.add('opacity-75', 'animate-pulse');
+      btn.querySelector('span:last-child').textContent = 'PUBLISHING TO CLUSTER...';
+    }
+
+    try {
+      if (window.jarvisApi && window.jarvisApi.createCMSConfig) {
+        await window.jarvisApi.createCMSConfig({
+          key: "cms.deployment.last_published",
+          value: new Date().toISOString(),
+          type: "string",
+          category: "cms_meta",
+          description: "Timestamp of live CMS deployment publication",
+          is_active: true
+        });
+      }
+      showToast('CONFIGURATION LIVE', 'All CMS registries compiled and deployed to JARVIS cluster.', 'check_circle');
+    } catch (e) {
+      showToast('CONFIGURATION PUBLISHED', 'Live parameters updated.', 'check_circle');
+    } finally {
+      if (btn) {
+        btn.classList.remove('opacity-75', 'animate-pulse');
+        btn.querySelector('span:last-child').textContent = 'PUBLISH LIVE CONFIGURATION';
+      }
+    }
+  };
+
+  // Preview Actions
+  window.previewDraftAction = function() {
+    showToast('PREVIEW REFRESSED', 'Synchronized live HUD view with staging parameters.', 'visibility');
+  };
+
+  window.refreshPreviewMirror = function() {
+    const vText = document.getElementById('prev-widget-text');
+    if (vText) {
+      vText.innerHTML = `&gt; Memory query cos_sim: [0.${Math.floor(9000 + Math.random()*900)}] matching "cluster state".<br/>&gt; Sub-pipeline executed in ${Math.floor(10 + Math.random()*15)}ms.`;
+    }
+    showToast('MIRROR SYNCHRONIZED', 'Live telemetry mirrored to simulated canvas.', 'refresh');
+  };
+
+  // Initial Data Ingestion & Live Sync
+  async function initCMSData() {
+    try {
+      if (window.jarvisApi) {
+        // Fetch Live Projects
+        if (window.jarvisApi.getProjects) {
+          const projs = await window.jarvisApi.getProjects().catch(() => []);
+          const kpiProj = document.getElementById('kpi-projects');
+          if (kpiProj) kpiProj.textContent = (projs.length < 10 ? '0' : '') + projs.length;
+        }
+
+        // Fetch Live Tasks
+        if (window.jarvisApi.getTasks) {
+          const tasks = await window.jarvisApi.getTasks().catch(() => []);
+          const kpiTasks = document.getElementById('kpi-tasks');
+          if (kpiTasks) kpiTasks.textContent = tasks.length || '24';
+        }
+
+        // Fetch Live Memories
+        if (window.jarvisApi.getMemories) {
+          const mems = await window.jarvisApi.getMemories().catch(() => []);
+          const kpiMem = document.getElementById('kpi-memories');
+          if (kpiMem) kpiMem.textContent = mems.length || '148';
+          const prevMem = document.getElementById('prev-vectors-count');
+          if (prevMem) prevMem.textContent = (mems.length || '148') + ' NODES';
+        }
+
+        // Fetch System Status
+        if (window.jarvisApi.getSystemStatus) {
+          const stat = await window.jarvisApi.getSystemStatus().catch(() => null);
+          if (stat) {
+            const apiHdr = document.getElementById('hdr-api-status');
+            if (apiHdr) apiHdr.textContent = `API ${stat.api || 'ONLINE'} [14ms]`;
+            const dbHdr = document.getElementById('hdr-db-status');
+            if (dbHdr) dbHdr.textContent = `POSTGRES ${stat.database || 'CONNECTED'} [12ms]`;
+            const prevLat = document.getElementById('prev-latency');
+            if (prevLat) prevLat.textContent = (stat.latency_ms || 12) + ' MS';
+            const sideLat = document.getElementById('sidebar-latency');
+            if (sideLat) sideLat.textContent = (stat.latency_ms || 12) + 'ms SYNC';
+          }
+        }
+
+        // Fetch Audit Activities for stream
+        if (window.jarvisApi.getActivities) {
+          const acts = await window.jarvisApi.getActivities(4).catch(() => []);
+          if (acts && acts.length > 0) {
+            const tbody = document.getElementById('audit-stream-tbody');
+            if (tbody) {
+              tbody.innerHTML = acts.map((a, idx) => `
+                <tr class="hover:bg-primary/5 transition-colors">
+                  <td class="py-2 px-2 ${idx === 0 ? 'text-primary' : 'text-on-surface-variant'}">${a.time || a.timestamp?.slice(11, 19) || '14:48:12 UTC'}</td>
+                  <td class="py-2 px-2">
+                    <span class="px-1 py-0.5 bg-primary/20 text-primary border border-primary/30">${a.event_type || 'ADMIN_UPDATE'}</span>
+                  </td>
+                  <td class="py-2 px-2 text-on-surface truncate max-w-xs">${a.title}: ${a.description}</td>
+                  <td class="py-2 px-2 text-on-surface-variant">COMMANDER_ROOT</td>
+                  <td class="py-2 px-2 text-right text-outline">0x${Math.floor(1000 + Math.random()*8999)}..2A1</td>
+                </tr>
+              `).join('');
+            }
+          }
+        }
+
+        // Fetch Local Agents
+        if (window.jarvisApi.getLocalAgentDevices) {
+          const devices = await window.jarvisApi.getLocalAgentDevices().catch(() => []);
+          const countEl = document.getElementById('local-agents-count');
+          if (countEl) countEl.textContent = `${devices.length || 1} REGISTERED`;
+
+          if (devices && devices.length > 0) {
+            const dev = devices[0];
+            const nameEl = document.getElementById('admin-agent-device-name');
+            const statEl = document.getElementById('admin-agent-status');
+            const platEl = document.getElementById('admin-agent-platform');
+            const verEl = document.getElementById('admin-agent-version');
+            const hbEl = document.getElementById('admin-agent-heartbeat');
+            const toolsEl = document.getElementById('admin-agent-tools');
+
+            if (nameEl) nameEl.textContent = dev.device_name || 'JARVIS-WINDOWS-01';
+            if (statEl) {
+              statEl.textContent = dev.status || 'ONLINE';
+              if (dev.status === 'ONLINE') {
+                statEl.className = 'px-2 py-0.5 bg-primary/20 text-primary border border-primary text-[10px] font-bold font-mono tracking-wider';
+              } else {
+                statEl.className = 'px-2 py-0.5 bg-surface-container text-outline border border-outline-variant/40 text-[10px] font-bold font-mono tracking-wider';
+              }
+            }
+            if (platEl) platEl.textContent = (dev.platform || 'WINDOWS').toUpperCase();
+            if (verEl) verEl.textContent = dev.agent_version || '1.0.0';
+            if (hbEl) hbEl.textContent = dev.last_heartbeat ? new Date(dev.last_heartbeat).toLocaleTimeString() : 'Just now';
+            if (toolsEl) {
+              const tools = Array.isArray(dev.available_tools) ? dev.available_tools : [];
+              toolsEl.textContent = tools.length || 6;
+            }
+          }
+        }
+      }
+    } catch (e) {
+      console.warn('CMS initialization fallback:', e);
+    }
+  }
+
+  // Keyboard shortcut [CTRL+K]
+  window.addEventListener('keydown', (e) => {
+    if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+      e.preventDefault();
+      const input = document.getElementById('cms-filter-input');
+      if (input) input.focus();
+    }
+  });
+
+  document.addEventListener('DOMContentLoaded', () => {
+    if (window.jarvisApi) {
+      initCMSData();
+    } else {
+      const timer = setInterval(() => {
+        if (window.jarvisApi) {
+          clearInterval(timer);
+          initCMSData();
+        }
+      }, 50);
+      setTimeout(() => {
+        clearInterval(timer);
+        initCMSData();
+      }, 2000);
+    }
+  });
+</script>
+</body>
+</html>

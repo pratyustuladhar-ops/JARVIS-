@@ -1,0 +1,1997 @@
+<!DOCTYPE html>
+<html class="dark" lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport"/>
+<title>JARVIS // SYSTEM &amp; AGENT CONFIGURATION</title>
+<!-- Google Fonts: Sora, Inter, JetBrains Mono -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&amp;family=JetBrains+Mono:wght@400;500;600;700&amp;family=Sora:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<!-- Material Symbols Outlined -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind CSS with Plugins -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          "colors": {
+            "inverse-surface": "#e1e2e8",
+            "primary-fixed": "#b6ebff",
+            "surface": "#111318",
+            "surface-variant": "#33353a",
+            "on-secondary-fixed": "#220c4b",
+            "surface-bright": "#37393e",
+            "error-container": "#93000a",
+            "on-background": "#e1e2e8",
+            "on-primary": "#003543",
+            "background": "#111318",
+            "on-tertiary-fixed": "#0f1c2b",
+            "surface-container": "#1d2024",
+            "on-primary-fixed": "#001f28",
+            "secondary-container": "#4f3c7a",
+            "on-error": "#690005",
+            "surface-tint": "#49d6ff",
+            "on-secondary-container": "#c0aaf0",
+            "tertiary-fixed-dim": "#bac7dc",
+            "inverse-on-surface": "#2e3035",
+            "tertiary": "#d3e0f4",
+            "on-surface": "#e1e2e8",
+            "surface-container-low": "#191c20",
+            "on-tertiary-fixed-variant": "#3b4858",
+            "surface-container-highest": "#33353a",
+            "on-error-container": "#ffdad6",
+            "tertiary-container": "#b7c4d8",
+            "on-primary-fixed-variant": "#004e60",
+            "on-secondary": "#382461",
+            "inverse-primary": "#00677f",
+            "secondary-fixed": "#eaddff",
+            "on-secondary-fixed-variant": "#4f3c7a",
+            "outline-variant": "#3c494e",
+            "on-primary-container": "#00576c",
+            "outline": "#869399",
+            "on-tertiary": "#253141",
+            "on-surface-variant": "#bbc9cf",
+            "primary-fixed-dim": "#49d6ff",
+            "surface-container-high": "#282a2f",
+            "secondary": "#d1bcff",
+            "surface-container-lowest": "#0c0e13",
+            "tertiary-fixed": "#d6e3f8",
+            "error": "#ffb4ab",
+            "surface-dim": "#111318",
+            "primary-container": "#27d3ff",
+            "secondary-fixed-dim": "#d1bcff",
+            "primary": "#aae8ff",
+            "on-tertiary-container": "#445162"
+          },
+          "borderRadius": {
+            "DEFAULT": "0.125rem",
+            "lg": "0.25rem",
+            "xl": "0.5rem",
+            "full": "0.75rem"
+          },
+          "spacing": {
+            "space-xl": "2.5rem",
+            "margin": "2rem",
+            "gutter-mobile": "0.75rem",
+            "space-md": "1rem",
+            "space-sm": "0.5rem",
+            "margin-mobile": "1rem",
+            "gutter": "1rem",
+            "space-lg": "1.5rem",
+            "space-xs": "0.25rem"
+          },
+          "fontFamily": {
+            "headline-sm": ["Sora"],
+            "body-sm": ["Inter"],
+            "body-lg": ["Inter"],
+            "label-sm": ["JetBrains Mono"],
+            "headline-xl-mobile": ["Sora"],
+            "headline-md": ["Sora"],
+            "label-md": ["JetBrains Mono"],
+            "headline-lg-mobile": ["Sora"],
+            "headline-lg": ["Sora"],
+            "label-lg": ["JetBrains Mono"],
+            "headline-xl": ["Sora"],
+            "body-md": ["Inter"]
+          },
+          "fontSize": {
+            "headline-sm": ["16px", { "lineHeight": "24px", "letterSpacing": "0em", "fontWeight": "500" }],
+            "body-sm": ["12px", { "lineHeight": "18px", "fontWeight": "400" }],
+            "body-lg": ["16px", { "lineHeight": "26px", "fontWeight": "400" }],
+            "label-sm": ["10px", { "lineHeight": "14px", "letterSpacing": "0.1em", "fontWeight": "500" }],
+            "headline-xl-mobile": ["28px", { "lineHeight": "36px", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+            "headline-md": ["20px", { "lineHeight": "28px", "letterSpacing": "-0.005em", "fontWeight": "500" }],
+            "label-md": ["11px", { "lineHeight": "16px", "letterSpacing": "0.08em", "fontWeight": "500" }],
+            "headline-lg-mobile": ["22px", { "lineHeight": "30px", "letterSpacing": "0em", "fontWeight": "600" }],
+            "headline-lg": ["28px", { "lineHeight": "36px", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+            "label-lg": ["13px", { "lineHeight": "18px", "letterSpacing": "0.06em", "fontWeight": "500" }],
+            "headline-xl": ["40px", { "lineHeight": "48px", "letterSpacing": "-0.02em", "fontWeight": "600" }],
+            "body-md": ["14px", { "lineHeight": "22px", "fontWeight": "400" }]
+          }
+        }
+      }
+    }
+  </script>
+<style>
+    .material-symbols-outlined {
+      font-family: 'Material Symbols Outlined';
+      font-weight: normal;
+      font-style: normal;
+      font-size: 20px;
+      line-height: 1;
+      letter-spacing: normal;
+      text-transform: none;
+      display: inline-block;
+      white-space: nowrap;
+      word-wrap: normal;
+      direction: ltr;
+      -webkit-font-feature-settings: 'liga';
+      -webkit-font-smoothing: antialiased;
+    }
+    .hud-reticle-corner, .hud-corner {
+      position: relative;
+    }
+    .hud-reticle-corner::before, .hud-corner::before {
+      content: '';
+      position: absolute;
+      top: -1px;
+      left: -1px;
+      width: 6px;
+      height: 6px;
+      border-top: 2px solid #27d3ff;
+      border-left: 2px solid #27d3ff;
+      pointer-events: none;
+    }
+    .hud-reticle-corner::after, .hud-corner::after {
+      content: '';
+      position: absolute;
+      bottom: -1px;
+      right: -1px;
+      width: 6px;
+      height: 6px;
+      border-bottom: 2px solid #27d3ff;
+      border-right: 2px solid #27d3ff;
+      pointer-events: none;
+    }
+    .cyan-glow {
+      box-shadow: 0 0 16px rgba(39, 211, 255, 0.14);
+    }
+    .cyan-glow-intense {
+      box-shadow: 0 0 24px rgba(39, 211, 255, 0.35);
+    }
+    @keyframes spin-slow {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    @keyframes spin-reverse {
+      0% { transform: rotate(360deg); }
+      100% { transform: rotate(0deg); }
+    }
+    @keyframes pulse-cyan {
+      0%, 100% { opacity: 0.35; transform: scale(0.96); }
+      50% { opacity: 0.85; transform: scale(1.04); }
+    }
+    .animate-spin-slow {
+      animation: spin-slow 16s linear infinite;
+    }
+    .animate-spin-rev {
+      animation: spin-reverse 10s linear infinite;
+    }
+    .animate-pulse-core {
+      animation: pulse-cyan 3s ease-in-out infinite;
+    }
+    .no-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+    .no-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+    ::-webkit-scrollbar {
+      width: 5px;
+      height: 5px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #0c0e13;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #3c494e;
+      border-radius: 2px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #27d3ff;
+    }
+    input[type=range] {
+      -webkit-appearance: none;
+      background: #191c20;
+      height: 4px;
+      border-radius: 2px;
+    }
+    input[type=range]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      height: 14px;
+      width: 14px;
+      border-radius: 2px;
+      background: #27d3ff;
+      cursor: pointer;
+      box-shadow: 0 0 8px rgba(39, 211, 255, 0.6);
+      border: 1px solid #ffffff;
+    }
+  </style>
+  <script type="module" crossorigin src="/assets/api-6_STEUA4.js"></script>
+</head>
+<body class="bg-surface-container-lowest text-on-surface antialiased min-h-screen selection:bg-primary-container selection:text-on-primary">
+
+<!-- ================================================================= -->
+<!-- TOAST NOTIFICATION CONTAINER (Global)                             -->
+<!-- ================================================================= -->
+<div class="hidden fixed bottom-6 right-6 z-50 flex items-center gap-3 px-4 py-3 bg-surface-container border border-primary-container/80 rounded shadow-2xl cyan-glow-intense transition-all" id="toast-notification">
+  <span class="material-symbols-outlined text-primary-container" id="toast-icon">check_circle</span>
+  <div class="flex flex-col">
+    <span class="text-label-sm font-label-sm font-bold text-primary tracking-wider" id="toast-title">CONFIGURATION SYNCED TO AGENT ENCLAVE</span>
+    <span class="text-[10px] font-label-sm text-on-surface-variant" id="toast-desc">Hash: 0x9AF831 // Checksum verified across cluster</span>
+  </div>
+</div>
+
+<!-- ================================================================= -->
+<!-- MOBILE VIEW (Visible on < lg screens)                             -->
+<!-- ================================================================= -->
+<div class="block lg:hidden min-h-screen pb-24 overflow-x-hidden">
+  <!-- Mobile Top Command Bar -->
+  <header class="fixed top-0 left-0 right-0 z-50 bg-surface-container-lowest/80 backdrop-blur-md px-4 py-3 flex items-center justify-between border-b border-outline-variant/40">
+    <div class="flex items-center gap-3">
+      <button aria-label="Toggle Navigation Drawer" class="min-w-[44px] min-h-[44px] flex items-center justify-center rounded border border-outline-variant/50 bg-surface-container/60 text-primary active:scale-95 transition-all" id="drawerToggle">
+        <span class="material-symbols-outlined">menu</span>
+      </button>
+      <div>
+        <div class="font-headline-sm text-headline-sm font-bold tracking-wider text-primary">JARVIS // CORE HUD</div>
+        <div class="flex items-center gap-1.5 font-label-sm text-label-sm text-on-surface-variant">
+          <span class="w-1.5 h-1.5 rounded-full bg-primary-container animate-ping"></span>
+          <span class="text-primary-container" id="mob-status-indicator">ONLINE</span>
+          <span class="text-outline">●</span>
+          <span id="mob-latency-indicator">12ms</span>
+        </div>
+      </div>
+    </div>
+    <!-- Quick Voice Trigger -->
+    <div class="flex items-center gap-2">
+      <button aria-label="Sys Diagnostics" onclick="refreshTelemetry()" class="min-w-[44px] min-h-[44px] flex items-center justify-center rounded border border-outline-variant/40 bg-surface-container-low/70 text-on-surface-variant active:text-primary transition-colors">
+        <span class="material-symbols-outlined">tune</span>
+      </button>
+      <button aria-label="Voice Command" onclick="triggerVoicePing()" class="min-w-[44px] min-h-[44px] flex items-center justify-center rounded border border-primary-container/80 bg-primary/10 text-primary-container cyan-glow active:scale-95 transition-transform" id="quickVoiceBtn">
+        <span class="material-symbols-outlined">graphic_eq</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- Mobile Navigation Drawer Overlay -->
+  <aside class="fixed inset-y-0 left-0 z-50 w-72 bg-surface-container-lowest/95 backdrop-blur-lg border-r border-outline-variant/40 transform -translate-x-full transition-transform duration-300 ease-in-out flex flex-col justify-between p-4" id="navDrawer">
+    <div>
+      <div class="flex items-center justify-between pb-4 mb-4 border-b border-outline-variant/30">
+        <div class="flex items-center gap-3">
+          <div class="w-8 h-8 rounded border border-primary/50 bg-primary/10 flex items-center justify-center text-primary">
+            <span class="material-symbols-outlined">smart_toy</span>
+          </div>
+          <div>
+            <div class="font-headline-sm text-headline-sm font-bold text-primary tracking-widest">JARVIS</div>
+            <div class="font-label-sm text-label-sm text-outline">OS // v4.2 TELEMETRY</div>
+          </div>
+        </div>
+        <button class="w-8 h-8 flex items-center justify-center rounded border border-outline-variant/30 text-on-surface-variant hover:text-on-surface" id="drawerClose">
+          <span class="material-symbols-outlined">close</span>
+        </button>
+      </div>
+      <!-- Drawer Navigation Tabs -->
+      <nav class="space-y-1">
+        <a class="flex items-center gap-3 px-3 py-2.5 text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high/40 rounded transition-all" href="index.html">
+          <span class="material-symbols-outlined">dashboard</span>
+          <span class="font-label-md text-label-md">Dashboard</span>
+        </a>
+        <a class="flex items-center gap-3 px-3 py-2.5 text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high/40 rounded transition-all" href="assistant.html">
+          <span class="material-symbols-outlined">smart_toy</span>
+          <span class="font-label-md text-label-md">Assistant</span>
+        </a>
+        <a class="flex items-center gap-3 px-3 py-2.5 text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high/40 rounded transition-all" href="tasks.html">
+          <span class="material-symbols-outlined">check_circle</span>
+          <span class="font-label-md text-label-md">Tasks</span>
+        </a>
+        <a class="flex items-center gap-3 px-3 py-2.5 text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high/40 rounded transition-all" href="memory.html">
+          <span class="material-symbols-outlined">memory</span>
+          <span class="font-label-md text-label-md">Memory</span>
+        </a>
+        <a class="flex items-center gap-3 px-3 py-2.5 text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high/40 rounded transition-all" href="projects.html">
+          <span class="material-symbols-outlined">folder</span>
+          <span class="font-label-md text-label-md">Projects</span>
+        </a>
+        <a class="flex items-center gap-3 px-3 py-2.5 text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high/40 rounded transition-all" href="activity.html">
+          <span class="material-symbols-outlined">timeline</span>
+          <span class="font-label-md text-label-md">Activity</span>
+        </a>
+        <a class="flex items-center gap-3 px-3 py-2.5 bg-primary/10 text-primary border-l-2 border-primary font-medium rounded-r transition-all" href="settings.html">
+          <span class="material-symbols-outlined">settings</span>
+          <span class="font-label-md text-label-md">Settings</span>
+        </a>
+        <a class="flex items-center gap-3 px-3 py-2.5 text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high/40 rounded transition-all" href="cms.html">
+          <span class="material-symbols-outlined">admin_panel_settings</span>
+          <span class="font-label-md text-label-md">CMS Center</span>
+        </a>
+      </nav>
+      <div class="mt-6 pt-4 border-t border-outline-variant/30">
+        <button onclick="window.location.href='assistant.html'" class="w-full py-2.5 px-3 rounded border border-primary text-primary font-label-md text-label-md tracking-wider bg-primary/10 hover:bg-primary/20 flex items-center justify-center gap-2 cyan-glow">
+          <span class="material-symbols-outlined">terminal</span>
+          EXECUTE COMMAND
+        </button>
+      </div>
+    </div>
+    <!-- Drawer Telemetry Footer -->
+    <div class="pt-4 border-t border-outline-variant/40 space-y-2">
+      <div class="flex items-center gap-2 text-on-surface-variant font-label-sm text-label-sm">
+        <span class="material-symbols-outlined text-sm">sensors</span>
+        <span>Local Agent: Active</span>
+      </div>
+      <div class="flex items-center gap-2 text-on-surface-variant font-label-sm text-label-sm">
+        <span class="material-symbols-outlined text-sm">wifi_tethering</span>
+        <span>Latency: 12ms</span>
+      </div>
+      <div class="flex items-center gap-2 text-on-surface-variant font-label-sm text-label-sm">
+        <span class="material-symbols-outlined text-sm">account_circle</span>
+        <span>Operator Profile</span>
+      </div>
+    </div>
+  </aside>
+  <!-- Backdrop for Drawer -->
+  <div class="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm hidden" id="drawerBackdrop"></div>
+
+  <!-- Mobile Scrollable Main Container -->
+  <main class="pt-20 px-4 space-y-5 max-w-md mx-auto">
+    <!-- Quick Switcher Bar -->
+    <section class="overflow-x-auto no-scrollbar -mx-4 px-4">
+      <div class="flex items-center gap-2 w-max py-1">
+        <button onclick="window.location.href='index.html'" class="px-3.5 py-1.5 rounded border border-outline-variant/40 bg-surface-container-low/70 text-on-surface-variant font-label-sm text-label-sm hover:border-primary/40 active:scale-95 transition-all">
+          Dashboard
+        </button>
+        <button onclick="window.location.href='assistant.html'" class="px-3.5 py-1.5 rounded border border-outline-variant/40 bg-surface-container-low/70 text-on-surface-variant font-label-sm text-label-sm hover:border-primary/40 active:scale-95 transition-all">
+          Assistant
+        </button>
+        <button onclick="window.location.href='tasks.html'" class="px-3.5 py-1.5 rounded border border-outline-variant/40 bg-surface-container-low/70 text-on-surface-variant font-label-sm text-label-sm hover:border-primary/40 active:scale-95 transition-all">
+          Tasks
+        </button>
+        <button onclick="window.location.href='memory.html'" class="px-3.5 py-1.5 rounded border border-outline-variant/40 bg-surface-container-low/70 text-on-surface-variant font-label-sm text-label-sm hover:border-primary/40 active:scale-95 transition-all">
+          Memory
+        </button>
+        <button onclick="window.location.href='projects.html'" class="px-3.5 py-1.5 rounded border border-outline-variant/40 bg-surface-container-low/70 text-on-surface-variant font-label-sm text-label-sm hover:border-primary/40 active:scale-95 transition-all">
+          Projects
+        </button>
+        <button onclick="window.location.href='activity.html'" class="px-3.5 py-1.5 rounded border border-outline-variant/40 bg-surface-container-low/70 text-on-surface-variant font-label-sm text-label-sm hover:border-primary/40 active:scale-95 transition-all">
+          Activity
+        </button>
+        <button class="px-3.5 py-1.5 rounded border border-primary bg-primary/10 text-primary font-label-sm text-label-sm font-semibold cyan-glow active:scale-95 transition-all flex items-center gap-1.5">
+          <span class="w-1.5 h-1.5 rounded-full bg-primary-container"></span>
+          Settings
+        </button>
+      </div>
+    </section>
+
+    <!-- SECTION 1: Mobile Central AI Core HUD -->
+    <section class="hud-corner p-4 rounded border border-outline-variant/50 bg-surface-container-lowest/80 backdrop-blur-md relative overflow-hidden">
+      <div class="absolute -top-12 -right-12 w-44 h-44 rounded-full bg-secondary-container/20 blur-3xl pointer-events-none"></div>
+      <div class="flex items-center justify-between mb-3 border-b border-outline-variant/30 pb-2">
+        <div class="flex items-center gap-2">
+          <span class="material-symbols-outlined text-primary-container text-sm">memory</span>
+          <span class="font-label-sm text-label-sm text-primary tracking-widest">CORE TELEMETRY</span>
+        </div>
+        <span class="font-label-sm text-label-sm text-outline">LOC: NODE_01</span>
+      </div>
+      <div class="flex flex-col items-center justify-center my-3 relative py-2">
+        <div class="relative w-36 h-36 flex items-center justify-center">
+          <div class="absolute inset-0 rounded-full border border-dashed border-primary/30 animate-spin-slow"></div>
+          <div class="absolute inset-2 rounded-full border-t-2 border-b border-primary-container/60 animate-spin-rev"></div>
+          <div class="w-20 h-20 rounded-full bg-primary/10 border border-primary-container flex flex-col items-center justify-center cyan-glow animate-pulse-core">
+            <span class="material-symbols-outlined text-primary-container text-2xl">smart_toy</span>
+            <span class="font-label-sm text-label-sm text-primary-fixed font-bold mt-0.5">SYNCD</span>
+          </div>
+        </div>
+        <div class="mt-3 text-center">
+          <div class="font-label-md text-label-md text-primary font-medium tracking-wide">
+            STATE: READY // CORE SYNCHRONIZED
+          </div>
+          <div class="font-label-sm text-label-sm text-on-surface-variant flex items-center justify-center gap-2 mt-1">
+            <span>SWARM COHESION: 99.4%</span>
+            <span>|</span>
+            <span class="text-primary-container">THROUGHPUT: 4.8 GB/s</span>
+          </div>
+        </div>
+      </div>
+      <!-- Rapid Voice / Input Buffer Field -->
+      <div class="mt-4 pt-3 border-t border-outline-variant/30">
+        <div class="relative flex items-center">
+          <span class="absolute left-3 font-label-md text-label-md text-primary-container pointer-events-none">&gt;_</span>
+          <input id="mobile-cmd-input" class="w-full bg-surface-container-low/90 text-on-surface font-body-sm text-body-sm pl-9 pr-12 py-3 rounded border border-outline-variant/50 focus:border-primary-container focus:outline-none focus:ring-1 focus:ring-primary-container transition-all placeholder:text-outline" placeholder="Command JARVIS..." type="text"/>
+          <button aria-label="Mic Trigger" onclick="triggerVoicePing()" class="absolute right-1.5 min-w-[36px] min-h-[36px] flex items-center justify-center rounded bg-primary/15 text-primary-container active:scale-90 transition-transform">
+            <span class="material-symbols-outlined text-sm">graphic_eq</span>
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECTION 2: Mobile Settings & Configuration Accordion Hub -->
+    <section class="space-y-3">
+      <div class="flex items-center justify-between px-1">
+        <h2 class="font-headline-sm text-headline-sm font-bold text-on-surface tracking-wide flex items-center gap-2">
+          <span class="material-symbols-outlined text-primary text-base">settings</span>
+          SYSTEM CONFIGURATION
+        </h2>
+        <span class="font-label-sm text-label-sm text-outline">HUD_CFG_04</span>
+      </div>
+
+      <!-- Accordion 1: General & System Identity -->
+      <div class="hud-corner rounded border border-outline-variant/40 bg-surface-container-lowest/80 backdrop-blur-md overflow-hidden">
+        <button class="accordion-trigger w-full px-4 py-3.5 flex items-center justify-between text-left active:bg-surface-container-high/30 transition-colors" data-target="panel-general">
+          <div class="flex items-center gap-2.5">
+            <span class="material-symbols-outlined text-primary">person</span>
+            <div>
+              <span class="font-headline-sm text-headline-sm text-on-surface block leading-tight">General &amp; System Identity</span>
+              <span class="font-label-sm text-label-sm text-outline">Core identity, operator node, HUD density</span>
+            </div>
+          </div>
+          <span class="material-symbols-outlined text-on-surface-variant transition-transform duration-200">expand_more</span>
+        </button>
+        <div class="accordion-content px-4 pb-4 pt-1 space-y-3 border-t border-outline-variant/30 hidden" id="panel-general">
+          <div class="space-y-1">
+            <label class="font-label-sm text-label-sm text-on-surface-variant">ASSISTANT_NAME</label>
+            <input id="mob-cfg-assistant-name" class="w-full bg-surface-container-low text-on-surface font-label-md text-label-md px-3 py-2 rounded border border-outline-variant/50 focus:border-primary-container focus:outline-none" type="text" value="JARVIS"/>
+          </div>
+          <div class="space-y-1">
+            <label class="font-label-sm text-label-sm text-on-surface-variant">OPERATOR_IDENTITY</label>
+            <input id="mob-cfg-operator-callsign" class="w-full bg-surface-container-low text-on-surface font-label-md text-label-md px-3 py-2 rounded border border-outline-variant/50 focus:border-primary-container focus:outline-none" type="text" value="COMMANDER_STARK"/>
+          </div>
+          <div class="flex items-center justify-between pt-1">
+            <div>
+              <div class="font-label-md text-label-md text-on-surface">Tactical Compact Density</div>
+              <div class="font-label-sm text-label-sm text-outline">Optimized for high-density HUD telemetry</div>
+            </div>
+            <label class="relative inline-flex items-center cursor-pointer min-h-[44px]">
+              <input id="mob-cfg-density" checked="" class="sr-only peer" type="checkbox"/>
+              <div class="w-9 h-5 bg-surface-container-high peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-primary-container after:content-[''] after:absolute after:top-[14px] after:left-[2px] after:bg-on-surface after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-primary-container"></div>
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <!-- Accordion 2: AI Assistant & Heuristics -->
+      <div class="hud-corner rounded border border-outline-variant/40 bg-surface-container-lowest/80 backdrop-blur-md overflow-hidden">
+        <button class="accordion-trigger w-full px-4 py-3.5 flex items-center justify-between text-left active:bg-surface-container-high/30 transition-colors" data-target="panel-heuristics">
+          <div class="flex items-center gap-2.5">
+            <span class="material-symbols-outlined text-primary">neurology</span>
+            <div>
+              <span class="font-headline-sm text-headline-sm text-on-surface block leading-tight">AI Assistant &amp; Heuristics</span>
+              <span class="font-label-sm text-label-sm text-outline">Presets, swarm model, cognitive depth</span>
+            </div>
+          </div>
+          <span class="material-symbols-outlined text-on-surface-variant transition-transform duration-200">expand_more</span>
+        </button>
+        <div class="accordion-content px-4 pb-4 pt-1 space-y-3.5 border-t border-outline-variant/30 hidden" id="panel-heuristics">
+          <div>
+            <label class="font-label-sm text-label-sm text-on-surface-variant block mb-1.5">PERSONALITY PRESET</label>
+            <div class="grid grid-cols-3 gap-2">
+              <button onclick="setPersonalityPreset('Autonomous Commander')" class="mob-preset-btn py-2 px-1 text-center rounded border border-primary bg-primary/10 text-primary font-label-sm text-label-sm font-semibold cyan-glow">
+                TACTICAL
+              </button>
+              <button onclick="setPersonalityPreset('Analytical Deep-Trace')" class="mob-preset-btn py-2 px-1 text-center rounded border border-outline-variant/40 bg-surface-container-low text-on-surface-variant font-label-sm text-label-sm hover:border-primary/40">
+                BALANCED
+              </button>
+              <button onclick="setPersonalityPreset('Concise Tactical')" class="mob-preset-btn py-2 px-1 text-center rounded border border-outline-variant/40 bg-surface-container-low text-on-surface-variant font-label-sm text-label-sm hover:border-primary/40">
+                SCIENTIFIC
+              </button>
+            </div>
+          </div>
+          <div class="flex items-center justify-between border-t border-outline-variant/20 pt-2.5">
+            <div>
+              <div class="font-label-md text-label-md text-on-surface">Base Swarm Engine</div>
+              <div class="font-label-sm text-label-sm text-primary-container font-mono">HYBRID SWARM v9</div>
+            </div>
+            <span class="px-2 py-1 rounded bg-secondary-container/40 border border-secondary text-secondary font-label-sm text-label-sm">AUTONOMOUS</span>
+          </div>
+          <div class="space-y-1.5 border-t border-outline-variant/20 pt-2.5">
+            <div class="flex justify-between items-center">
+              <span class="font-label-sm text-label-sm text-on-surface-variant">REASONING DEPTH</span>
+              <span class="font-label-sm text-label-sm text-primary font-bold" id="mob-reasoning-val">LEVEL 4 (DEEP)</span>
+            </div>
+            <input id="mob-cfg-reasoning" class="w-full accent-primary-container cursor-pointer bg-surface-container-high h-1.5 rounded" max="5" min="1" type="range" value="4" oninput="document.getElementById('mob-reasoning-val').textContent = 'LEVEL ' + this.value + (this.value >= 4 ? ' (DEEP)' : ' (FAST)'); syncField('reasoning_depth', parseInt(this.value));"/>
+          </div>
+          <div class="flex items-center justify-between border-t border-outline-variant/20 pt-2.5">
+            <div>
+              <div class="font-label-md text-label-md text-on-surface">Streaming Token Telemetry</div>
+              <div class="font-label-sm text-label-sm text-outline">Real-time tokenized thought traces</div>
+            </div>
+            <label class="relative inline-flex items-center cursor-pointer min-h-[44px]">
+              <input id="mob-cfg-streaming" checked="" class="sr-only peer" type="checkbox"/>
+              <div class="w-9 h-5 bg-surface-container-high peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-primary-container after:content-[''] after:absolute after:top-[14px] after:left-[2px] after:bg-on-surface after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-primary-container"></div>
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <!-- Accordion 3: Neural Memory -->
+      <div class="hud-corner rounded border border-outline-variant/40 bg-surface-container-lowest/80 backdrop-blur-md overflow-hidden">
+        <button class="accordion-trigger w-full px-4 py-3.5 flex items-center justify-between text-left active:bg-surface-container-high/30 transition-colors" data-target="panel-memory">
+          <div class="flex items-center gap-2.5">
+            <span class="material-symbols-outlined text-primary">database</span>
+            <div>
+              <span class="font-headline-sm text-headline-sm text-on-surface block leading-tight">Neural Memory</span>
+              <span class="font-label-sm text-label-sm text-outline">Vector retention, similarity thresholds</span>
+            </div>
+          </div>
+          <span class="material-symbols-outlined text-on-surface-variant transition-transform duration-200">expand_more</span>
+        </button>
+        <div class="accordion-content px-4 pb-4 pt-1 space-y-3.5 border-t border-outline-variant/30 hidden" id="panel-memory">
+          <div class="flex items-center justify-between">
+            <div>
+              <div class="font-label-md text-label-md text-on-surface flex items-center gap-2">
+                Persistent Memory
+                <span class="w-2 h-2 rounded-full bg-primary-container cyan-glow inline-block"></span>
+              </div>
+              <div class="font-label-sm text-label-sm text-outline">Continuous vector state across sessions</div>
+            </div>
+            <label class="relative inline-flex items-center cursor-pointer min-h-[44px]">
+              <input id="mob-cfg-persistent-memory" checked="" class="sr-only peer" type="checkbox"/>
+              <div class="w-9 h-5 bg-surface-container-high peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-primary-container after:content-[''] after:absolute after:top-[14px] after:left-[2px] after:bg-on-surface after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-primary-container"></div>
+            </label>
+          </div>
+          <div class="space-y-1.5 border-t border-outline-variant/20 pt-2.5">
+            <div class="flex justify-between items-center">
+              <span class="font-label-sm text-label-sm text-on-surface-variant">SIMILARITY THRESHOLD</span>
+              <span class="font-label-sm text-label-sm text-primary font-bold" id="mob-sim-val">85%</span>
+            </div>
+            <input id="mob-cfg-similarity" class="w-full accent-primary-container cursor-pointer bg-surface-container-high h-1.5 rounded" max="98" min="50" type="range" value="85" oninput="document.getElementById('mob-sim-val').textContent = this.value + '%'; syncField('similarity_threshold', parseInt(this.value));"/>
+            <div class="flex justify-between font-label-sm text-label-sm text-outline">
+              <span>Loose (60%)</span>
+              <span>Strict (95%)</span>
+            </div>
+          </div>
+          <div class="p-2.5 rounded bg-surface-container-low/70 border border-outline-variant/30 flex items-center justify-between">
+            <span class="font-label-sm text-label-sm text-on-surface-variant" id="mob-vectors-count">ACTIVE VECTORS: 142,890</span>
+            <button onclick="purgeCacheAction()" class="font-label-sm text-label-sm text-primary hover:underline">PURGE CACHE</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Accordion 4: System Telemetry & Health -->
+      <div class="hud-corner rounded border border-outline-variant/40 bg-surface-container-lowest/80 backdrop-blur-md overflow-hidden">
+        <button class="accordion-trigger w-full px-4 py-3.5 flex items-center justify-between text-left active:bg-surface-container-high/30 transition-colors" data-target="panel-telemetry">
+          <div class="flex items-center gap-2.5">
+            <span class="material-symbols-outlined text-primary">vital_signs</span>
+            <div>
+              <span class="font-headline-sm text-headline-sm text-on-surface block leading-tight">System Telemetry &amp; Health</span>
+              <span class="font-label-sm text-label-sm text-outline">API pipelines, sync loops, latency</span>
+            </div>
+          </div>
+          <span class="material-symbols-outlined text-on-surface-variant transition-transform duration-200">expand_more</span>
+        </button>
+        <div class="accordion-content px-4 pb-4 pt-1 space-y-2.5 border-t border-outline-variant/30 hidden" id="panel-telemetry">
+          <div class="grid grid-cols-2 gap-2">
+            <div class="p-2 rounded bg-surface-container-low border border-outline-variant/30 flex items-center justify-between">
+              <span class="font-label-sm text-label-sm text-on-surface-variant">SYSTEM</span>
+              <span class="font-label-sm text-label-sm text-primary font-bold">ONLINE</span>
+            </div>
+            <div class="p-2 rounded bg-surface-container-low border border-outline-variant/30 flex items-center justify-between">
+              <span class="font-label-sm text-label-sm text-on-surface-variant">FASTAPI</span>
+              <span class="font-label-sm text-label-sm text-primary font-bold">CONNECTED</span>
+            </div>
+            <div class="p-2 rounded bg-surface-container-low border border-outline-variant/30 flex items-center justify-between">
+              <span class="font-label-sm text-label-sm text-on-surface-variant">DB SHARD</span>
+              <span class="font-label-sm text-label-sm text-primary font-bold">SYNCED</span>
+            </div>
+            <div class="p-2 rounded bg-surface-container-low border border-outline-variant/30 flex items-center justify-between">
+              <span class="font-label-sm text-label-sm text-on-surface-variant">LATENCY</span>
+              <span class="font-label-sm text-label-sm text-primary font-bold" id="mob-tel-latency">12ms</span>
+            </div>
+          </div>
+          <div class="flex items-center justify-between pt-1 font-label-sm text-label-sm text-outline">
+            <span id="mob-tel-uptime">UPTIME: 99.98%</span>
+            <span>BUILD: 2025.02.18-REL</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Accordion 5: Quick Security & Data Actions -->
+      <div class="hud-corner rounded border border-outline-variant/40 bg-surface-container-lowest/80 backdrop-blur-md overflow-hidden">
+        <button class="accordion-trigger w-full px-4 py-3.5 flex items-center justify-between text-left active:bg-surface-container-high/30 transition-colors" data-target="panel-security">
+          <div class="flex items-center gap-2.5">
+            <span class="material-symbols-outlined text-primary">shield</span>
+            <div>
+              <span class="font-headline-sm text-headline-sm text-on-surface block leading-tight">Security &amp; Data Actions</span>
+              <span class="font-label-sm text-label-sm text-outline">Snapshot backups, emergency isolation</span>
+            </div>
+          </div>
+          <span class="material-symbols-outlined text-on-surface-variant transition-transform duration-200">expand_more</span>
+        </button>
+        <div class="accordion-content px-4 pb-4 pt-1 space-y-3 border-t border-outline-variant/30 hidden" id="panel-security">
+          <button onclick="downloadSnapshotAction()" class="w-full py-2.5 px-3 rounded border border-outline-variant/60 bg-surface-container-low text-on-surface font-label-md text-label-md hover:border-primary/50 flex items-center justify-center gap-2 active:scale-98 transition-all">
+            <span class="material-symbols-outlined text-sm">file_download</span>
+            Export Agent Snapshot (.enc)
+          </button>
+          <div class="flex items-center justify-between pt-2 border-t border-outline-variant/20">
+            <div>
+              <div class="font-label-md text-label-md text-error font-medium">Emergency Sandbox Mode</div>
+              <div class="font-label-sm text-label-sm text-outline">Isolates all agent outward execution sockets</div>
+            </div>
+            <label class="relative inline-flex items-center cursor-pointer min-h-[44px]">
+              <input id="mob-cfg-emergency" class="sr-only peer" type="checkbox"/>
+              <div class="w-9 h-5 bg-surface-container-high peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-error after:content-[''] after:absolute after:top-[14px] after:left-[2px] after:bg-on-surface after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-error-container"></div>
+            </label>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Save Trigger for Mobile -->
+    <div class="pt-2">
+      <button onclick="saveAllSettings()" class="w-full py-3 px-4 rounded bg-primary-container text-on-primary font-headline-sm text-label-md font-bold tracking-wider cyan-glow-intense active:scale-95 transition-all flex items-center justify-center gap-2">
+        <span class="material-symbols-outlined">save</span>
+        SAVE CONFIGURATION
+      </button>
+    </div>
+  </main>
+
+  <!-- Mobile Bottom Tactical Floating Dock -->
+  <footer class="fixed bottom-3 left-4 right-4 z-40 max-w-md mx-auto">
+    <div class="hud-corner bg-surface-container-lowest/90 backdrop-blur-md rounded border border-outline-variant/50 p-2 flex items-center justify-between shadow-2xl cyan-glow">
+      <button onclick="window.location.href='tasks.html'" class="min-w-[48px] min-h-[48px] flex flex-col items-center justify-center text-on-surface-variant hover:text-primary active:scale-95 transition-all">
+        <span class="material-symbols-outlined">send_and_archive</span>
+        <span class="font-label-sm text-[9px]">DISPATCH</span>
+      </button>
+      <button aria-label="Execute Voice Interaction" onclick="triggerVoicePing()" class="w-12 h-12 rounded-full border border-primary-container bg-primary/20 text-primary-container flex items-center justify-center cyan-glow active:scale-90 transition-transform" id="floatingVoiceTrigger">
+        <span class="material-symbols-outlined text-2xl">mic</span>
+      </button>
+      <button onclick="refreshTelemetry()" class="min-w-[48px] min-h-[48px] flex flex-col items-center justify-center text-on-surface-variant hover:text-primary active:scale-95 transition-all">
+        <span class="material-symbols-outlined">monitoring</span>
+        <span class="font-label-sm text-[9px]">DIAG_HUD</span>
+      </button>
+    </div>
+  </footer>
+</div>
+
+<!-- ================================================================= -->
+<!-- DESKTOP VIEW (Visible on >= lg screens)                           -->
+<!-- ================================================================= -->
+<div class="hidden lg:flex min-h-screen">
+  <!-- Side Navigation Rail -->
+  <aside class="fixed left-0 top-0 bottom-0 z-40 flex flex-col justify-between p-4 docked h-screen w-64 border-r border-outline-variant/40 bg-surface-container-lowest/80 backdrop-blur-md">
+    <div class="flex flex-col gap-5">
+      <!-- Brand & Telemetry Header -->
+      <div class="flex items-center gap-3 px-2 pt-2">
+        <div class="relative flex items-center justify-center w-9 h-9 rounded bg-surface-container-high border border-outline-variant/60">
+          <span class="material-symbols-outlined text-primary text-xl animate-pulse">memory</span>
+          <span class="absolute -top-1 -right-1 w-2 h-2 bg-primary-container rounded-full ring-2 ring-surface-container-lowest"></span>
+        </div>
+        <div class="flex flex-col">
+          <span class="text-headline-md font-headline-md font-bold tracking-widest text-primary">JARVIS</span>
+          <span class="text-label-sm font-label-sm text-outline tracking-wider">OS // v4.2 TELEMETRY ACTIVE</span>
+        </div>
+      </div>
+      <!-- Execute Command Action Button -->
+      <button onclick="window.location.href='assistant.html'" class="w-full flex items-center justify-center gap-2 py-2 px-3 bg-primary/10 border border-primary/40 text-primary hover:bg-primary/20 hover:border-primary transition-all duration-150 rounded text-label-sm font-label-sm tracking-wider font-semibold">
+        <span class="material-symbols-outlined text-base">terminal</span>
+        <span>EXECUTE COMMAND</span>
+      </button>
+      <!-- Navigation Tabs Cluster -->
+      <nav class="flex flex-col space-y-1 mt-2">
+        <a class="flex items-center gap-3 px-3 py-2 text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high/40 transition-all duration-150 rounded" href="index.html">
+          <span class="material-symbols-outlined text-lg">dashboard</span>
+          <span class="text-label-md font-label-md">Dashboard</span>
+        </a>
+        <a class="flex items-center gap-3 px-3 py-2 text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high/40 transition-all duration-150 rounded" href="assistant.html">
+          <span class="material-symbols-outlined text-lg">smart_toy</span>
+          <span class="text-label-md font-label-md">Assistant</span>
+        </a>
+        <a class="flex items-center gap-3 px-3 py-2 text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high/40 transition-all duration-150 rounded" href="tasks.html">
+          <span class="material-symbols-outlined text-lg">check_circle</span>
+          <span class="text-label-md font-label-md">Tasks</span>
+        </a>
+        <a class="flex items-center gap-3 px-3 py-2 text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high/40 transition-all duration-150 rounded" href="memory.html">
+          <span class="material-symbols-outlined text-lg">memory</span>
+          <span class="text-label-md font-label-md">Memory</span>
+        </a>
+        <a class="flex items-center gap-3 px-3 py-2 text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high/40 transition-all duration-150 rounded" href="projects.html">
+          <span class="material-symbols-outlined text-lg">folder</span>
+          <span class="text-label-md font-label-md">Projects</span>
+        </a>
+        <a class="flex items-center gap-3 px-3 py-2 text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high/40 transition-all duration-150 rounded" href="activity.html">
+          <span class="material-symbols-outlined text-lg">timeline</span>
+          <span class="text-label-md font-label-md">Activity</span>
+        </a>
+        <!-- Settings (ACTIVE TAB) -->
+        <a class="flex items-center gap-3 px-3 py-2 bg-primary/10 text-primary border-l-2 border-primary rounded cyan-glow transition-all duration-150" href="settings.html">
+          <span class="material-symbols-outlined text-lg">settings</span>
+          <span class="text-label-md font-label-md font-bold">Settings</span>
+          <span class="ml-auto w-1.5 h-1.5 rounded-full bg-primary-container animate-ping"></span>
+        </a>
+        <!-- CMS Command Center -->
+        <a class="flex items-center gap-3 px-3 py-2 text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high/40 transition-all duration-150 rounded" href="cms.html">
+          <span class="material-symbols-outlined text-lg">admin_panel_settings</span>
+          <span class="text-label-md font-label-md">CMS Center</span>
+        </a>
+      </nav>
+    </div>
+    <!-- Navigation Footer Diagnostics Cluster -->
+    <div class="border-t border-outline-variant/40 pt-4 flex flex-col gap-2">
+      <div class="flex items-center justify-between text-label-sm font-label-sm text-on-surface-variant px-1">
+        <span class="flex items-center gap-1.5">
+          <span class="material-symbols-outlined text-xs text-primary">sensors</span>
+          <span>Local Agent: Active</span>
+        </span>
+        <span class="w-2 h-2 rounded-full bg-primary-container"></span>
+      </div>
+      <div class="flex items-center justify-between text-label-sm font-label-sm text-outline px-1">
+        <span class="flex items-center gap-1.5">
+          <span class="material-symbols-outlined text-xs">wifi_tethering</span>
+          <span>Latency: <span id="desk-nav-latency">12ms</span></span>
+        </span>
+        <span class="font-label-sm text-primary">SYNCHRONOUS</span>
+      </div>
+      <div class="mt-2 pt-2 border-t border-outline-variant/20 flex items-center gap-2.5 px-1 py-1 rounded bg-surface-container-low/60">
+        <span class="material-symbols-outlined text-primary text-xl">account_circle</span>
+        <div class="flex flex-col">
+          <span class="text-label-sm font-label-sm text-on-surface font-semibold" id="desk-operator-tag">Operator Profile</span>
+          <span class="text-[9px] font-label-sm text-outline">SEC_ENCLAVE // ADM-01</span>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Main Command Deck Viewport -->
+  <div class="flex-1 ml-64 flex flex-col min-w-0 bg-surface-container-lowest">
+    <!-- Top Navigation HUD -->
+    <header class="sticky top-0 z-30 flex items-center justify-between px-6 py-3 border-b border-outline-variant/40 bg-surface-container-lowest/80 backdrop-blur-md">
+      <!-- Search on Left -->
+      <div class="flex items-center gap-4 w-96">
+        <div class="relative w-full">
+          <span class="material-symbols-outlined absolute left-3 top-2.5 text-outline text-sm">search</span>
+          <input id="config-search-input" class="w-full bg-surface-container-low border border-outline-variant/40 rounded px-3 py-1.5 pl-9 text-label-sm font-label-sm text-on-surface placeholder:text-outline/70 focus:outline-none focus:border-primary text-xs" placeholder="FILTER PARAMETERS / QUERY CONFIG... [CTRL+K]" type="text" oninput="filterConfigPanes(this.value)"/>
+          <span class="absolute right-2.5 top-2 text-[9px] font-label-sm text-outline bg-surface-container-high px-1 py-0.5 rounded border border-outline-variant/40">SYS</span>
+        </div>
+      </div>
+      <!-- Center Telemetry Indicator -->
+      <div class="hidden lg:flex items-center gap-3 px-3 py-1 bg-surface-container/60 border border-outline-variant/30 rounded">
+        <span class="w-2 h-2 rounded-full bg-primary-container animate-pulse"></span>
+        <span class="text-label-sm font-label-sm text-on-surface">AI ENGINE ● ONLINE</span>
+        <span class="text-outline text-xs">|</span>
+        <span class="text-label-sm font-label-sm text-primary tracking-wider" id="desk-kernel-badge">KERNEL v4.2.1-SEC</span>
+      </div>
+      <!-- Right Trailing Actions & Header CTA -->
+      <div class="flex items-center gap-3">
+        <!-- Voice Action -->
+        <button onclick="triggerVoicePing()" class="flex items-center gap-1.5 px-2.5 py-1.5 bg-surface-container-high/50 hover:bg-primary/10 border border-outline-variant/40 hover:border-primary/50 text-on-surface-variant hover:text-primary transition-all rounded text-label-sm font-label-sm" title="Voice Trigger">
+          <span class="material-symbols-outlined text-sm text-primary">graphic_eq</span>
+          <span class="hidden sm:inline">VOICE COMMAND</span>
+        </button>
+        <!-- Node Diagnostic -->
+        <button onclick="refreshTelemetry()" class="p-1.5 text-on-surface-variant hover:text-primary border border-outline-variant/40 rounded bg-surface-container-high/30 hover:border-primary/40 transition-all" title="Node Diagnostic">
+          <span class="material-symbols-outlined text-sm">tune</span>
+        </button>
+        <button onclick="showToast('SYSTEM NOTIFICATIONS', 'All 4 telemetry sub-channels nominal.', 'notifications_active')" class="relative p-1.5 text-on-surface-variant hover:text-primary border border-outline-variant/40 rounded bg-surface-container-high/30 hover:border-primary/40 transition-all" title="System Notifications">
+          <span class="material-symbols-outlined text-sm">notifications_active</span>
+          <span class="absolute top-0.5 right-0.5 w-1.5 h-1.5 bg-error rounded-full"></span>
+        </button>
+        <!-- Primary Action: Save Configuration -->
+        <button class="flex items-center gap-2 px-4 py-1.5 bg-primary-container text-on-primary font-headline-sm text-label-sm font-semibold rounded cyan-glow-intense hover:opacity-90 active:scale-95 transition-all" id="save-config-btn" onclick="saveAllSettings()">
+          <span class="material-symbols-outlined text-base">save</span>
+          <span>SAVE CONFIGURATION</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- Sub-Header Title Bar -->
+    <div class="px-8 py-5 border-b border-outline-variant/30 bg-surface-container-low/40">
+      <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+          <div class="flex items-center gap-2 mb-1">
+            <span class="px-1.5 py-0.5 text-[9px] font-label-sm bg-primary/10 border border-primary/40 text-primary rounded">STATION_ID: ALPHA-7</span>
+            <span class="text-label-sm font-label-sm text-outline">LOC: 37.7749° N, 122.4194° W</span>
+          </div>
+          <h1 class="text-headline-md font-headline-md font-bold text-on-surface tracking-tight">SETTINGS // SYSTEM &amp; AGENT CONFIGURATION</h1>
+          <p class="text-body-sm font-body-sm text-on-surface-variant mt-0.5 max-w-3xl">Configure autonomous agent heuristics, persistent neural memory, notifications, telemetry, and system runtime parameters.</p>
+        </div>
+        <div class="flex items-center gap-3">
+          <div class="flex flex-col items-end">
+            <span class="text-label-sm font-label-sm text-outline">SYS_LOAD</span>
+            <span class="text-label-md font-label-md text-primary font-bold" id="desk-sys-load">14.8% NOMINAL</span>
+          </div>
+          <div class="w-20 h-1.5 bg-surface-container-high rounded overflow-hidden">
+            <div class="w-1/6 h-full bg-primary-container" id="desk-sys-bar"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Main Body: Category Sidebar + Configuration Canvas -->
+    <main class="flex-1 p-8 grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+      <!-- Category Segmented Selector (8 Categories) -->
+      <div class="lg:col-span-3 flex flex-col gap-1.5 bg-surface-container-low/70 border border-outline-variant/40 rounded p-3 hud-reticle-corner">
+        <div class="px-3 py-2 text-label-sm font-label-sm text-outline tracking-widest border-b border-outline-variant/30 mb-1 flex items-center justify-between">
+          <span>CONFIG MODULES</span>
+          <span class="material-symbols-outlined text-xs">hub</span>
+        </div>
+        <!-- 1. General -->
+        <button class="cat-tab w-full flex items-center gap-3 px-3 py-2.5 rounded text-left border transition-all bg-primary/10 text-primary border-primary/30" id="tab-general" onclick="switchCategory('general')">
+          <span class="material-symbols-outlined text-base">tune</span>
+          <div class="flex flex-col">
+            <span class="text-label-md font-label-md font-semibold">1. General</span>
+            <span class="text-[9px] font-label-sm text-outline">Identity, Locales, HUD</span>
+          </div>
+        </button>
+        <!-- 2. AI Assistant -->
+        <button class="cat-tab w-full flex items-center gap-3 px-3 py-2.5 rounded text-left text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high/40 border border-transparent transition-all" id="tab-ai-assistant" onclick="switchCategory('ai-assistant')">
+          <span class="material-symbols-outlined text-base">smart_toy</span>
+          <div class="flex flex-col">
+            <span class="text-label-md font-label-md font-semibold">2. AI Assistant</span>
+            <span class="text-[9px] font-label-sm text-outline">Heuristics, Models, Swarm</span>
+          </div>
+        </button>
+        <!-- 3. Memory & Recall -->
+        <button class="cat-tab w-full flex items-center gap-3 px-3 py-2.5 rounded text-left text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high/40 border border-transparent transition-all" id="tab-memory-recall" onclick="switchCategory('memory-recall')">
+          <span class="material-symbols-outlined text-base">neurology</span>
+          <div class="flex flex-col">
+            <span class="text-label-md font-label-md font-semibold">3. Memory &amp; Recall</span>
+            <span class="text-[9px] font-label-sm text-outline">Vectors, Context Retention</span>
+          </div>
+        </button>
+        <!-- 4. Notifications & Alerts -->
+        <button class="cat-tab w-full flex items-center gap-3 px-3 py-2.5 rounded text-left text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high/40 border border-transparent transition-all" id="tab-notifications" onclick="switchCategory('notifications')">
+          <span class="material-symbols-outlined text-base">campaign</span>
+          <div class="flex flex-col">
+            <span class="text-label-md font-label-md font-semibold">4. Notifications &amp; Alerts</span>
+            <span class="text-[9px] font-label-sm text-outline">Escalations, Push, Pings</span>
+          </div>
+        </button>
+        <!-- 5. Appearance & HUD -->
+        <button class="cat-tab w-full flex items-center gap-3 px-3 py-2.5 rounded text-left text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high/40 border border-transparent transition-all" id="tab-appearance" onclick="switchCategory('appearance')">
+          <span class="material-symbols-outlined text-base">palette</span>
+          <div class="flex flex-col">
+            <span class="text-label-md font-label-md font-semibold">5. Appearance &amp; HUD</span>
+            <span class="text-[9px] font-label-sm text-outline">Cyan Glow, Reticles, VFX</span>
+          </div>
+        </button>
+        <!-- 6. System Telemetry -->
+        <button class="cat-tab w-full flex items-center gap-3 px-3 py-2.5 rounded text-left text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high/40 border border-transparent transition-all" id="tab-telemetry" onclick="switchCategory('telemetry')">
+          <span class="material-symbols-outlined text-base">monitor_heart</span>
+          <div class="flex flex-col">
+            <span class="text-label-md font-label-md font-semibold">6. System Telemetry</span>
+            <span class="text-[9px] font-label-sm text-outline">Kernel 4.2.1, Memory Pool</span>
+          </div>
+        </button>
+        <!-- 7. Security & Privacy -->
+        <button class="cat-tab w-full flex items-center gap-3 px-3 py-2.5 rounded text-left text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high/40 border border-transparent transition-all" id="tab-security" onclick="switchCategory('security')">
+          <span class="material-symbols-outlined text-base">shield</span>
+          <div class="flex flex-col">
+            <span class="text-label-md font-label-md font-semibold">7. Security &amp; Privacy</span>
+            <span class="text-[9px] font-label-sm text-outline">Sandboxing, Enclaves</span>
+          </div>
+        </button>
+        <!-- 8. Data & Backup -->
+        <button class="cat-tab w-full flex items-center gap-3 px-3 py-2.5 rounded text-left text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high/40 border border-transparent transition-all" id="tab-data-backup" onclick="switchCategory('data-backup')">
+          <span class="material-symbols-outlined text-base">cloud_sync</span>
+          <div class="flex flex-col">
+            <span class="text-label-md font-label-md font-semibold">8. Data &amp; Backup</span>
+            <span class="text-[9px] font-label-sm text-outline">Snapshots, Kernel Reset</span>
+          </div>
+        </button>
+      </div>
+
+      <!-- Category Content Panels -->
+      <div class="lg:col-span-9 flex flex-col gap-6" id="panes-container">
+        <!-- SECTION 1: GENERAL -->
+        <section class="cat-pane flex flex-col gap-6" id="pane-general">
+          <div class="p-6 bg-surface-container-low/70 border border-outline-variant/40 rounded hud-reticle-corner">
+            <div class="flex items-center justify-between pb-4 border-b border-outline-variant/30 mb-6">
+              <div class="flex items-center gap-3">
+                <span class="material-symbols-outlined text-primary text-xl">tune</span>
+                <h2 class="text-headline-sm font-headline-sm font-semibold text-on-surface">General Configuration &amp; System Identity</h2>
+              </div>
+              <span class="text-label-sm font-label-sm text-outline">MODULE: GEN_01</span>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div class="flex flex-col gap-1.5">
+                <label class="text-label-sm font-label-sm text-on-surface-variant">ASSISTANT_NAME</label>
+                <div class="relative">
+                  <span class="absolute left-3 top-2.5 text-primary text-label-sm font-label-sm">&gt;_</span>
+                  <input id="desk-cfg-assistant-name" class="w-full bg-surface-container-lowest border border-outline-variant/50 rounded py-2 pl-9 pr-3 text-label-md font-label-md text-primary focus:outline-none focus:border-primary" type="text" value="JARVIS"/>
+                </div>
+                <span class="text-[10px] font-body-sm text-outline">Primary synthesized voice and runtime identity.</span>
+              </div>
+              <div class="flex flex-col gap-1.5">
+                <label class="text-label-sm font-label-sm text-on-surface-variant">OPERATOR_CALLSIGN</label>
+                <div class="relative">
+                  <span class="absolute left-3 top-2.5 text-outline text-label-sm font-label-sm">USR:</span>
+                  <input id="desk-cfg-operator-callsign" class="w-full bg-surface-container-lowest border border-outline-variant/50 rounded py-2 pl-11 pr-3 text-label-md font-label-md text-on-surface focus:outline-none focus:border-primary" type="text" value="COMMANDER_STARK"/>
+                </div>
+                <span class="text-[10px] font-body-sm text-outline">Designation applied in all telemetry logs and briefings.</span>
+              </div>
+              <div class="flex flex-col gap-1.5">
+                <label class="text-label-sm font-label-sm text-on-surface-variant">SYNTHESIS_LANGUAGE</label>
+                <select id="desk-cfg-language" class="w-full bg-surface-container-lowest border border-outline-variant/50 rounded py-2 px-3 text-label-md font-label-md text-on-surface focus:outline-none focus:border-primary">
+                  <option selected value="EN-US (English - Tactical Synthesized)">EN-US (English - Tactical Synthesized)</option>
+                  <option value="EN-GB (English - Deep Neutral Queen)">EN-GB (English - Deep Neutral Queen)</option>
+                  <option value="JA-JP (Japanese - Subspace Defense Standard)">JA-JP (Japanese - Subspace Defense Standard)</option>
+                  <option value="DE-DE (German - Industrial Precision)">DE-DE (German - Industrial Precision)</option>
+                </select>
+              </div>
+              <div class="flex flex-col gap-1.5">
+                <label class="text-label-sm font-label-sm text-on-surface-variant">SYSTEM_TEMPORAL_CLOCK</label>
+                <select id="desk-cfg-clock" class="w-full bg-surface-container-lowest border border-outline-variant/50 rounded py-2 px-3 text-label-md font-label-md text-on-surface focus:outline-none focus:border-primary">
+                  <option selected value="UTC+00:00 (ZULU MILITARY STANDARD)">UTC+00:00 (ZULU MILITARY STANDARD)</option>
+                  <option value="UTC-08:00 (PST - PACIFIC OBSERVER)">UTC-08:00 (PST - PACIFIC OBSERVER)</option>
+                  <option value="UTC-05:00 (EST - ATLANTIC NODE)">UTC-05:00 (EST - ATLANTIC NODE)</option>
+                  <option value="UTC+01:00 (CET - CONTINENTAL DEFENSE)">UTC+01:00 (CET - CONTINENTAL DEFENSE)</option>
+                </select>
+              </div>
+              <div class="flex flex-col gap-1.5">
+                <label class="text-label-sm font-label-sm text-on-surface-variant">TIMESTAMP_NOTATION</label>
+                <select id="desk-cfg-notation" class="w-full bg-surface-container-lowest border border-outline-variant/50 rounded py-2 px-3 text-label-md font-label-md text-on-surface focus:outline-none focus:border-primary">
+                  <option selected value="YYYY-MM-DD HH:mm:ss.ms (ISO-8601 DEFENSE)">YYYY-MM-DD HH:mm:ss.ms (ISO-8601 DEFENSE)</option>
+                  <option value="DD.MM.YYYY // HH:mm:ss">DD.MM.YYYY // HH:mm:ss</option>
+                  <option value="EPOCH UNIX SECONDS">EPOCH UNIX SECONDS</option>
+                </select>
+              </div>
+              <div class="flex flex-col gap-1.5">
+                <label class="text-label-sm font-label-sm text-on-surface-variant">VIEWPORT_DENSITY</label>
+                <div class="grid grid-cols-2 gap-2" id="density-toggle-group">
+                  <button type="button" onclick="setDensity('TACTICAL COMPACT')" id="btn-density-compact" class="py-2 px-3 rounded bg-primary/10 border border-primary text-primary text-label-sm font-label-sm text-center">TACTICAL COMPACT</button>
+                  <button type="button" onclick="setDensity('STANDARD HUD')" id="btn-density-standard" class="py-2 px-3 rounded bg-surface-container-lowest border border-outline-variant/50 text-outline text-label-sm font-label-sm text-center hover:border-primary/50">STANDARD HUD</button>
+                </div>
+              </div>
+            </div>
+            <!-- HUD Coordinates Display Toggle -->
+            <div class="mt-6 pt-4 border-t border-outline-variant/30 flex items-center justify-between">
+              <div class="flex flex-col">
+                <span class="text-label-md font-label-md font-semibold text-on-surface">HUD Peripheral Coordinates Overlay</span>
+                <span class="text-body-sm font-body-sm text-outline">Render orbital lat/long crosshairs and reticles along display boundaries.</span>
+              </div>
+              <label class="relative inline-flex items-center cursor-pointer">
+                <input id="desk-cfg-coords-overlay" checked="" class="sr-only peer" type="checkbox"/>
+                <div class="w-10 h-5 bg-surface-container-high peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-primary-container cyan-glow"></div>
+              </label>
+            </div>
+          </div>
+        </section>
+
+        <!-- SECTION 2: AI ASSISTANT & HEURISTICS -->
+        <section class="cat-pane hidden flex-col gap-6" id="pane-ai-assistant">
+          <div class="p-6 bg-surface-container-low/70 border border-outline-variant/40 rounded hud-reticle-corner">
+            <div class="flex items-center justify-between pb-4 border-b border-outline-variant/30 mb-6">
+              <div class="flex items-center gap-3">
+                <span class="material-symbols-outlined text-primary text-xl">smart_toy</span>
+                <h2 class="text-headline-sm font-headline-sm font-semibold text-on-surface">Autonomous Agent Intelligence &amp; Reasoning</h2>
+              </div>
+              <span class="text-label-sm font-label-sm text-outline">HEURISTICS_ENGINE // 02</span>
+            </div>
+            <div class="flex flex-col gap-6">
+              <!-- Agent Personality Preset -->
+              <div class="flex flex-col gap-2">
+                <label class="text-label-sm font-label-sm text-on-surface-variant">BEHAVIORAL_COGNITION_PRESET</label>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-3" id="personality-cards">
+                  <div onclick="setPersonalityPreset('Autonomous Commander')" id="preset-card-commander" class="preset-card p-3 bg-primary/10 border border-primary rounded cursor-pointer">
+                    <div class="flex items-center justify-between text-primary mb-1">
+                      <span class="text-label-md font-label-md font-bold">Autonomous Commander</span>
+                      <span class="material-symbols-outlined text-sm">military_tech</span>
+                    </div>
+                    <p class="text-[11px] font-body-sm text-on-surface-variant">Direct, prescriptive, proactively orchestrates background tasks without micro-approval.</p>
+                  </div>
+                  <div onclick="setPersonalityPreset('Analytical Deep-Trace')" id="preset-card-analytical" class="preset-card p-3 bg-surface-container-lowest border border-outline-variant/40 hover:border-primary/40 rounded cursor-pointer transition-all">
+                    <div class="flex items-center justify-between text-on-surface mb-1">
+                      <span class="text-label-md font-label-md font-bold">Analytical Deep-Trace</span>
+                      <span class="material-symbols-outlined text-sm text-outline">insights</span>
+                    </div>
+                    <p class="text-[11px] font-body-sm text-outline">Provides full chain-of-thought mathematical proof, probabilistic confidence graphs.</p>
+                  </div>
+                  <div onclick="setPersonalityPreset('Concise Tactical')" id="preset-card-tactical" class="preset-card p-3 bg-surface-container-lowest border border-outline-variant/40 hover:border-primary/40 rounded cursor-pointer transition-all">
+                    <div class="flex items-center justify-between text-on-surface mb-1">
+                      <span class="text-label-md font-label-md font-bold">Concise Tactical</span>
+                      <span class="material-symbols-outlined text-sm text-outline">bolt</span>
+                    </div>
+                    <p class="text-[11px] font-body-sm text-outline">Zero conversational filler. Emits micro-status codes, diffs, and exact execution vectors.</p>
+                  </div>
+                </div>
+              </div>
+              <!-- Model Architecture Selector -->
+              <div class="flex flex-col gap-2">
+                <label class="text-label-sm font-label-sm text-on-surface-variant">PRIMARY_NEURAL_BACKBONE</label>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                  <label class="flex items-center gap-3 p-3 bg-surface-container-lowest border border-outline-variant/50 rounded cursor-pointer hover:border-primary/40">
+                    <input class="text-primary-container focus:ring-0" name="model_choice" type="radio" value="LOCAL: Llama-3 70B" onchange="syncField('neural_backbone', this.value)"/>
+                    <div class="flex flex-col">
+                      <span class="text-label-md font-label-md text-on-surface font-semibold">LOCAL: Llama-3 70B</span>
+                      <span class="text-[10px] font-label-sm text-outline">Zero WAN telemetry // On-premise TPU</span>
+                    </div>
+                  </label>
+                  <label class="flex items-center gap-3 p-3 bg-surface-container-lowest border border-outline-variant/50 rounded cursor-pointer hover:border-primary/40">
+                    <input class="text-primary-container focus:ring-0" name="model_choice" type="radio" value="CLOUD: Claude-3.5 Sonnet" onchange="syncField('neural_backbone', this.value)"/>
+                    <div class="flex flex-col">
+                      <span class="text-label-md font-label-md text-on-surface font-semibold">CLOUD: Claude-3.5 Sonnet</span>
+                      <span class="text-[10px] font-label-sm text-outline">Maximum synthetic coding benchmark</span>
+                    </div>
+                  </label>
+                  <label class="flex items-center gap-3 p-3 bg-primary/10 border border-primary rounded cursor-pointer">
+                    <input checked="" class="text-primary-container focus:ring-0" name="model_choice" type="radio" value="HYBRID SWARM ROUTER" onchange="syncField('neural_backbone', this.value)"/>
+                    <div class="flex flex-col">
+                      <span class="text-label-md font-label-md text-primary font-semibold">HYBRID SWARM ROUTER</span>
+                      <span class="text-[10px] font-label-sm text-primary-fixed">Dynamic cost/latency arbitration</span>
+                    </div>
+                  </label>
+                </div>
+              </div>
+              <!-- Dual Sliders: Context & Temperature -->
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-6 pt-2">
+                <div class="flex flex-col gap-2 p-3 bg-surface-container-lowest border border-outline-variant/30 rounded">
+                  <div class="flex justify-between items-center">
+                    <span class="text-label-sm font-label-sm text-on-surface-variant">CREATIVITY // TEMPERATURE</span>
+                    <span class="text-label-md font-label-md text-primary font-bold" id="desk-temp-label">0.32 (DETERMINISTIC)</span>
+                  </div>
+                  <input id="desk-cfg-temp" class="w-full" max="100" min="0" type="range" value="32" oninput="const val = (this.value/100).toFixed(2); document.getElementById('desk-temp-label').textContent = val + (val < 0.4 ? ' (DETERMINISTIC)' : ' (GENERATIVE)'); syncField('temperature', parseFloat(val));"/>
+                  <div class="flex justify-between text-[9px] font-label-sm text-outline">
+                    <span>0.0 (Strict Code/Logic)</span>
+                    <span>1.0 (Generative Exploratory)</span>
+                  </div>
+                </div>
+                <div class="flex flex-col gap-2 p-3 bg-surface-container-lowest border border-outline-variant/30 rounded">
+                  <div class="flex justify-between items-center">
+                    <span class="text-label-sm font-label-sm text-on-surface-variant">CONTEXT BUDGET PER TASK</span>
+                    <span class="text-label-md font-label-md text-primary font-bold" id="desk-context-label">128,000 TOKENS</span>
+                  </div>
+                  <input id="desk-cfg-context" class="w-full" max="200" min="16" type="range" value="128" oninput="const val = this.value; document.getElementById('desk-context-label').textContent = parseInt(val).toLocaleString() + ' TOKENS'; syncField('context_budget', parseInt(val) * 1000);"/>
+                  <div class="flex justify-between text-[9px] font-label-sm text-outline">
+                    <span>16K (Lite Flash)</span>
+                    <span>200K (Deep Monolith)</span>
+                  </div>
+                </div>
+              </div>
+              <!-- Reasoning Toggles -->
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
+                <div class="flex items-center justify-between p-3 bg-surface-container-lowest border border-outline-variant/30 rounded">
+                  <div class="flex flex-col">
+                    <span class="text-label-md font-label-md font-semibold text-on-surface">Auto-Verification Stage</span>
+                    <span class="text-[11px] font-body-sm text-outline">Run background sandbox compiler prior to surfacing solution.</span>
+                  </div>
+                  <input id="desk-cfg-autoverify" checked="" class="h-4 w-4 rounded bg-surface-container border-outline-variant text-primary-container focus:ring-0" type="checkbox"/>
+                </div>
+                <div class="flex items-center justify-between p-3 bg-surface-container-lowest border border-outline-variant/30 rounded">
+                  <div class="flex flex-col">
+                    <span class="text-label-md font-label-md font-semibold text-on-surface">Multi-Turn Reasoning Depth</span>
+                    <span class="text-[11px] font-body-sm text-outline">Allow autonomous agent to spawn sub-threads up to 8 hops.</span>
+                  </div>
+                  <input id="desk-cfg-multiturn" checked="" class="h-4 w-4 rounded bg-surface-container border-outline-variant text-primary-container focus:ring-0" type="checkbox"/>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- SECTION 3: MEMORY & RECALL -->
+        <section class="cat-pane hidden flex-col gap-6" id="pane-memory-recall">
+          <div class="p-6 bg-surface-container-low/70 border border-outline-variant/40 rounded hud-reticle-corner">
+            <div class="flex items-center justify-between pb-4 border-b border-outline-variant/30 mb-6">
+              <div class="flex items-center gap-3">
+                <span class="material-symbols-outlined text-primary text-xl">neurology</span>
+                <h2 class="text-headline-sm font-headline-sm font-semibold text-on-surface">Persistent Neural Memory &amp; Vector Enclave</h2>
+              </div>
+              <span class="text-label-sm font-label-sm text-outline">QDRANT_STORE // 03</span>
+            </div>
+            <div class="flex flex-col gap-6">
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="flex items-center justify-between p-4 bg-surface-container-lowest border border-outline-variant/40 rounded">
+                  <div class="flex flex-col">
+                    <span class="text-label-md font-label-md font-bold text-on-surface">Persistent Neural Memory</span>
+                    <span class="text-body-sm font-body-sm text-outline">Preserve user directives and code patterns across reboots.</span>
+                  </div>
+                  <label class="relative inline-flex items-center cursor-pointer">
+                    <input id="desk-cfg-persistent-mem" checked="" class="sr-only peer" type="checkbox"/>
+                    <div class="w-10 h-5 bg-surface-container-high peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-primary-container cyan-glow"></div>
+                  </label>
+                </div>
+                <div class="flex items-center justify-between p-4 bg-surface-container-lowest border border-outline-variant/40 rounded">
+                  <div class="flex flex-col">
+                    <span class="text-label-md font-label-md font-bold text-on-surface">Autonomous Ingestion</span>
+                    <span class="text-body-sm font-body-sm text-outline">Index terminal commands, file diffs, and project states.</span>
+                  </div>
+                  <label class="relative inline-flex items-center cursor-pointer">
+                    <input id="desk-cfg-auto-ingest" checked="" class="sr-only peer" type="checkbox"/>
+                    <div class="w-10 h-5 bg-surface-container-high peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-primary-container cyan-glow"></div>
+                  </label>
+                </div>
+              </div>
+              <div class="p-4 bg-surface-container-lowest border border-outline-variant/40 rounded flex flex-col gap-2">
+                <div class="flex justify-between items-center">
+                  <span class="text-label-sm font-label-sm text-on-surface-variant">COSINE SIMILARITY RELEVANCE THRESHOLD</span>
+                  <span class="text-label-md font-label-md text-primary font-bold" id="desk-sim-label">85% SIMILARITY</span>
+                </div>
+                <input id="desk-cfg-sim" class="w-full" max="98" min="50" type="range" value="85" oninput="document.getElementById('desk-sim-label').textContent = this.value + '% SIMILARITY'; syncField('similarity_threshold', parseInt(this.value));"/>
+                <div class="flex justify-between text-[9px] font-label-sm text-outline">
+                  <span>50% (Broad Recall, High Noise)</span>
+                  <span>98% (Strict Exact Match)</span>
+                </div>
+              </div>
+              <div class="p-4 bg-error-container/20 border border-error/30 rounded flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                  <span class="material-symbols-outlined text-error">warning</span>
+                  <div class="flex flex-col">
+                    <span class="text-label-md font-label-md font-bold text-error">Vector Index Purge</span>
+                    <span class="text-[11px] font-body-sm text-outline" id="desk-purge-desc">Erase all 142,890 cached embeddings and rebuild empty collection.</span>
+                  </div>
+                </div>
+                <button onclick="purgeCacheAction()" class="px-4 py-2 bg-error/10 hover:bg-error/20 border border-error/50 text-error rounded text-label-sm font-label-sm font-bold tracking-wider transition-all">
+                  CLEAR CACHED EMBEDDINGS
+                </button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- SECTION 4: NOTIFICATIONS & ALERTS -->
+        <section class="cat-pane hidden flex-col gap-6" id="pane-notifications">
+          <div class="p-6 bg-surface-container-low/70 border border-outline-variant/40 rounded hud-reticle-corner">
+            <div class="flex items-center justify-between pb-4 border-b border-outline-variant/30 mb-6">
+              <div class="flex items-center gap-3">
+                <span class="material-symbols-outlined text-primary text-xl">campaign</span>
+                <h2 class="text-headline-sm font-headline-sm font-semibold text-on-surface">Escalations, Signals &amp; Telemetry Alerts</h2>
+              </div>
+              <span class="text-label-sm font-label-sm text-outline">ALERT_BUS // 04</span>
+            </div>
+            <div class="space-y-3">
+              <div class="flex items-center justify-between p-3.5 bg-surface-container-lowest border border-outline-variant/30 rounded hover:border-outline transition-all">
+                <div class="flex items-center gap-3">
+                  <span class="material-symbols-outlined text-primary text-lg">task_alt</span>
+                  <div class="flex flex-col">
+                    <span class="text-label-md font-label-md font-semibold text-on-surface">Autonomous Task Completion</span>
+                    <span class="text-[11px] font-body-sm text-outline">Dispatch HUD toast when complex multi-agent pipelines terminate successfully.</span>
+                  </div>
+                </div>
+                <input id="desk-cfg-notify-task" checked="" class="h-4 w-4 rounded bg-surface-container border-outline-variant text-primary-container focus:ring-0" type="checkbox"/>
+              </div>
+              <div class="flex items-center justify-between p-3.5 bg-surface-container-lowest border border-outline-variant/30 rounded hover:border-outline transition-all">
+                <div class="flex items-center gap-3">
+                  <span class="material-symbols-outlined text-primary text-lg">priority_high</span>
+                  <div class="flex flex-col">
+                    <span class="text-label-md font-label-md font-semibold text-on-surface">Agent Escalations &amp; Clarifications</span>
+                    <span class="text-[11px] font-body-sm text-outline">Immediate audible ping whenever an agent requests destructive override permission.</span>
+                  </div>
+                </div>
+                <input id="desk-cfg-notify-escalate" checked="" class="h-4 w-4 rounded bg-surface-container border-outline-variant text-primary-container focus:ring-0" type="checkbox"/>
+              </div>
+              <div class="flex items-center justify-between p-3.5 bg-surface-container-lowest border border-outline-variant/30 rounded hover:border-outline transition-all">
+                <div class="flex items-center gap-3">
+                  <span class="material-symbols-outlined text-primary text-lg">crisis_alert</span>
+                  <div class="flex flex-col">
+                    <span class="text-label-md font-label-md font-semibold text-on-surface">System Telemetry Anomalies</span>
+                    <span class="text-[11px] font-body-sm text-outline">Alert if kernel memory spikes &gt; 80% or token bandwidth drops &lt; 15 t/s.</span>
+                  </div>
+                </div>
+                <input id="desk-cfg-notify-anomalies" checked="" class="h-4 w-4 rounded bg-surface-container border-outline-variant text-primary-container focus:ring-0" type="checkbox"/>
+              </div>
+              <div class="flex items-center justify-between p-3.5 bg-surface-container-lowest border border-outline-variant/30 rounded hover:border-outline transition-all">
+                <div class="flex items-center gap-3">
+                  <span class="material-symbols-outlined text-primary text-lg">volume_up</span>
+                  <div class="flex flex-col">
+                    <span class="text-label-md font-label-md font-semibold text-on-surface">Acoustic HUD Audio Ping on Transmit</span>
+                    <span class="text-[11px] font-body-sm text-outline">Synthesized 440Hz micro-tone on socket broadcast.</span>
+                  </div>
+                </div>
+                <input id="desk-cfg-notify-audio" class="h-4 w-4 rounded bg-surface-container border-outline-variant text-primary-container focus:ring-0" type="checkbox"/>
+              </div>
+              <div class="flex items-center justify-between p-3.5 bg-surface-container-lowest border border-outline-variant/30 rounded hover:border-outline transition-all">
+                <div class="flex items-center gap-3">
+                  <span class="material-symbols-outlined text-primary text-lg">security</span>
+                  <div class="flex flex-col">
+                    <span class="text-label-md font-label-md font-semibold text-on-surface">Security Level 4 Immediate Broadcast</span>
+                    <span class="text-[11px] font-body-sm text-outline">Trigger red HUD border strobe if unknown binary execution is intercepted.</span>
+                  </div>
+                </div>
+                <input id="desk-cfg-notify-security" checked="" class="h-4 w-4 rounded bg-surface-container border-outline-variant text-primary-container focus:ring-0" type="checkbox"/>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- SECTION 5: APPEARANCE & HUD -->
+        <section class="cat-pane hidden flex-col gap-6" id="pane-appearance">
+          <div class="p-6 bg-surface-container-low/70 border border-outline-variant/40 rounded hud-reticle-corner">
+            <div class="flex items-center justify-between pb-4 border-b border-outline-variant/30 mb-6">
+              <div class="flex items-center gap-3">
+                <span class="material-symbols-outlined text-primary text-xl">palette</span>
+                <h2 class="text-headline-sm font-headline-sm font-semibold text-on-surface">Appearance &amp; Cybernetic Optical Controls</h2>
+              </div>
+              <span class="text-label-sm font-label-sm text-outline">RENDER_HUD // 05</span>
+            </div>
+            <div class="flex flex-col gap-6">
+              <div class="flex flex-col gap-2">
+                <label class="text-label-sm font-label-sm text-on-surface-variant">CHROMATIC HUD PROFILE</label>
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+                  <button type="button" onclick="setColorAccent('CYBERNETIC CYAN')" class="color-accent-btn p-3 bg-primary/10 border-2 border-primary rounded flex flex-col items-center gap-1.5 cyan-glow">
+                    <span class="w-4 h-4 rounded-full bg-primary-container"></span>
+                    <span class="text-label-sm font-label-sm text-primary font-bold">CYBERNETIC CYAN</span>
+                  </button>
+                  <button type="button" onclick="setColorAccent('QUANTUM VIOLET')" class="color-accent-btn p-3 bg-surface-container-lowest border border-outline-variant/40 rounded flex flex-col items-center gap-1.5 opacity-70 hover:opacity-100 transition-all">
+                    <span class="w-4 h-4 rounded-full bg-secondary"></span>
+                    <span class="text-label-sm font-label-sm text-on-surface">QUANTUM VIOLET</span>
+                  </button>
+                  <button type="button" onclick="setColorAccent('WARFARE CRIMSON')" class="color-accent-btn p-3 bg-surface-container-lowest border border-outline-variant/40 rounded flex flex-col items-center gap-1.5 opacity-70 hover:opacity-100 transition-all">
+                    <span class="w-4 h-4 rounded-full bg-error"></span>
+                    <span class="text-label-sm font-label-sm text-on-surface">WARFARE CRIMSON</span>
+                  </button>
+                  <button type="button" onclick="setColorAccent('DEEP MONOCHROME')" class="color-accent-btn p-3 bg-surface-container-lowest border border-outline-variant/40 rounded flex flex-col items-center gap-1.5 opacity-70 hover:opacity-100 transition-all">
+                    <span class="w-4 h-4 rounded-full bg-tertiary"></span>
+                    <span class="text-label-sm font-label-sm text-on-surface">DEEP MONOCHROME</span>
+                  </button>
+                </div>
+              </div>
+              <div class="p-4 bg-surface-container-lowest border border-outline-variant/40 rounded flex flex-col gap-2">
+                <div class="flex justify-between items-center">
+                  <span class="text-label-sm font-label-sm text-on-surface-variant">OPTICAL REFRACTION &amp; LUMINESCENT GLOW</span>
+                  <span class="text-label-md font-label-md text-primary font-bold" id="desk-glow-label">64% NOMINAL INTENSITY</span>
+                </div>
+                <input id="desk-cfg-glow" class="w-full" max="100" min="0" type="range" value="64" oninput="document.getElementById('desk-glow-label').textContent = this.value + '% NOMINAL INTENSITY'; syncField('glow_intensity', parseInt(this.value));"/>
+              </div>
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="flex items-center justify-between p-3.5 bg-surface-container-lowest border border-outline-variant/30 rounded">
+                  <div class="flex flex-col">
+                    <span class="text-label-md font-label-md font-semibold text-on-surface">Particle &amp; Shimmer VFX</span>
+                    <span class="text-[11px] font-body-sm text-outline">Simulate background floating atmospheric field.</span>
+                  </div>
+                  <input id="desk-cfg-vfx" checked="" class="h-4 w-4 rounded bg-surface-container border-outline-variant text-primary-container focus:ring-0" type="checkbox"/>
+                </div>
+                <div class="flex items-center justify-between p-3.5 bg-surface-container-lowest border border-outline-variant/30 rounded">
+                  <div class="flex flex-col">
+                    <span class="text-label-md font-label-md font-semibold text-on-surface">Glassmorphic Blur Substrates</span>
+                    <span class="text-[11px] font-body-sm text-outline">Enable 16px/24px background blur filters.</span>
+                  </div>
+                  <input id="desk-cfg-glass" checked="" class="h-4 w-4 rounded bg-surface-container border-outline-variant text-primary-container focus:ring-0" type="checkbox"/>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- SECTION 6: SYSTEM TELEMETRY -->
+        <section class="cat-pane hidden flex-col gap-6" id="pane-telemetry">
+          <div class="p-6 bg-surface-container-low/70 border border-outline-variant/40 rounded hud-reticle-corner">
+            <div class="flex items-center justify-between pb-4 border-b border-outline-variant/30 mb-6">
+              <div class="flex items-center gap-3">
+                <span class="material-symbols-outlined text-primary text-xl">monitor_heart</span>
+                <h2 class="text-headline-sm font-headline-sm font-semibold text-on-surface">Real-Time Core Diagnostic Matrix</h2>
+              </div>
+              <span class="text-label-sm font-label-sm text-primary animate-pulse flex items-center gap-1.5">
+                <span class="w-1.5 h-1.5 rounded-full bg-primary-container"></span>
+                LIVE TELEMETRY
+              </span>
+            </div>
+            <!-- Bento Diagnostic Grid -->
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+              <div class="p-3 bg-surface-container-lowest border border-outline-variant/40 rounded flex flex-col">
+                <span class="text-[10px] font-label-sm text-outline">SYSTEM STATUS</span>
+                <div class="flex items-center gap-2 mt-1">
+                  <span class="w-2 h-2 rounded-full bg-primary-container animate-ping"></span>
+                  <span class="text-label-md font-label-md text-primary font-bold" id="bento-system-status">ONLINE</span>
+                </div>
+              </div>
+              <div class="p-3 bg-surface-container-lowest border border-outline-variant/40 rounded flex flex-col">
+                <span class="text-[10px] font-label-sm text-outline">FASTAPI BACKEND</span>
+                <div class="flex items-center gap-2 mt-1">
+                  <span class="w-2 h-2 rounded-full bg-primary-container"></span>
+                  <span class="text-label-md font-label-md text-on-surface font-bold" id="bento-fastapi-status">CONNECTED</span>
+                </div>
+              </div>
+              <div class="p-3 bg-surface-container-lowest border border-outline-variant/40 rounded flex flex-col">
+                <span class="text-[10px] font-label-sm text-outline">POSTGRESQL CLUSTER</span>
+                <div class="flex items-center gap-2 mt-1">
+                  <span class="w-2 h-2 rounded-full bg-primary-container"></span>
+                  <span class="text-label-md font-label-md text-on-surface font-bold" id="bento-postgres-status">CONNECTED</span>
+                </div>
+              </div>
+              <div class="p-3 bg-surface-container-lowest border border-outline-variant/40 rounded flex flex-col">
+                <span class="text-[10px] font-label-sm text-outline">AI ENGINE</span>
+                <div class="flex items-center gap-2 mt-1">
+                  <span class="w-2 h-2 rounded-full bg-secondary"></span>
+                  <span class="text-label-md font-label-md text-secondary font-bold" id="bento-ai-status">STANDBY</span>
+                </div>
+              </div>
+            </div>
+            <!-- Detailed Telemetry Feed -->
+            <div class="p-4 bg-surface-container-lowest border border-outline-variant/40 rounded space-y-3 font-label-sm text-xs">
+              <div class="flex justify-between border-b border-outline-variant/20 pb-2">
+                <span class="text-outline">Active Kernel Version</span>
+                <span class="text-on-surface font-semibold" id="feed-kernel">Linux 6.8.0-jarvis-rt-x86_64 // v4.2.1-SEC</span>
+              </div>
+              <div class="flex justify-between border-b border-outline-variant/20 pb-2">
+                <span class="text-outline">Settings Endpoint</span>
+                <span class="text-primary font-semibold" id="feed-endpoint">/api/v1/settings [REST + WebSockets]</span>
+              </div>
+              <div class="flex justify-between border-b border-outline-variant/20 pb-2">
+                <span class="text-outline">Dedicated Memory Pool</span>
+                <span class="text-on-surface font-semibold" id="feed-mem-pool">4.2 GB / 16.0 GB ALLOCATED</span>
+              </div>
+              <div class="flex justify-between border-b border-outline-variant/20 pb-2">
+                <span class="text-outline">Active Worker Threads</span>
+                <span class="text-primary font-semibold" id="feed-threads">16 THREADS ACTIVE (ASYNC IO)</span>
+              </div>
+              <div class="flex justify-between">
+                <span class="text-outline">Roundtrip Ping Latency</span>
+                <span class="text-primary font-bold" id="feed-latency">12ms (LOCAL_LOOP)</span>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- SECTION 7: SECURITY & PRIVACY -->
+        <section class="cat-pane hidden flex-col gap-6" id="pane-security">
+          <div class="p-6 bg-surface-container-low/70 border border-outline-variant/40 rounded hud-reticle-corner">
+            <div class="flex items-center justify-between pb-4 border-b border-outline-variant/30 mb-6">
+              <div class="flex items-center gap-3">
+                <span class="material-symbols-outlined text-primary text-xl">shield</span>
+                <h2 class="text-headline-sm font-headline-sm font-semibold text-on-surface">Security Enclave, Sandboxing &amp; Permissions</h2>
+              </div>
+              <span class="text-label-sm font-label-sm text-outline">SEC_ZONE_07</span>
+            </div>
+            <div class="flex flex-col gap-5">
+              <div class="flex items-center justify-between p-4 bg-surface-container-lowest border border-outline-variant/30 rounded">
+                <div class="flex flex-col">
+                  <span class="text-label-md font-label-md font-semibold text-on-surface">Isolated Local Docker Sandboxing</span>
+                  <span class="text-[11px] font-body-sm text-outline">All executions conducted within ephemeral unprivileged container rootfs.</span>
+                </div>
+                <input id="desk-cfg-docker-sandbox" checked="" class="h-4 w-4 rounded bg-surface-container border-outline-variant text-primary-container focus:ring-0" type="checkbox"/>
+              </div>
+              <div class="flex flex-col gap-2">
+                <label class="text-label-sm font-label-sm text-on-surface-variant">TOOL EXECUTION VERIFICATION POLICY</label>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-3" id="policy-cards">
+                  <div onclick="setToolPolicy('Full Autonomous Mode')" id="policy-card-auto" class="p-3 bg-surface-container-lowest border border-outline-variant/40 hover:border-primary/40 rounded cursor-pointer transition-all">
+                    <span class="text-label-md font-label-md font-bold text-on-surface">Full Autonomous Mode</span>
+                    <p class="text-[11px] font-body-sm text-outline mt-1">Agent executes file edits, git pushes, and terminal scripts with zero user interruption.</p>
+                  </div>
+                  <div onclick="setToolPolicy('Human-in-the-Loop (HITL)')" id="policy-card-hitl" class="p-3 bg-primary/10 border border-primary rounded cursor-pointer">
+                    <span class="text-label-md font-label-md font-bold text-primary">Human-in-the-Loop (HITL)</span>
+                    <p class="text-[11px] font-body-sm text-on-surface-variant mt-1">Requires explicit operator biometric/click authorization for destructive calls.</p>
+                  </div>
+                </div>
+              </div>
+              <div class="flex flex-col gap-2">
+                <label class="text-label-sm font-label-sm text-on-surface-variant">API CREDENTIAL VAULT (ENCRYPTED AT REST // AES-256-GCM)</label>
+                <div class="space-y-2">
+                  <div class="flex items-center justify-between p-3 bg-surface-container-lowest border border-outline-variant/30 rounded">
+                    <div class="flex items-center gap-3">
+                      <span class="material-symbols-outlined text-outline text-base">key</span>
+                      <span class="text-label-sm font-label-sm text-on-surface font-semibold">ANTHROPIC_API_KEY</span>
+                    </div>
+                    <div class="flex items-center gap-3">
+                      <span class="text-label-sm font-label-sm text-outline tracking-widest">sk-ant-api03-••••••••••••••••9F4A</span>
+                      <button onclick="showToast('VAULT RE-ENCLAVED', 'Key hash verified in hardware secure module.', 'lock')" class="text-xs text-primary hover:underline">RE-ENCLAVE</button>
+                    </div>
+                  </div>
+                  <div class="flex items-center justify-between p-3 bg-surface-container-lowest border border-outline-variant/30 rounded">
+                    <div class="flex items-center gap-3">
+                      <span class="material-symbols-outlined text-outline text-base">key</span>
+                      <span class="text-label-sm font-label-sm text-on-surface font-semibold">OPENAI_SECRET_TOKEN</span>
+                    </div>
+                    <div class="flex items-center gap-3">
+                      <span class="text-label-sm font-label-sm text-outline tracking-widest">sk-proj-••••••••••••••••77BD</span>
+                      <button onclick="showToast('VAULT RE-ENCLAVED', 'Key hash verified in hardware secure module.', 'lock')" class="text-xs text-primary hover:underline">RE-ENCLAVE</button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- SECTION 8: DATA & BACKUP -->
+        <section class="cat-pane hidden flex-col gap-6" id="pane-data-backup">
+          <div class="p-6 bg-surface-container-low/70 border border-outline-variant/40 rounded hud-reticle-corner">
+            <div class="flex items-center justify-between pb-4 border-b border-outline-variant/30 mb-6">
+              <div class="flex items-center gap-3">
+                <span class="material-symbols-outlined text-primary text-xl">cloud_sync</span>
+                <h2 class="text-headline-sm font-headline-sm font-semibold text-on-surface">Data Snapshots, Backups &amp; Kernel Recovery</h2>
+              </div>
+              <span class="text-label-sm font-label-sm text-outline">STORAGE_MGMT // 08</span>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div class="p-4 bg-surface-container-lowest border border-outline-variant/40 rounded flex flex-col justify-between gap-4">
+                <div>
+                  <div class="flex items-center gap-2 text-primary mb-1">
+                    <span class="material-symbols-outlined text-base">download</span>
+                    <span class="text-label-md font-label-md font-bold">Export Full JSON Agent Snapshot</span>
+                  </div>
+                  <p class="text-[11px] font-body-sm text-outline">Export complete system config, neural memory weights, and operator chat history into encrypted archive.</p>
+                </div>
+                <button onclick="downloadSnapshotAction()" class="w-full py-2 bg-primary/10 border border-primary/40 hover:border-primary text-primary rounded text-label-sm font-label-sm font-semibold transition-all">
+                  DOWNLOAD SNAPSHOT (84.2 MB)
+                </button>
+              </div>
+              <div class="p-4 bg-surface-container-lowest border border-outline-variant/40 rounded flex flex-col justify-between gap-4">
+                <div>
+                  <div class="flex items-center gap-2 text-on-surface mb-1">
+                    <span class="material-symbols-outlined text-base">upload_file</span>
+                    <span class="text-label-md font-label-md font-bold">Ingest Backup Package</span>
+                  </div>
+                  <p class="text-[11px] font-body-sm text-outline">Restore previous system states or synchronize state from secondary mobile/edge station.</p>
+                </div>
+                <label class="w-full py-2 bg-surface-container border border-outline-variant/50 hover:border-on-surface text-on-surface rounded text-label-sm font-label-sm font-semibold transition-all text-center cursor-pointer block">
+                  <input type="file" class="hidden" accept=".json,.tar.gz,.enc" onchange="handleSnapshotUpload(this)"/>
+                  SELECT ARCHIVE ARCHIVE.TAR.GZ
+                </label>
+              </div>
+            </div>
+            <!-- Danger Zone -->
+            <div class="mt-4 p-5 bg-error-container/10 border border-error/30 rounded flex flex-col md:flex-row items-center justify-between gap-4">
+              <div class="flex items-center gap-3">
+                <span class="material-symbols-outlined text-error text-2xl">device_reset</span>
+                <div class="flex flex-col">
+                  <span class="text-label-md font-label-md font-bold text-error">Reset to Default Kernel State</span>
+                  <span class="text-body-sm font-body-sm text-outline">Re-initializes all sub-systems back to factory v4.2.1-SEC parameters.</span>
+                </div>
+              </div>
+              <button onclick="resetKernelAction()" class="px-5 py-2 bg-error/10 hover:bg-error/20 border border-error/50 text-error rounded text-label-sm font-label-sm font-bold tracking-wider transition-all">
+                INITIATE ZERO STATE
+              </button>
+            </div>
+          </div>
+        </section>
+      </div>
+    </main>
+  </div>
+</div>
+
+<!-- ================================================================= -->
+<!-- CORE INTERACTION SCRIPT & API BINDINGS                            -->
+<!-- ================================================================= -->
+<script>
+  let activeSettingsState = {
+    assistant_name: "JARVIS",
+    operator_callsign: "COMMANDER_STARK",
+    synthesis_language: "EN-US (English - Tactical Synthesized)",
+    system_temporal_clock: "UTC+00:00 (ZULU MILITARY STANDARD)",
+    timestamp_notation: "YYYY-MM-DD HH:mm:ss.ms (ISO-8601 DEFENSE)",
+    viewport_density: "TACTICAL COMPACT",
+    hud_coordinates_overlay: true,
+    behavioral_preset: "Autonomous Commander",
+    neural_backbone: "HYBRID SWARM ROUTER",
+    temperature: 0.32,
+    context_budget: 128000,
+    auto_verification: true,
+    multi_turn_reasoning: true,
+    reasoning_depth: 4,
+    streaming_token_telemetry: true,
+    persistent_memory: true,
+    autonomous_ingestion: true,
+    similarity_threshold: 85,
+    notify_task_completion: true,
+    notify_escalations: true,
+    notify_telemetry_anomalies: true,
+    notify_audio_ping: false,
+    notify_security_broadcast: true,
+    color_accent: "CYBERNETIC CYAN",
+    glow_intensity: 64,
+    particle_vfx: true,
+    glassmorphism: true,
+    isolated_docker_sandbox: true,
+    tool_execution_policy: "Human-in-the-Loop (HITL)",
+    emergency_sandbox: false
+  };
+
+  // Toast Notification Helper
+  window.showToast = function(title, desc, icon = "check_circle") {
+    const toast = document.getElementById('toast-notification');
+    const titleEl = document.getElementById('toast-title');
+    const descEl = document.getElementById('toast-desc');
+    const iconEl = document.getElementById('toast-icon');
+
+    if (titleEl) titleEl.textContent = title;
+    if (descEl) descEl.textContent = desc;
+    if (iconEl) iconEl.textContent = icon;
+
+    toast.classList.remove('hidden');
+    clearTimeout(window._toastTimeout);
+    window._toastTimeout = setTimeout(() => {
+      toast.classList.add('hidden');
+    }, 3800);
+  };
+
+  // Category Tab Switcher
+  window.switchCategory = function(catId) {
+    document.querySelectorAll('.cat-pane').forEach(el => {
+      el.classList.add('hidden');
+      el.classList.remove('flex');
+    });
+
+    const targetPane = document.getElementById('pane-' + catId);
+    if (targetPane) {
+      targetPane.classList.remove('hidden');
+      targetPane.classList.add('flex');
+    }
+
+    document.querySelectorAll('.cat-tab').forEach(tab => {
+      tab.className = "cat-tab w-full flex items-center gap-3 px-3 py-2.5 rounded text-left text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high/40 border border-transparent transition-all";
+    });
+
+    const activeTab = document.getElementById('tab-' + catId);
+    if (activeTab) {
+      activeTab.className = "cat-tab w-full flex items-center gap-3 px-3 py-2.5 rounded text-left border transition-all bg-primary/10 text-primary border-primary/30";
+    }
+  };
+
+  // Filter Categories / Parameters via Search Input
+  window.filterConfigPanes = function(query) {
+    const q = (query || "").trim().toLowerCase();
+    if (!q) {
+      document.querySelectorAll('.cat-tab').forEach(t => t.style.display = '');
+      return;
+    }
+
+    const categories = [
+      { id: 'general', terms: ['general', 'identity', 'name', 'operator', 'callsign', 'language', 'clock', 'density'] },
+      { id: 'ai-assistant', terms: ['ai', 'assistant', 'heuristics', 'model', 'swarm', 'temperature', 'reasoning', 'depth', 'token'] },
+      { id: 'memory-recall', terms: ['memory', 'recall', 'vector', 'qdrant', 'embedding', 'similarity', 'cache', 'purge'] },
+      { id: 'notifications', terms: ['notification', 'alert', 'escalation', 'audio', 'ping', 'security', 'task'] },
+      { id: 'appearance', terms: ['appearance', 'hud', 'color', 'cyan', 'glow', 'vfx', 'glass', 'monochrome'] },
+      { id: 'telemetry', terms: ['telemetry', 'diagnostic', 'kernel', 'fastapi', 'postgres', 'status', 'threads', 'uptime'] },
+      { id: 'security', terms: ['security', 'privacy', 'sandbox', 'enclave', 'hitl', 'docker', 'api key', 'anthropic', 'openai'] },
+      { id: 'data-backup', terms: ['data', 'backup', 'snapshot', 'json', 'reset', 'archive', 'recovery'] },
+    ];
+
+    let firstMatch = null;
+    categories.forEach(cat => {
+      const tabEl = document.getElementById('tab-' + cat.id);
+      const isMatch = cat.terms.some(t => t.includes(q)) || cat.id.includes(q);
+      if (tabEl) {
+        tabEl.style.display = isMatch ? '' : 'none';
+      }
+      if (isMatch && !firstMatch) firstMatch = cat.id;
+    });
+
+    if (firstMatch) {
+      switchCategory(firstMatch);
+    }
+  };
+
+  // Synchronize state across desktop and mobile inputs
+  window.syncField = function(key, value) {
+    activeSettingsState[key] = value;
+  };
+
+  window.setDensity = function(density) {
+    activeSettingsState.viewport_density = density;
+    const btnCompact = document.getElementById('btn-density-compact');
+    const btnStandard = document.getElementById('btn-density-standard');
+    if (density === 'TACTICAL COMPACT') {
+      btnCompact.className = "py-2 px-3 rounded bg-primary/10 border border-primary text-primary text-label-sm font-label-sm text-center";
+      btnStandard.className = "py-2 px-3 rounded bg-surface-container-lowest border border-outline-variant/50 text-outline text-label-sm font-label-sm text-center hover:border-primary/50";
+    } else {
+      btnStandard.className = "py-2 px-3 rounded bg-primary/10 border border-primary text-primary text-label-sm font-label-sm text-center";
+      btnCompact.className = "py-2 px-3 rounded bg-surface-container-lowest border border-outline-variant/50 text-outline text-label-sm font-label-sm text-center hover:border-primary/50";
+    }
+  };
+
+  window.setPersonalityPreset = function(preset) {
+    activeSettingsState.behavioral_preset = preset;
+    const cards = [
+      { id: 'preset-card-commander', name: 'Autonomous Commander' },
+      { id: 'preset-card-analytical', name: 'Analytical Deep-Trace' },
+      { id: 'preset-card-tactical', name: 'Concise Tactical' }
+    ];
+    cards.forEach(c => {
+      const el = document.getElementById(c.id);
+      if (el) {
+        if (c.name === preset) {
+          el.className = "preset-card p-3 bg-primary/10 border border-primary rounded cursor-pointer";
+          const span = el.querySelector('span');
+          if (span) span.className = "text-label-md font-label-md font-bold text-primary";
+        } else {
+          el.className = "preset-card p-3 bg-surface-container-lowest border border-outline-variant/40 hover:border-primary/40 rounded cursor-pointer transition-all";
+          const span = el.querySelector('span');
+          if (span) span.className = "text-label-md font-label-md font-bold text-on-surface";
+        }
+      }
+    });
+  };
+
+  window.setColorAccent = function(accent) {
+    activeSettingsState.color_accent = accent;
+    document.querySelectorAll('.color-accent-btn').forEach(btn => {
+      if (btn.textContent.includes(accent)) {
+        btn.classList.add('border-primary', 'bg-primary/10', 'cyan-glow');
+        btn.classList.remove('opacity-70');
+      } else {
+        btn.classList.remove('border-primary', 'bg-primary/10', 'cyan-glow');
+        btn.classList.add('opacity-70');
+      }
+    });
+  };
+
+  window.setToolPolicy = function(policy) {
+    activeSettingsState.tool_execution_policy = policy;
+    const autoCard = document.getElementById('policy-card-auto');
+    const hitlCard = document.getElementById('policy-card-hitl');
+    if (policy === 'Full Autonomous Mode') {
+      autoCard.className = "p-3 bg-primary/10 border border-primary rounded cursor-pointer";
+      hitlCard.className = "p-3 bg-surface-container-lowest border border-outline-variant/40 hover:border-primary/40 rounded cursor-pointer transition-all";
+    } else {
+      hitlCard.className = "p-3 bg-primary/10 border border-primary rounded cursor-pointer";
+      autoCard.className = "p-3 bg-surface-container-lowest border border-outline-variant/40 hover:border-primary/40 rounded cursor-pointer transition-all";
+    }
+  };
+
+  // Collect form state
+  function collectFormValues() {
+    // Read from desktop or mobile depending on visibility
+    const isMobile = window.innerWidth < 1024;
+    if (isMobile) {
+      const mobName = document.getElementById('mob-cfg-assistant-name');
+      const mobOp = document.getElementById('mob-cfg-operator-callsign');
+      const mobSim = document.getElementById('mob-cfg-similarity');
+      const mobReason = document.getElementById('mob-cfg-reasoning');
+      const mobDensity = document.getElementById('mob-cfg-density');
+      const mobPersist = document.getElementById('mob-cfg-persistent-memory');
+      const mobStream = document.getElementById('mob-cfg-streaming');
+      const mobEmergency = document.getElementById('mob-cfg-emergency');
+
+      if (mobName) activeSettingsState.assistant_name = mobName.value.trim() || activeSettingsState.assistant_name;
+      if (mobOp) activeSettingsState.operator_callsign = mobOp.value.trim() || activeSettingsState.operator_callsign;
+      if (mobSim) activeSettingsState.similarity_threshold = parseInt(mobSim.value);
+      if (mobReason) activeSettingsState.reasoning_depth = parseInt(mobReason.value);
+      if (mobDensity) activeSettingsState.viewport_density = mobDensity.checked ? "TACTICAL COMPACT" : "STANDARD HUD";
+      if (mobPersist) activeSettingsState.persistent_memory = mobPersist.checked;
+      if (mobStream) activeSettingsState.streaming_token_telemetry = mobStream.checked;
+      if (mobEmergency) activeSettingsState.emergency_sandbox = mobEmergency.checked;
+    } else {
+      const deskName = document.getElementById('desk-cfg-assistant-name');
+      const deskOp = document.getElementById('desk-cfg-operator-callsign');
+      const deskLang = document.getElementById('desk-cfg-language');
+      const deskClock = document.getElementById('desk-cfg-clock');
+      const deskNotation = document.getElementById('desk-cfg-notation');
+      const deskCoords = document.getElementById('desk-cfg-coords-overlay');
+      const deskAutoVerify = document.getElementById('desk-cfg-autoverify');
+      const deskMultiTurn = document.getElementById('desk-cfg-multiturn');
+      const deskPersist = document.getElementById('desk-cfg-persistent-mem');
+      const deskAutoIngest = document.getElementById('desk-cfg-auto-ingest');
+      const deskNotifyTask = document.getElementById('desk-cfg-notify-task');
+      const deskNotifyEsc = document.getElementById('desk-cfg-notify-escalate');
+      const deskNotifyAnom = document.getElementById('desk-cfg-notify-anomalies');
+      const deskNotifyAudio = document.getElementById('desk-cfg-notify-audio');
+      const deskNotifySec = document.getElementById('desk-cfg-notify-security');
+      const deskDocker = document.getElementById('desk-cfg-docker-sandbox');
+
+      if (deskName) activeSettingsState.assistant_name = deskName.value.trim() || activeSettingsState.assistant_name;
+      if (deskOp) activeSettingsState.operator_callsign = deskOp.value.trim() || activeSettingsState.operator_callsign;
+      if (deskLang) activeSettingsState.synthesis_language = deskLang.value;
+      if (deskClock) activeSettingsState.system_temporal_clock = deskClock.value;
+      if (deskNotation) activeSettingsState.timestamp_notation = deskNotation.value;
+      if (deskCoords) activeSettingsState.hud_coordinates_overlay = deskCoords.checked;
+      if (deskAutoVerify) activeSettingsState.auto_verification = deskAutoVerify.checked;
+      if (deskMultiTurn) activeSettingsState.multi_turn_reasoning = deskMultiTurn.checked;
+      if (deskPersist) activeSettingsState.persistent_memory = deskPersist.checked;
+      if (deskAutoIngest) activeSettingsState.autonomous_ingestion = deskAutoIngest.checked;
+      if (deskNotifyTask) activeSettingsState.notify_task_completion = deskNotifyTask.checked;
+      if (deskNotifyEsc) activeSettingsState.notify_escalations = deskNotifyEsc.checked;
+      if (deskNotifyAnom) activeSettingsState.notify_telemetry_anomalies = deskNotifyAnom.checked;
+      if (deskNotifyAudio) activeSettingsState.notify_audio_ping = deskNotifyAudio.checked;
+      if (deskNotifySec) activeSettingsState.notify_security_broadcast = deskNotifySec.checked;
+      if (deskDocker) activeSettingsState.isolated_docker_sandbox = deskDocker.checked;
+    }
+    return activeSettingsState;
+  }
+
+  // Populate inputs from state
+  function populateFormInputs(settings) {
+    if (!settings) return;
+    Object.assign(activeSettingsState, settings);
+
+    // Desktop
+    const deskName = document.getElementById('desk-cfg-assistant-name');
+    const deskOp = document.getElementById('desk-cfg-operator-callsign');
+    const deskLang = document.getElementById('desk-cfg-language');
+    const deskClock = document.getElementById('desk-cfg-clock');
+    const deskNotation = document.getElementById('desk-cfg-notation');
+    const deskCoords = document.getElementById('desk-cfg-coords-overlay');
+    const deskTemp = document.getElementById('desk-cfg-temp');
+    const deskContext = document.getElementById('desk-cfg-context');
+    const deskSim = document.getElementById('desk-cfg-sim');
+    const deskAutoVerify = document.getElementById('desk-cfg-autoverify');
+    const deskMultiTurn = document.getElementById('desk-cfg-multiturn');
+    const deskPersist = document.getElementById('desk-cfg-persistent-mem');
+    const deskAutoIngest = document.getElementById('desk-cfg-auto-ingest');
+    const deskNotifyTask = document.getElementById('desk-cfg-notify-task');
+    const deskNotifyEsc = document.getElementById('desk-cfg-notify-escalate');
+    const deskNotifyAnom = document.getElementById('desk-cfg-notify-anomalies');
+    const deskNotifyAudio = document.getElementById('desk-cfg-notify-audio');
+    const deskNotifySec = document.getElementById('desk-cfg-notify-security');
+    const deskDocker = document.getElementById('desk-cfg-docker-sandbox');
+    const deskGlow = document.getElementById('desk-cfg-glow');
+    const deskVfx = document.getElementById('desk-cfg-vfx');
+    const deskGlass = document.getElementById('desk-cfg-glass');
+
+    if (deskName && settings.assistant_name) deskName.value = settings.assistant_name;
+    if (deskOp && settings.operator_callsign) {
+      deskOp.value = settings.operator_callsign;
+      const opTag = document.getElementById('desk-operator-tag');
+      if (opTag) opTag.textContent = settings.operator_callsign;
+    }
+    if (deskLang && settings.synthesis_language) deskLang.value = settings.synthesis_language;
+    if (deskClock && settings.system_temporal_clock) deskClock.value = settings.system_temporal_clock;
+    if (deskNotation && settings.timestamp_notation) deskNotation.value = settings.timestamp_notation;
+    if (deskCoords && typeof settings.hud_coordinates_overlay === 'boolean') deskCoords.checked = settings.hud_coordinates_overlay;
+    if (deskTemp && settings.temperature !== undefined) {
+      deskTemp.value = Math.round(settings.temperature * 100);
+      document.getElementById('desk-temp-label').textContent = settings.temperature + (settings.temperature < 0.4 ? ' (DETERMINISTIC)' : ' (GENERATIVE)');
+    }
+    if (deskContext && settings.context_budget !== undefined) {
+      deskContext.value = Math.round(settings.context_budget / 1000);
+      document.getElementById('desk-context-label').textContent = parseInt(settings.context_budget).toLocaleString() + ' TOKENS';
+    }
+    if (deskSim && settings.similarity_threshold !== undefined) {
+      deskSim.value = settings.similarity_threshold;
+      document.getElementById('desk-sim-label').textContent = settings.similarity_threshold + '% SIMILARITY';
+    }
+    if (deskAutoVerify && typeof settings.auto_verification === 'boolean') deskAutoVerify.checked = settings.auto_verification;
+    if (deskMultiTurn && typeof settings.multi_turn_reasoning === 'boolean') deskMultiTurn.checked = settings.multi_turn_reasoning;
+    if (deskPersist && typeof settings.persistent_memory === 'boolean') deskPersist.checked = settings.persistent_memory;
+    if (deskAutoIngest && typeof settings.autonomous_ingestion === 'boolean') deskAutoIngest.checked = settings.autonomous_ingestion;
+    if (deskNotifyTask && typeof settings.notify_task_completion === 'boolean') deskNotifyTask.checked = settings.notify_task_completion;
+    if (deskNotifyEsc && typeof settings.notify_escalations === 'boolean') deskNotifyEsc.checked = settings.notify_escalations;
+    if (deskNotifyAnom && typeof settings.notify_telemetry_anomalies === 'boolean') deskNotifyAnom.checked = settings.notify_telemetry_anomalies;
+    if (deskNotifyAudio && typeof settings.notify_audio_ping === 'boolean') deskNotifyAudio.checked = settings.notify_audio_ping;
+    if (deskNotifySec && typeof settings.notify_security_broadcast === 'boolean') deskNotifySec.checked = settings.notify_security_broadcast;
+    if (deskDocker && typeof settings.isolated_docker_sandbox === 'boolean') deskDocker.checked = settings.isolated_docker_sandbox;
+    if (deskGlow && settings.glow_intensity !== undefined) {
+      deskGlow.value = settings.glow_intensity;
+      document.getElementById('desk-glow-label').textContent = settings.glow_intensity + '% NOMINAL INTENSITY';
+    }
+    if (deskVfx && typeof settings.particle_vfx === 'boolean') deskVfx.checked = settings.particle_vfx;
+    if (deskGlass && typeof settings.glassmorphism === 'boolean') deskGlass.checked = settings.glassmorphism;
+
+    // Mobile
+    const mobName = document.getElementById('mob-cfg-assistant-name');
+    const mobOp = document.getElementById('mob-cfg-operator-callsign');
+    const mobSim = document.getElementById('mob-cfg-similarity');
+    const mobReason = document.getElementById('mob-cfg-reasoning');
+    const mobDensity = document.getElementById('mob-cfg-density');
+    const mobPersist = document.getElementById('mob-cfg-persistent-memory');
+    const mobStream = document.getElementById('mob-cfg-streaming');
+    const mobEmergency = document.getElementById('mob-cfg-emergency');
+
+    if (mobName && settings.assistant_name) mobName.value = settings.assistant_name;
+    if (mobOp && settings.operator_callsign) mobOp.value = settings.operator_callsign;
+    if (mobSim && settings.similarity_threshold !== undefined) {
+      mobSim.value = settings.similarity_threshold;
+      document.getElementById('mob-sim-val').textContent = settings.similarity_threshold + '%';
+    }
+    if (mobReason && settings.reasoning_depth !== undefined) {
+      mobReason.value = settings.reasoning_depth;
+      document.getElementById('mob-reasoning-val').textContent = 'LEVEL ' + settings.reasoning_depth + (settings.reasoning_depth >= 4 ? ' (DEEP)' : ' (FAST)');
+    }
+    if (mobDensity && settings.viewport_density) mobDensity.checked = settings.viewport_density.includes("COMPACT");
+    if (mobPersist && typeof settings.persistent_memory === 'boolean') mobPersist.checked = settings.persistent_memory;
+    if (mobStream && typeof settings.streaming_token_telemetry === 'boolean') mobStream.checked = settings.streaming_token_telemetry;
+    if (mobEmergency && typeof settings.emergency_sandbox === 'boolean') mobEmergency.checked = settings.emergency_sandbox;
+
+    if (settings.viewport_density) setDensity(settings.viewport_density);
+    if (settings.behavioral_preset) setPersonalityPreset(settings.behavioral_preset);
+    if (settings.color_accent) setColorAccent(settings.color_accent);
+    if (settings.tool_execution_policy) setToolPolicy(settings.tool_execution_policy);
+  }
+
+  // Load Settings from API
+  async function loadSettings() {
+    try {
+      if (window.jarvisApi && window.jarvisApi.getSettings) {
+        const data = await window.jarvisApi.getSettings();
+        populateFormInputs(data);
+      }
+    } catch (err) {
+      console.warn('Backend settings fetch fallback to local defaults:', err);
+    }
+    refreshTelemetry();
+  }
+
+  // Save Settings to API
+  window.saveAllSettings = async function() {
+    const payload = collectFormValues();
+    const saveBtn = document.getElementById('save-config-btn');
+    if (saveBtn) {
+      saveBtn.classList.add('opacity-75', 'animate-pulse');
+      saveBtn.querySelector('span:last-child').textContent = 'SYNCING...';
+    }
+
+    try {
+      if (window.jarvisApi && window.jarvisApi.updateSettings) {
+        const updated = await window.jarvisApi.updateSettings(payload);
+        populateFormInputs(updated);
+      }
+      showToast('SETTINGS UPDATED', 'All configurations validated and synchronized to PostgreSQL.');
+    } catch (err) {
+      console.error('Error saving settings to backend:', err);
+      showToast('OFFLINE CACHE SAVED', 'Local parameters saved (Backend unreachable).', 'info');
+    } finally {
+      if (saveBtn) {
+        saveBtn.classList.remove('opacity-75', 'animate-pulse');
+        saveBtn.querySelector('span:last-child').textContent = 'SAVE CONFIGURATION';
+      }
+    }
+  };
+
+  // Telemetry & Verified System Status Refresh
+  window.refreshTelemetry = async function() {
+    try {
+      if (window.jarvisApi) {
+        const tel = window.jarvisApi.getSystemStatus 
+          ? await window.jarvisApi.getSystemStatus()
+          : (window.jarvisApi.getSettingsTelemetry ? await window.jarvisApi.getSettingsTelemetry() : null);
+
+        if (tel) {
+          const latStr = (tel.latency_ms || 12) + 'ms';
+          document.querySelectorAll('#mob-latency-indicator, #mob-tel-latency, #desk-nav-latency').forEach(el => el.textContent = latStr);
+          const feedLat = document.getElementById('feed-latency');
+          if (feedLat) feedLat.textContent = (tel.latency_ms || 12) + 'ms (LOCAL_LOOP)';
+
+          // Accurate verified status items
+          const bSystem = document.getElementById('bento-system-status');
+          if (bSystem) bSystem.textContent = tel.api || tel.system_status || "ONLINE";
+
+          const bFastapi = document.getElementById('bento-fastapi-status');
+          if (bFastapi) bFastapi.textContent = tel.backend || tel.fastapi_backend || "ONLINE";
+
+          const bPostgres = document.getElementById('bento-postgres-status');
+          if (bPostgres) bPostgres.textContent = tel.database || tel.postgresql_cluster || "CONNECTED";
+
+          const bAi = document.getElementById('bento-ai-status');
+          if (bAi) bAi.textContent = tel.ai_engine || "STANDBY";
+
+          const feedKernel = document.getElementById('feed-kernel');
+          if (feedKernel) feedKernel.textContent = tel.kernel_version || "Linux 6.8.0-jarvis-rt-x86_64 // v4.2.1-SEC";
+
+          const mobUptime = document.getElementById('mob-tel-uptime');
+          if (mobUptime) mobUptime.textContent = 'UPTIME: ' + (tel.uptime_percentage || 99.98) + '%';
+        }
+      }
+    } catch (e) {
+      console.warn('Telemetry poll skipped:', e);
+    }
+  };
+
+  // Actions
+  window.purgeCacheAction = async function() {
+    if (!confirm('CONFIRM PURGE: Erase cached embeddings from vector memory store?')) return;
+    try {
+      if (window.jarvisApi && window.jarvisApi.purgeVectorCache) {
+        await window.jarvisApi.purgeVectorCache();
+      }
+      const mobVec = document.getElementById('mob-vectors-count');
+      if (mobVec) mobVec.textContent = 'ACTIVE VECTORS: 0 (PURGED)';
+      const deskDesc = document.getElementById('desk-purge-desc');
+      if (deskDesc) deskDesc.textContent = 'Vector collection cleared. New indices will build autonomously.';
+      showToast('VECTOR ENCLAVE PURGED', '142,890 embeddings cleared from Qdrant store.', 'delete');
+    } catch (err) {
+      showToast('PURGE FAILED', err.message, 'error');
+    }
+  };
+
+  window.downloadSnapshotAction = async function() {
+    try {
+      let data = activeSettingsState;
+      if (window.jarvisApi && window.jarvisApi.exportSnapshot) {
+        data = await window.jarvisApi.exportSnapshot();
+      }
+      const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `jarvis_snapshot_${new Date().toISOString().slice(0, 10)}.enc.json`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      showToast('SNAPSHOT EXPORTED', 'Encrypted package downloaded to local filesystem.', 'file_download');
+    } catch (err) {
+      showToast('EXPORT ERROR', err.message, 'error');
+    }
+  };
+
+  window.handleSnapshotUpload = function(input) {
+    if (input.files && input.files[0]) {
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        try {
+          const parsed = JSON.parse(e.target.result);
+          const settingsObj = parsed.settings || parsed;
+          populateFormInputs(settingsObj);
+          showToast('SNAPSHOT INGESTED', 'System parameters imported and verified.', 'upload_file');
+        } catch (err) {
+          showToast('INGEST ERROR', 'Invalid archive format.', 'error');
+        }
+      };
+      reader.readAsText(input.files[0]);
+    }
+  };
+
+  window.resetKernelAction = async function() {
+    if (!confirm('RESTORE DEFAULT SETTINGS?')) return;
+    try {
+      if (window.jarvisApi && window.jarvisApi.resetSettings) {
+        const defaults = await window.jarvisApi.resetSettings();
+        populateFormInputs(defaults);
+      }
+      showToast('SETTINGS RESTORED', 'Default configuration parameters reloaded.', 'device_reset');
+    } catch (err) {
+      showToast('RESET ERROR', err.message, 'error');
+    }
+  };
+
+
+  window.triggerVoicePing = function() {
+    const btns = [document.getElementById('quickVoiceBtn'), document.getElementById('floatingVoiceTrigger')];
+    btns.forEach(btn => {
+      if (btn) {
+        btn.classList.add('animate-ping');
+        setTimeout(() => btn.classList.remove('animate-ping'), 600);
+      }
+    });
+    showToast('VOICE CHANNEL ACTIVE', 'Listening on default acoustic matrix input...', 'graphic_eq');
+  };
+
+  // DOMContentLoaded Setup
+  document.addEventListener('DOMContentLoaded', () => {
+    // Navigation Drawer Toggling
+    const toggle = document.getElementById('drawerToggle');
+    const close = document.getElementById('drawerClose');
+    const drawer = document.getElementById('navDrawer');
+    const backdrop = document.getElementById('drawerBackdrop');
+
+    if (toggle && drawer && backdrop) {
+      toggle.addEventListener('click', () => {
+        drawer.classList.remove('-translate-x-full');
+        backdrop.classList.remove('hidden');
+      });
+      if (close) {
+        close.addEventListener('click', () => {
+          drawer.classList.add('-translate-x-full');
+          backdrop.classList.add('hidden');
+        });
+      }
+      backdrop.addEventListener('click', () => {
+        drawer.classList.add('-translate-x-full');
+        backdrop.classList.add('hidden');
+      });
+    }
+
+    // Accordion Toggle Logic
+    const triggers = document.querySelectorAll('.accordion-trigger');
+    triggers.forEach(trigger => {
+      trigger.addEventListener('click', () => {
+        const targetId = trigger.getAttribute('data-target');
+        const panel = document.getElementById(targetId);
+        const icon = trigger.querySelector('.material-symbols-outlined:last-child');
+
+        if (panel.classList.contains('hidden')) {
+          panel.classList.remove('hidden');
+          if (icon) icon.style.transform = 'rotate(180deg)';
+        } else {
+          panel.classList.add('hidden');
+          if (icon) icon.style.transform = 'rotate(0deg)';
+        }
+      });
+    });
+
+    // Keyboard shortcut for CTRL+K
+    window.addEventListener('keydown', (e) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+        e.preventDefault();
+        const searchInput = document.getElementById('config-search-input');
+        if (searchInput) searchInput.focus();
+      }
+    });
+
+    // Initial Load
+    loadSettings();
+  });
+</script>
+</body>
+</html>

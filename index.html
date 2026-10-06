@@ -1,0 +1,837 @@
+<!DOCTYPE html>
+<html class="dark" lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>JARVIS // Autonomous AI Operating System Command Center</title>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&amp;family=JetBrains+Mono:wght@400;500;600;700&amp;family=Sora:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          "colors": {
+            "secondary-container": "#4f3c7a",
+            "on-error-container": "#ffdad6",
+            "tertiary-fixed": "#d6e3f8",
+            "surface-container-highest": "#33353a",
+            "inverse-surface": "#e1e2e8",
+            "outline": "#869399",
+            "surface-variant": "#33353a",
+            "on-primary-fixed": "#001f28",
+            "on-error": "#690005",
+            "surface-container-low": "#191c20",
+            "secondary-fixed-dim": "#d1bcff",
+            "on-secondary-fixed": "#220c4b",
+            "secondary": "#d1bcff",
+            "surface-container": "#1d2024",
+            "primary-container": "#27d3ff",
+            "primary": "#aae8ff",
+            "inverse-primary": "#00677f",
+            "on-secondary": "#382461",
+            "outline-variant": "#3c494e",
+            "on-tertiary": "#253141",
+            "on-primary": "#003543",
+            "surface-dim": "#111318",
+            "surface-bright": "#37393e",
+            "on-tertiary-fixed-variant": "#3b4858",
+            "error-container": "#93000a",
+            "on-surface": "#e1e2e8",
+            "surface-container-high": "#282a2f",
+            "surface-container-lowest": "#0c0e13",
+            "on-secondary-container": "#c0aaf0",
+            "on-tertiary-fixed": "#0f1c2b",
+            "tertiary-fixed-dim": "#bac7dc",
+            "tertiary": "#d3e0f4",
+            "background": "#111318",
+            "on-surface-variant": "#bbc9cf",
+            "primary-fixed-dim": "#49d6ff",
+            "tertiary-container": "#b7c4d8",
+            "on-primary-fixed-variant": "#004e60",
+            "on-background": "#e1e2e8",
+            "surface": "#111318",
+            "primary-fixed": "#b6ebff",
+            "error": "#ffb4ab",
+            "on-primary-container": "#00576c",
+            "surface-tint": "#49d6ff",
+            "secondary-fixed": "#eaddff",
+            "on-secondary-fixed-variant": "#4f3c7a",
+            "inverse-on-surface": "#2e3035",
+            "on-tertiary-container": "#445162"
+          },
+          "borderRadius": {
+            "DEFAULT": "0.125rem",
+            "lg": "0.25rem",
+            "xl": "0.5rem",
+            "full": "0.75rem"
+          },
+          "spacing": {
+            "space-xl": "2.5rem",
+            "space-xs": "0.25rem",
+            "space-sm": "0.5rem",
+            "space-lg": "1.5rem",
+            "margin": "2rem",
+            "gutter": "1rem",
+            "space-md": "1rem",
+            "margin-mobile": "1rem",
+            "gutter-mobile": "0.75rem"
+          },
+          "fontFamily": {
+            "headline-lg-mobile": ["Sora"],
+            "label-lg": ["JetBrains Mono"],
+            "headline-xl": ["Sora"],
+            "headline-xl-mobile": ["Sora"],
+            "label-md": ["JetBrains Mono"],
+            "body-lg": ["Inter"],
+            "headline-lg": ["Sora"],
+            "body-md": ["Inter"],
+            "label-sm": ["JetBrains Mono"],
+            "headline-sm": ["Sora"],
+            "headline-md": ["Sora"],
+            "body-sm": ["Inter"]
+          },
+          "fontSize": {
+            "headline-lg-mobile": ["22px", { "lineHeight": "30px", "letterSpacing": "0em", "fontWeight": "600" }],
+            "label-lg": ["13px", { "lineHeight": "18px", "letterSpacing": "0.06em", "fontWeight": "500" }],
+            "headline-xl": ["40px", { "lineHeight": "48px", "letterSpacing": "-0.02em", "fontWeight": "600" }],
+            "headline-xl-mobile": ["28px", { "lineHeight": "36px", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+            "label-md": ["11px", { "lineHeight": "16px", "letterSpacing": "0.08em", "fontWeight": "500" }],
+            "body-lg": ["16px", { "lineHeight": "26px", "fontWeight": "400" }],
+            "headline-lg": ["28px", { "lineHeight": "36px", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+            "body-md": ["14px", { "lineHeight": "22px", "fontWeight": "400" }],
+            "label-sm": ["10px", { "lineHeight": "14px", "letterSpacing": "0.1em", "fontWeight": "500" }],
+            "headline-sm": ["16px", { "lineHeight": "24px", "letterSpacing": "0em", "fontWeight": "500" }],
+            "headline-md": ["20px", { "lineHeight": "28px", "letterSpacing": "-0.005em", "fontWeight": "500" }],
+            "body-sm": ["12px", { "lineHeight": "18px", "fontWeight": "400" }]
+          }
+        },
+      },
+    }
+  </script>
+<style>
+    .material-symbols-outlined {
+      font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 20;
+      display: inline-block;
+      vertical-align: middle;
+      line-height: 1;
+    }
+    @keyframes spin-slow {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+    @keyframes spin-reverse-slow {
+      from { transform: rotate(360deg); }
+      to { transform: rotate(0deg); }
+    }
+    @keyframes pulse-cyan {
+      0%, 100% { opacity: 0.35; transform: scale(0.98); }
+      50% { opacity: 0.85; transform: scale(1.02); }
+    }
+    @keyframes wave-bounce {
+      0%, 100% { height: 4px; }
+      50% { height: 18px; }
+    }
+    .animate-spin-slow {
+      animation: spin-slow 28s linear infinite;
+    }
+    .animate-spin-reverse-slow {
+      animation: spin-reverse-slow 20s linear infinite;
+    }
+    .animate-spin-fast {
+      animation: spin-slow 12s linear infinite;
+    }
+    .animate-pulse-cyan {
+      animation: pulse-cyan 3.5s ease-in-out infinite;
+    }
+    .hud-reticle-corner {
+      position: absolute;
+      width: 6px;
+      height: 6px;
+      border-color: rgba(39, 211, 255, 0.5);
+    }
+  </style>
+</head>
+<body class="bg-[#06080C] text-on-surface antialiased overflow-x-hidden min-h-screen selection:bg-primary-container selection:text-on-primary-container">
+<!-- BACKGROUND OPTICAL MESH & AMBIENT DEPTH -->
+<div class="fixed inset-0 pointer-events-none z-0">
+<div class="absolute inset-0 bg-[radial-gradient(ellipse_at_50%_20%,rgba(62,43,104,0.18)_0%,transparent_65%)]"></div>
+<div class="absolute top-1/4 left-1/3 w-96 h-96 bg-[radial-gradient(circle,rgba(39,211,255,0.05)_0%,transparent_70%)] blur-3xl"></div>
+<div class="absolute inset-0 bg-[linear-gradient(to_right,rgba(22,32,44,0.15)_1px,transparent_1px),linear-gradient(to_bottom,rgba(22,32,44,0.15)_1px,transparent_1px)] bg-[size:40px_40px] opacity-40"></div>
+</div>
+<!-- SIDE NAVIGATION -->
+<aside class="fixed left-0 top-0 bottom-0 z-40 flex flex-col justify-between p-4 docked h-screen w-64 border-r border-outline-variant/40 bg-surface-container-lowest/80 backdrop-blur-md">
+<!-- Header Block -->
+<div>
+<div class="flex items-center gap-3 px-2 pb-5 border-b border-outline-variant/30">
+<div class="relative flex items-center justify-center w-8 h-8 rounded border border-primary-container/60 bg-primary-container/10">
+<div class="w-2.5 h-2.5 rounded-full bg-primary-container animate-ping absolute opacity-75"></div>
+<div class="w-2 h-2 rounded-full bg-primary-container"></div>
+</div>
+<div>
+<div class="text-headline-md font-headline-md font-bold tracking-widest text-primary leading-tight">JARVIS</div>
+<div class="text-label-sm font-label-sm text-outline tracking-wider">OS // v4.2 TELEMETRY ACTIVE</div>
+</div>
+</div>
+<!-- Navigation Tabs -->
+<nav class="mt-5 space-y-1">
+<!-- Dashboard (Active) -->
+<a class="flex items-center gap-3 px-3 py-2 bg-primary/10 text-primary border-l-2 border-primary transition-all duration-150 group" href="index.html">
+<span class="material-symbols-outlined text-primary group-hover:scale-105 transition-transform" data-icon="dashboard">dashboard</span>
+<span class="text-label-md font-label-md font-medium tracking-wide">Dashboard</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high/40 border-l-2 border-transparent hover:border-primary/50 transition-all duration-150 group" href="assistant.html">
+<span class="material-symbols-outlined group-hover:text-primary transition-colors" data-icon="smart_toy">smart_toy</span>
+<span class="text-label-md font-label-md">Assistant</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high/40 border-l-2 border-transparent hover:border-primary/50 transition-all duration-150 group" href="tasks.html">
+<span class="material-symbols-outlined group-hover:text-primary transition-colors" data-icon="check_circle">check_circle</span>
+<span class="text-label-md font-label-md">Tasks</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high/40 border-l-2 border-transparent hover:border-primary/50 transition-all duration-150 group" href="memory.html">
+<span class="material-symbols-outlined group-hover:text-primary transition-colors" data-icon="memory">memory</span>
+<span class="text-label-md font-label-md">Memory</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high/40 border-l-2 border-transparent hover:border-primary/50 transition-all duration-150 group" href="projects.html">
+<span class="material-symbols-outlined group-hover:text-primary transition-colors" data-icon="folder">folder</span>
+<span class="text-label-md font-label-md">Projects</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high/40 border-l-2 border-transparent hover:border-primary/50 transition-all duration-150 group" href="activity.html">
+<span class="material-symbols-outlined group-hover:text-primary transition-colors" data-icon="timeline">timeline</span>
+<span class="text-label-md font-label-md">Activity</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high/40 border-l-2 border-transparent hover:border-primary/50 transition-all duration-150 group" href="settings.html">
+<span class="material-symbols-outlined group-hover:text-primary transition-colors" data-icon="settings">settings</span>
+<span class="text-label-md font-label-md">Settings</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high/40 border-l-2 border-transparent hover:border-primary/50 transition-all duration-150 group" href="cms.html">
+<span class="material-symbols-outlined group-hover:text-primary transition-colors" data-icon="admin_panel_settings">admin_panel_settings</span>
+<span class="text-label-md font-label-md">CMS Center</span>
+</a>
+</nav>
+</div>
+<!-- CTA & Footer Status -->
+<div class="space-y-4">
+<button onclick="window.location.href='assistant.html'" class="w-full py-2.5 px-3 rounded bg-primary-container/15 hover:bg-primary-container/25 text-primary border border-primary-container/70 text-label-md font-label-md font-semibold tracking-wider transition-all duration-150 flex items-center justify-center gap-2 shadow-[0_0_12px_rgba(39,211,255,0.18)] active:scale-[0.98]">
+<span class="material-symbols-outlined text-[16px]" data-icon="terminal">terminal</span>
+        EXECUTE COMMAND
+      </button>
+<div class="pt-3 border-t border-outline-variant/30 space-y-1.5 text-label-sm font-label-sm text-outline">
+<div class="flex items-center justify-between px-2 py-1 bg-surface-container-lowest/50 rounded">
+<span class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[14px] text-primary" data-icon="sensors">sensors</span>
+            Local Agent: Active
+          </span>
+<span class="inline-block w-1.5 h-1.5 rounded-full bg-primary-container"></span>
+</div>
+<div class="flex items-center justify-between px-2 py-1 bg-surface-container-lowest/50 rounded">
+<span class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[14px]" data-icon="wifi_tethering">wifi_tethering</span>
+            Latency: 12ms
+          </span>
+<span class="text-primary font-mono text-[10px]">SYNC</span>
+</div>
+<div class="flex items-center justify-between px-2 py-1 bg-surface-container-lowest/50 rounded hover:text-on-surface cursor-pointer">
+<span class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[14px]" data-icon="account_circle">account_circle</span>
+            Operator Profile
+          </span>
+<span class="text-[9px] uppercase tracking-wider text-outline border border-outline-variant/40 px-1 rounded">SEC_L4</span>
+</div>
+</div>
+</div>
+</aside>
+<!-- TOP COMMAND HEADER BAR -->
+<header class="fixed top-0 right-0 left-64 z-30 flex items-center justify-between px-6 py-3 docked full-width border-b border-outline-variant/40 bg-surface-container-lowest/80 backdrop-blur-md">
+<!-- Left: Search / Command Context Bar -->
+<div class="flex items-center gap-4 flex-1 max-w-xl">
+<div class="text-headline-sm font-headline-sm font-bold tracking-wider text-primary whitespace-nowrap">
+        JARVIS // CORE HUD
+      </div>
+<div class="relative w-full max-w-sm">
+<span class="material-symbols-outlined absolute left-2.5 top-1/2 -translate-y-1/2 text-outline text-[16px]" data-icon="search">search</span>
+<input class="w-full bg-[#06080C]/80 border border-outline-variant/60 rounded text-label-sm font-label-sm text-on-surface placeholder:text-outline/70 pl-8 pr-3 py-1.5 focus:border-primary-container focus:ring-0 focus:outline-none transition-all" placeholder="FILTER_TELEMETRY: // enter node hash..." type="text"/>
+</div>
+</div>
+<!-- Right HUD Telemetry + Actions -->
+<div class="flex items-center gap-4">
+<div class="hidden xl:flex items-center gap-4 text-label-sm font-label-sm text-outline border-r border-outline-variant/40 pr-4">
+<div>
+<span class="text-on-surface-variant font-mono">UTC:</span>
+<span class="text-primary font-mono font-medium" id="hud-utc-clock">14:28:09</span>
+</div>
+<div>
+<span class="text-on-surface-variant font-mono">Q_STATE:</span>
+<span class="text-secondary font-mono">COHERENT 99.4%</span>
+</div>
+</div>
+<div class="flex items-center gap-2">
+<button class="p-1.5 rounded hover:bg-primary/10 text-on-surface-variant hover:text-primary transition-all duration-150" title="Acoustic Monitor">
+<span class="material-symbols-outlined text-[18px]" data-icon="graphic_eq">graphic_eq</span>
+</button>
+<button class="p-1.5 rounded hover:bg-primary/10 text-on-surface-variant hover:text-primary transition-all duration-150 relative" title="Alert Stream">
+<span class="material-symbols-outlined text-[18px]" data-icon="notifications_active">notifications_active</span>
+<span class="absolute top-1 right-1 w-1.5 h-1.5 rounded-full bg-primary-container"></span>
+</button>
+<button class="p-1.5 rounded hover:bg-primary/10 text-on-surface-variant hover:text-primary transition-all duration-150" title="Subsystem Tuning">
+<span class="material-symbols-outlined text-[18px]" data-icon="tune">tune</span>
+</button>
+</div>
+<div class="flex items-center gap-2 pl-2">
+<button onclick="window.location.href='assistant.html'" class="py-1 px-2.5 rounded bg-primary-container/10 border border-primary-container/40 text-primary text-label-sm font-label-sm hover:bg-primary-container/20 transition-all flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[14px]" data-icon="mic">mic</span>
+          VOICE COMMAND
+        </button>
+<button class="py-1 px-2.5 rounded bg-surface-container-high/60 border border-outline-variant/60 text-on-surface-variant hover:text-on-surface text-label-sm font-label-sm transition-all">
+          SYS_DIAGNOSTICS
+        </button>
+</div>
+<!-- Session Node Identity Indicator -->
+<div class="flex items-center gap-2 pl-2 border-l border-outline-variant/40">
+<div class="w-7 h-7 rounded border border-primary-container/50 bg-[#0B1017] flex items-center justify-center text-primary font-mono text-[11px] font-bold">
+          CN
+        </div>
+</div>
+</div>
+</header>
+<!-- MAIN CANVAS -->
+<main class="ml-64 pt-16 p-6 min-h-screen relative z-10 space-y-6">
+<!-- TOP TELEMETRY GREETING BANNER -->
+<section class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 border border-outline-variant/30 bg-[#0B1017]/70 backdrop-blur-md p-4 rounded relative overflow-hidden">
+<div class="hud-reticle-corner top-0 left-0 border-t border-l"></div>
+<div class="hud-reticle-corner top-0 right-0 border-t border-r"></div>
+<div class="hud-reticle-corner bottom-0 left-0 border-b border-l"></div>
+<div class="hud-reticle-corner bottom-0 right-0 border-b border-r"></div>
+<div class="flex items-center gap-4">
+<div class="relative flex items-center justify-center w-12 h-12 rounded bg-surface-container-lowest border border-outline-variant/40">
+<span class="material-symbols-outlined text-primary text-[28px]" data-icon="bolt">bolt</span>
+<span class="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full bg-primary-container animate-pulse"></span>
+</div>
+<div>
+<div class="flex items-center gap-3">
+<h1 class="text-headline-lg font-headline-lg text-on-surface tracking-tight">Good morning, Commander.</h1>
+<span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded border border-primary-container/50 bg-primary-container/10 text-primary text-label-sm font-label-sm tracking-wider font-semibold">
+<span class="w-1.5 h-1.5 rounded-full bg-primary-container animate-ping"></span>
+              SYSTEM ONLINE
+            </span>
+</div>
+<p class="text-body-md font-body-md text-on-surface-variant mt-0.5">What can I help you accomplish? All autonomous computational subsystems stand synchronized.</p>
+</div>
+</div>
+<div class="flex items-center gap-3 self-end lg:self-auto text-label-sm font-label-sm text-outline font-mono">
+<div class="px-3 py-1.5 rounded bg-surface-container-lowest/80 border border-outline-variant/30 flex items-center gap-2">
+<span class="text-outline">STATION_POS:</span>
+<span class="text-on-surface font-semibold">37.7749° N, 122.4194° W</span>
+</div>
+<div class="px-3 py-1.5 rounded bg-surface-container-lowest/80 border border-outline-variant/30 flex items-center gap-2">
+<span class="text-outline">ENTROPY:</span>
+<span class="text-primary font-semibold">0.0028 Δ</span>
+</div>
+</div>
+</section>
+<!-- CENTRAL AI CORE VIEWPORT & COMMAND PROMPT CLUSTER -->
+<section class="border border-outline-variant/40 bg-[#0B1017]/80 backdrop-blur-xl rounded p-6 relative overflow-hidden shadow-[0_0_32px_rgba(39,211,255,0.06)]">
+<!-- Reticle corner notches -->
+<div class="hud-reticle-corner top-0 left-0 border-t border-l"></div>
+<div class="hud-reticle-corner top-0 right-0 border-t border-r"></div>
+<div class="hud-reticle-corner bottom-0 left-0 border-b border-l"></div>
+<div class="hud-reticle-corner bottom-0 right-0 border-b border-r"></div>
+<!-- Tech Coordinates Bar -->
+<div class="flex items-center justify-between text-label-sm font-label-sm text-outline border-b border-outline-variant/30 pb-3 mb-6 font-mono">
+<div class="flex items-center gap-2">
+<span class="text-primary tracking-widest">[SPATIAL_CORE_VIEWPORT]</span>
+<span class="text-outline-variant">|</span>
+<span>AZIMUTH: 341.2° // ELEV: +14.8°</span>
+</div>
+<div class="flex items-center gap-3">
+<span class="flex items-center gap-1 text-primary">
+<span class="w-1.5 h-1.5 rounded-full bg-primary-container"></span>
+            STATE: READY // CORE SYNCHRONIZED
+          </span>
+<span class="text-outline-variant">|</span>
+<span>THROUGHPUT: 4.8 TB/s</span>
+</div>
+</div>
+<!-- Concentric Orbital Animated AI Core -->
+<div class="relative w-full h-72 flex items-center justify-center my-2 select-none overflow-hidden">
+<!-- Center Glow Ambient -->
+<div class="absolute w-52 h-52 rounded-full bg-[radial-gradient(circle,rgba(39,211,255,0.18)_0%,rgba(62,43,104,0.15)_50%,transparent_75%)] animate-pulse-cyan"></div>
+<!-- Outer Ring 1: Technical Tick Ring -->
+<div class="absolute w-64 h-64 rounded-full border border-outline-variant/40 border-dashed animate-spin-slow"></div>
+<!-- Outer Ring 2: Segmented Arc Ring -->
+<div class="absolute w-56 h-56 rounded-full border-2 border-transparent border-t-primary-container/80 border-b-secondary/60 animate-spin-reverse-slow"></div>
+<!-- Ring 3: Concentric Thin Reticle -->
+<div class="absolute w-44 h-44 rounded-full border border-primary/30 flex items-center justify-center">
+<div class="absolute top-0 w-2 h-0.5 bg-primary"></div>
+<div class="absolute bottom-0 w-2 h-0.5 bg-primary"></div>
+<div class="absolute left-0 h-2 w-0.5 bg-primary"></div>
+<div class="absolute right-0 h-2 w-0.5 bg-primary"></div>
+</div>
+<!-- Ring 4: Counter Orbit Data Nodes -->
+<div class="absolute w-36 h-36 rounded-full border border-outline-variant/50 animate-spin-fast flex items-center justify-between">
+<div class="w-1.5 h-1.5 rounded-full bg-primary-container shadow-[0_0_8px_#27D3FF]"></div>
+<div class="w-1.5 h-1.5 rounded-full bg-secondary shadow-[0_0_8px_#d1bcff]"></div>
+</div>
+<!-- Core Center Nucleus -->
+<div class="relative z-10 w-24 h-24 rounded-full bg-[#06080C]/90 border border-primary-container/70 flex flex-col items-center justify-center shadow-[0_0_24px_rgba(39,211,255,0.35)] backdrop-blur-md">
+<span class="material-symbols-outlined text-primary text-[32px] animate-pulse" data-icon="grain">grain</span>
+<span class="text-label-sm font-label-sm text-primary tracking-widest font-mono text-[9px] mt-0.5">READY</span>
+</div>
+<!-- HUD Peripheral Angle Markings -->
+<div class="absolute inset-x-8 top-1/2 -translate-y-1/2 flex justify-between pointer-events-none text-label-sm font-label-sm font-mono text-outline/60">
+<div>// RHO: 0.812<br/>T-MINUS: 00:00:00</div>
+<div class="text-right">// SIGMA: 99.98%<br/>NEURAL_WEIGHT: 405B</div>
+</div>
+</div>
+<!-- COMMAND INPUT BUFFER -->
+<div class="mt-4 max-w-3xl mx-auto">
+<form onsubmit="event.preventDefault(); window.location.href='assistant.html';" class="relative flex items-center rounded border border-primary/50 bg-[#06080C]/95 p-1.5 shadow-[0_0_16px_rgba(39,211,255,0.12)] focus-within:border-primary-container focus-within:shadow-[0_0_24px_rgba(39,211,255,0.25)] transition-all">
+<div class="flex items-center pl-3 pr-2 text-primary font-mono text-label-md font-bold select-none">
+            &gt;_
+          </div>
+<input class="w-full bg-transparent border-0 text-on-surface placeholder:text-outline font-body-md text-body-md focus:ring-0 focus:outline-none px-2 py-1.5" placeholder="Ask JARVIS anything... [e.g., 'Optimize cluster memory', 'Compile threat log']" type="text"/>
+<!-- Waveform & Voice Trigger Cluster -->
+<div class="flex items-center gap-2 pr-1">
+<!-- Mini Reactive Waveform Bars -->
+<div class="hidden sm:flex items-center gap-0.5 h-5 px-2">
+<span class="w-0.5 bg-primary/70 rounded-full animate-[wave-bounce_1.2s_ease-in-out_infinite]"></span>
+<span class="w-0.5 bg-primary/90 rounded-full animate-[wave-bounce_0.8s_ease-in-out_infinite_0.2s]"></span>
+<span class="w-0.5 bg-primary-container rounded-full animate-[wave-bounce_1.5s_ease-in-out_infinite_0.4s]"></span>
+<span class="w-0.5 bg-primary/80 rounded-full animate-[wave-bounce_1s_ease-in-out_infinite_0.1s]"></span>
+<span class="w-0.5 bg-primary/60 rounded-full animate-[wave-bounce_0.9s_ease-in-out_infinite_0.3s]"></span>
+</div>
+<!-- Glowing Mic Button -->
+<button type="button" onclick="window.location.href='assistant.html'" class="relative p-2 rounded bg-primary-container/15 hover:bg-primary-container/25 text-primary border border-primary-container/60 transition-all duration-150 group" title="Hold for voice buffer input">
+<span class="material-symbols-outlined text-[18px] group-hover:scale-110 transition-transform" data-icon="mic">mic</span>
+<span class="absolute inset-0 rounded border border-primary-container animate-ping opacity-25"></span>
+</button>
+<!-- Execute Trigger Button -->
+<button type="submit" class="flex items-center gap-1.5 py-1.5 px-3.5 rounded bg-primary-container text-on-primary-container font-label-md font-label-md font-semibold hover:brightness-110 transition-all active:scale-95 shadow-[0_0_12px_rgba(39,211,255,0.4)]">
+<span>EXECUTE</span>
+<span class="material-symbols-outlined text-[16px]" data-icon="arrow_forward">arrow_forward</span>
+</button>
+</div>
+</form>
+<div class="flex items-center justify-between px-2 pt-2 text-label-sm font-label-sm text-outline font-mono">
+<span>SHORTCUTS: [CTRL+SPACE: Mic] [TAB: Autocomplete]</span>
+<span>PARALLEL RUNTIME: ACTIVE (8 WORKERS)</span>
+</div>
+</div>
+</section>
+<!-- AUTONOMOUS AGENT PIPELINE VISUALIZATION -->
+<section class="border border-outline-variant/40 bg-[#0B1017]/70 backdrop-blur-md rounded p-4 relative">
+<div class="hud-reticle-corner top-0 left-0 border-t border-l"></div>
+<div class="hud-reticle-corner top-0 right-0 border-t border-r"></div>
+<div class="flex items-center justify-between pb-3 border-b border-outline-variant/30 mb-3">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary text-[18px]" data-icon="account_tree">account_tree</span>
+<h2 class="text-label-md font-label-md text-on-surface font-semibold tracking-wide">AUTONOMOUS AGENT PIPELINE REASONING ENGINE</h2>
+</div>
+<span class="text-label-sm font-label-sm text-primary font-mono tracking-wider">PIPELINE: IDLE // READY FOR DISPATCH</span>
+</div>
+<!-- Node Horizontal Flow -->
+<div class="grid grid-cols-2 md:grid-cols-6 gap-3 relative">
+<!-- Node 1: Intent -->
+<div class="relative p-3 rounded bg-surface-container-lowest/80 border border-primary-container/50">
+<div class="flex items-center justify-between text-label-sm font-label-sm font-mono text-outline mb-1">
+<span>01 // INTAKE</span>
+<span class="w-2 h-2 rounded-full bg-primary-container shadow-[0_0_6px_#27D3FF]"></span>
+</div>
+<div class="text-headline-sm font-headline-sm text-primary font-semibold">Intent</div>
+<div class="text-label-sm font-label-sm text-on-surface-variant font-mono mt-1">Status: COMPLETED</div>
+</div>
+<!-- Node 2: Plan -->
+<div class="relative p-3 rounded bg-surface-container-lowest/80 border border-primary-container/50">
+<div class="flex items-center justify-between text-label-sm font-label-sm font-mono text-outline mb-1">
+<span>02 // SCHED</span>
+<span class="w-2 h-2 rounded-full bg-primary-container shadow-[0_0_6px_#27D3FF]"></span>
+</div>
+<div class="text-headline-sm font-headline-sm text-primary font-semibold">Plan</div>
+<div class="text-label-sm font-label-sm text-on-surface-variant font-mono mt-1">Status: COMPLETED</div>
+</div>
+<!-- Node 3: Tool -->
+<div class="relative p-3 rounded bg-surface-container-lowest/80 border border-primary/40">
+<div class="flex items-center justify-between text-label-sm font-label-sm font-mono text-outline mb-1">
+<span>03 // BIND</span>
+<span class="w-2 h-2 rounded-full bg-primary animate-pulse"></span>
+</div>
+<div class="text-headline-sm font-headline-sm text-on-surface font-semibold">Tool</div>
+<div class="text-label-sm font-label-sm text-primary font-mono mt-1">Status: STANDBY (12)</div>
+</div>
+<!-- Node 4: Execute -->
+<div class="relative p-3 rounded bg-surface-container-lowest/80 border border-outline-variant/40">
+<div class="flex items-center justify-between text-label-sm font-label-sm font-mono text-outline mb-1">
+<span>04 // FORK</span>
+<span class="w-2 h-2 rounded-full bg-outline"></span>
+</div>
+<div class="text-headline-sm font-headline-sm text-on-surface font-semibold">Execute</div>
+<div class="text-label-sm font-label-sm text-outline font-mono mt-1">Status: QUEUED</div>
+</div>
+<!-- Node 5: Verify -->
+<div class="relative p-3 rounded bg-surface-container-lowest/80 border border-outline-variant/40">
+<div class="flex items-center justify-between text-label-sm font-label-sm font-mono text-outline mb-1">
+<span>05 // AUDIT</span>
+<span class="w-2 h-2 rounded-full bg-outline"></span>
+</div>
+<div class="text-headline-sm font-headline-sm text-on-surface font-semibold">Verify</div>
+<div class="text-label-sm font-label-sm text-outline font-mono mt-1">Status: AWAITING</div>
+</div>
+<!-- Node 6: Respond -->
+<div class="relative p-3 rounded bg-surface-container-lowest/80 border border-outline-variant/40">
+<div class="flex items-center justify-between text-label-sm font-label-sm font-mono text-outline mb-1">
+<span>06 // OUTPUT</span>
+<span class="w-2 h-2 rounded-full bg-outline"></span>
+</div>
+<div class="text-headline-sm font-headline-sm text-on-surface font-semibold">Respond</div>
+<div class="text-label-sm font-label-sm text-outline font-mono mt-1">Status: AWAITING</div>
+</div>
+</div>
+</section>
+<!-- BENTO GRID SYSTEM PANELS (5 Core Modules) -->
+<div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+<!-- PANEL 1: SYSTEM STATUS -->
+<div class="border border-outline-variant/40 bg-[#0B1017]/70 backdrop-blur-md rounded p-4 flex flex-col justify-between relative">
+<div class="hud-reticle-corner top-0 left-0 border-t border-l"></div>
+<div class="hud-reticle-corner top-0 right-0 border-t border-r"></div>
+<div>
+<div class="flex items-center justify-between pb-3 border-b border-outline-variant/30 mb-4">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary text-[18px]" data-icon="monitor_heart">monitor_heart</span>
+<h3 class="text-label-md font-label-md text-on-surface font-semibold tracking-wide">SYSTEM STATUS</h3>
+</div>
+<span class="text-label-sm font-label-sm text-outline font-mono">DIAG_ID #8902</span>
+</div>
+<div class="space-y-3 font-mono text-label-sm font-label-sm">
+<!-- Item 1 -->
+<div class="flex items-center justify-between p-2 rounded bg-surface-container-lowest/60 border border-outline-variant/20">
+<span class="text-on-surface-variant flex items-center gap-2">
+<span class="w-1.5 h-1.5 rounded-full bg-primary-container"></span>
+                AI Core
+              </span>
+<span class="text-primary font-semibold tracking-wider">ONLINE</span>
+</div>
+<!-- Item 2 -->
+<div class="flex items-center justify-between p-2 rounded bg-surface-container-lowest/60 border border-outline-variant/20">
+<span class="text-on-surface-variant flex items-center gap-2">
+<span class="w-1.5 h-1.5 rounded-full bg-primary-container"></span>
+                Voice
+              </span>
+<span class="text-primary font-semibold tracking-wider">READY</span>
+</div>
+<!-- Item 3 -->
+<div class="flex items-center justify-between p-2 rounded bg-surface-container-lowest/60 border border-outline-variant/20">
+<span class="text-on-surface-variant flex items-center gap-2">
+<span class="w-1.5 h-1.5 rounded-full bg-primary-container"></span>
+                Memory
+              </span>
+<span class="text-primary font-semibold tracking-wider">CONNECTED</span>
+</div>
+<!-- Item 4 -->
+<div class="flex items-center justify-between p-2 rounded bg-surface-container-lowest/60 border border-outline-variant/20">
+<span class="text-on-surface-variant flex items-center gap-2">
+<span class="w-1.5 h-1.5 rounded-full bg-primary-container"></span>
+                Tools
+              </span>
+<span class="text-on-surface font-semibold tracking-wider">12 AVAILABLE</span>
+</div>
+<!-- Item 5 -->
+<div class="flex items-center justify-between p-2 rounded bg-surface-container-lowest/60 border border-outline-variant/20">
+<span class="text-on-surface-variant flex items-center gap-2">
+<span class="w-1.5 h-1.5 rounded-full bg-amber-400"></span>
+                Local Agent
+              </span>
+<span class="text-amber-300 font-semibold tracking-wider">OFFLINE (STANDBY)</span>
+</div>
+<!-- Item 6 -->
+<div class="flex items-center justify-between p-2 rounded bg-surface-container-lowest/60 border border-outline-variant/20">
+<span class="text-on-surface-variant flex items-center gap-2">
+<span class="w-1.5 h-1.5 rounded-full bg-primary-container"></span>
+                Database
+              </span>
+<span class="text-primary font-semibold tracking-wider">CONNECTED</span>
+</div>
+</div>
+</div>
+<div class="mt-4 pt-3 border-t border-outline-variant/30 flex items-center justify-between text-label-sm font-label-sm text-outline font-mono">
+<span>HOST: JARVIS-NODE-01</span>
+<span>UPTIME: 142h 19m</span>
+</div>
+</div>
+<!-- PANEL 2: ACTIVE TASKS -->
+<div class="border border-outline-variant/40 bg-[#0B1017]/70 backdrop-blur-md rounded p-4 flex flex-col justify-between relative">
+<div class="hud-reticle-corner top-0 left-0 border-t border-l"></div>
+<div class="hud-reticle-corner top-0 right-0 border-t border-r"></div>
+<div>
+<div class="flex items-center justify-between pb-3 border-b border-outline-variant/30 mb-4">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary text-[18px]" data-icon="task_alt">task_alt</span>
+<h3 class="text-label-md font-label-md text-on-surface font-semibold tracking-wide">ACTIVE TASKS</h3>
+</div>
+<span class="text-label-sm font-label-sm text-primary font-mono font-medium">3 IN FLIGHT</span>
+</div>
+<div class="space-y-4">
+<!-- Task 1 -->
+<div class="p-3 rounded bg-surface-container-lowest/60 border border-outline-variant/20 space-y-2">
+<div class="flex items-center justify-between">
+<span class="text-body-md font-body-md text-on-surface font-medium">Prepare DBMS revision</span>
+<span class="text-label-sm font-label-sm font-mono text-primary bg-primary/10 px-1.5 py-0.5 rounded border border-primary/30">AI WORKING</span>
+</div>
+<div class="w-full bg-surface-container-high rounded-full h-1.5 overflow-hidden">
+<div class="bg-primary-container h-1.5 rounded-full shadow-[0_0_8px_#27D3FF]" style="width: 72%"></div>
+</div>
+<div class="flex items-center justify-between text-label-sm font-label-sm font-mono text-outline">
+<span>Progress: 72%</span>
+<span>ETA: ~14m</span>
+</div>
+</div>
+<!-- Task 2 -->
+<div class="p-3 rounded bg-surface-container-lowest/60 border border-outline-variant/20 space-y-2">
+<div class="flex items-center justify-between">
+<span class="text-body-md font-body-md text-on-surface font-medium">Analyze Java project</span>
+<span class="text-label-sm font-label-sm font-mono text-secondary bg-secondary-container/30 px-1.5 py-0.5 rounded border border-secondary/30">WAITING FOR INPUT</span>
+</div>
+<div class="w-full bg-surface-container-high rounded-full h-1.5 overflow-hidden">
+<div class="bg-secondary h-1.5 rounded-full" style="width: 34%"></div>
+</div>
+<div class="flex items-center justify-between text-label-sm font-label-sm font-mono text-outline">
+<span>Progress: 34%</span>
+<span>Thread: PAUSED</span>
+</div>
+</div>
+<!-- Task 3 -->
+<div class="p-3 rounded bg-surface-container-lowest/60 border border-outline-variant/20 space-y-2">
+<div class="flex items-center justify-between">
+<span class="text-body-md font-body-md text-on-surface font-medium">Japanese N5 revision</span>
+<span class="text-label-sm font-label-sm font-mono text-outline bg-surface-container-high px-1.5 py-0.5 rounded border border-outline-variant/40">SCHEDULED</span>
+</div>
+<div class="w-full bg-surface-container-high rounded-full h-1.5 overflow-hidden">
+<div class="bg-outline h-1.5 rounded-full" style="width: 58%"></div>
+</div>
+<div class="flex items-center justify-between text-label-sm font-label-sm font-mono text-outline">
+<span>Progress: 58%</span>
+<span>Queue: 18:00 UTC</span>
+</div>
+</div>
+</div>
+</div>
+<div class="mt-4 pt-3 border-t border-outline-variant/30 flex items-center justify-between text-label-sm font-label-sm text-outline font-mono">
+<span>ACTIVE PIPELINE WORKERS: 03</span>
+<a class="text-primary hover:underline" href="tasks.html">MANAGE ALL →</a>
+</div>
+</div>
+<!-- PANEL 3: RECENT ACTIVITY HUD TIMELINE -->
+<div class="border border-outline-variant/40 bg-[#0B1017]/70 backdrop-blur-md rounded p-4 flex flex-col justify-between relative">
+<div class="hud-reticle-corner top-0 left-0 border-t border-l"></div>
+<div class="hud-reticle-corner top-0 right-0 border-t border-r"></div>
+<div>
+<div class="flex items-center justify-between pb-3 border-b border-outline-variant/30 mb-4">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary text-[18px]" data-icon="history">history</span>
+<h3 class="text-label-md font-label-md text-on-surface font-semibold tracking-wide">RECENT ACTIVITY HUD</h3>
+</div>
+<a href="activity.html" class="text-label-sm font-label-sm text-primary hover:underline font-mono">LIVE FEED →</a>
+</div>
+<div id="dashboard-activity-stream" class="space-y-3 font-mono text-label-sm font-label-sm">
+<div class="p-2.5 rounded bg-surface-container-lowest/60 border-l-2 border-primary border-t border-r border-b border-outline-variant/20 hover:bg-primary/5 transition-colors">
+<div class="flex items-center justify-between text-outline mb-0.5">
+<span class="text-primary font-semibold">13:42</span>
+<span class="text-[10px]">ANALYSIS_EVENT</span>
+</div>
+<div class="text-on-surface">JARVIS analyzed Java project repository AST trees.</div>
+</div>
+<div class="p-2.5 rounded bg-surface-container-lowest/60 border-l-2 border-primary-container border-t border-r border-b border-outline-variant/20 hover:bg-primary/5 transition-colors">
+<div class="flex items-center justify-between text-outline mb-0.5">
+<span class="text-primary-container font-semibold">13:37</span>
+<span class="text-[10px]">EXECUTION_SUCCESS</span>
+</div>
+<div class="text-on-surface">Task completed: DBMS flashcard synthesis matrix.</div>
+</div>
+<div class="p-2.5 rounded bg-surface-container-lowest/60 border-l-2 border-secondary border-t border-r border-b border-outline-variant/20 hover:bg-primary/5 transition-colors">
+<div class="flex items-center justify-between text-outline mb-0.5">
+<span class="text-secondary font-semibold">13:21</span>
+<span class="text-[10px]">VECTOR_SYNC</span>
+</div>
+<div class="text-on-surface">Memory updated: 14 new embeddings anchored to graph.</div>
+</div>
+<div class="p-2.5 rounded bg-surface-container-lowest/60 border-l-2 border-outline border-t border-r border-b border-outline-variant/20 hover:bg-primary/5 transition-colors">
+<div class="flex items-center justify-between text-outline mb-0.5">
+<span class="text-on-surface-variant font-semibold">13:05</span>
+<span class="text-[10px]">VOICE_AUDIO_IN</span>
+</div>
+<div class="text-on-surface">Voice command processed: Audio transcribed at 99.7% SNR.</div>
+</div>
+</div>
+</div>
+<div class="mt-4 pt-3 border-t border-outline-variant/30 flex items-center justify-between text-label-sm font-label-sm text-outline font-mono">
+<span>EVENT_STREAM: SYNCHRONIZED</span>
+<a href="activity.html" class="text-primary hover:underline">STREAM OK →</a>
+</div>
+</div>
+<!-- PANEL 4: JARVIS INSIGHT -->
+<div class="xl:col-span-2 border border-outline-variant/40 bg-[#0B1017]/70 backdrop-blur-md rounded p-4 relative flex flex-col justify-between">
+<div class="hud-reticle-corner top-0 left-0 border-t border-l"></div>
+<div class="hud-reticle-corner top-0 right-0 border-t border-r"></div>
+<div>
+<div class="flex items-center justify-between pb-3 border-b border-outline-variant/30 mb-4">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-secondary text-[18px]" data-icon="psychology">psychology</span>
+<h3 class="text-label-md font-label-md text-on-surface font-semibold tracking-wide">JARVIS ML COGNITIVE INSIGHT</h3>
+</div>
+<span class="px-2 py-0.5 rounded bg-secondary-container/40 border border-secondary/40 text-secondary text-label-sm font-label-sm font-mono">+24% activity trend</span>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-4 items-center">
+<div class="md:col-span-2 space-y-2">
+<h4 class="text-headline-sm font-headline-sm text-on-surface font-medium">Your Java practice has increased significantly this week.</h4>
+<p class="text-body-md font-body-md text-on-surface-variant">
+                Autonomous heuristic tracking detected a 24% surge in codebase comprehension sessions. JARVIS suggests compiling a targeted concurrency revision module before tomorrow’s scheduled sprint.
+              </p>
+<div class="flex items-center gap-2 pt-2">
+<button class="py-1 px-3 rounded bg-primary-container/15 hover:bg-primary-container/25 text-primary border border-primary-container/60 text-label-sm font-label-sm font-semibold tracking-wide transition-all">
+                  ACCEPT RECOMMENDATION
+                </button>
+<button class="py-1 px-3 rounded bg-surface-container-high hover:bg-surface-container-highest text-on-surface-variant text-label-sm font-label-sm transition-all">
+                  DISMISS
+                </button>
+</div>
+</div>
+<!-- Stylized HUD ML Sparkline Visual -->
+<div class="p-3 rounded bg-surface-container-lowest/80 border border-outline-variant/30 font-mono text-label-sm font-label-sm">
+<div class="text-outline text-[10px] flex justify-between mb-2">
+<span>METRIC: REASONING_LOAD</span>
+<span class="text-primary">VAL: 84.2</span>
+</div>
+<!-- High-tech SVG sparkline -->
+<svg class="w-full h-16 stroke-primary-container fill-none" stroke-width="2" viewbox="0 0 200 60">
+<path d="M 0,45 Q 25,50 50,30 T 100,35 T 150,15 T 200,8"></path>
+<path class="fill-primary-container/10 stroke-none" d="M 0,45 Q 25,50 50,30 T 100,35 T 150,15 T 200,8 L 200,60 L 0,60 Z"></path>
+<!-- Grid dots -->
+<circle class="fill-primary" cx="50" cy="30" r="2"></circle>
+<circle class="fill-primary" cx="100" cy="35" r="2"></circle>
+<circle class="fill-primary" cx="150" cy="15" r="2"></circle>
+<circle class="fill-primary-container shadow-[0_0_6px_#27D3FF]" cx="200" cy="8" r="3"></circle>
+</svg>
+<div class="flex justify-between text-[9px] text-outline mt-1 border-t border-outline-variant/30 pt-1">
+<span>MON</span>
+<span>WED</span>
+<span>FRI</span>
+<span class="text-primary font-bold">TODAY</span>
+</div>
+</div>
+</div>
+</div>
+<div class="mt-4 pt-3 border-t border-outline-variant/30 flex items-center justify-between text-label-sm font-label-sm text-outline font-mono">
+<span>MODEL: COGNITION-LLM-4.2 // HEURISTIC ACCURACY: 98.4%</span>
+<span>AUTONOMOUS INFERENCE: ACTIVE</span>
+</div>
+</div>
+<!-- PANEL 5: QUICK ACTIONS COMMAND DOCK -->
+<div class="border border-outline-variant/40 bg-[#0B1017]/70 backdrop-blur-md rounded p-4 flex flex-col justify-between relative">
+<div class="hud-reticle-corner top-0 left-0 border-t border-l"></div>
+<div class="hud-reticle-corner top-0 right-0 border-t border-r"></div>
+<div>
+<div class="flex items-center justify-between pb-3 border-b border-outline-variant/30 mb-4">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary text-[18px]" data-icon="terminal">terminal</span>
+<h3 class="text-label-md font-label-md text-on-surface font-semibold tracking-wide">QUICK ACTIONS DOCK</h3>
+</div>
+<span class="text-label-sm font-label-sm text-outline font-mono">6 ACTIONS</span>
+</div>
+<div class="grid grid-cols-2 gap-2.5">
+<button class="p-2.5 rounded bg-surface-container-lowest/80 border border-outline-variant/40 hover:border-primary/60 hover:bg-primary/5 text-left transition-all duration-150 group">
+<span class="material-symbols-outlined text-primary text-[20px] group-hover:scale-110 transition-transform block mb-1" data-icon="filter_center_focus">filter_center_focus</span>
+<span class="text-label-sm font-label-sm text-on-surface font-semibold block">Start Focus Session</span>
+<span class="text-[10px] text-outline font-mono">POMODORO 45M</span>
+</button>
+<button class="p-2.5 rounded bg-surface-container-lowest/80 border border-outline-variant/40 hover:border-primary/60 hover:bg-primary/5 text-left transition-all duration-150 group">
+<span class="material-symbols-outlined text-primary text-[20px] group-hover:scale-110 transition-transform block mb-1" data-icon="file_open">file_open</span>
+<span class="text-label-sm font-label-sm text-on-surface font-semibold block">Analyze File</span>
+<span class="text-[10px] text-outline font-mono">AST PARSE</span>
+</button>
+<button onclick="window.location.href='projects.html'" class="p-2.5 rounded bg-surface-container-lowest/80 border border-outline-variant/40 hover:border-primary/60 hover:bg-primary/5 text-left transition-all duration-150 group">
+<span class="material-symbols-outlined text-primary text-[20px] group-hover:scale-110 transition-transform block mb-1" data-icon="folder_managed">folder_managed</span>
+<span class="text-label-sm font-label-sm text-on-surface font-semibold block">Open Project</span>
+<span class="text-[10px] text-outline font-mono">JAVA / DBMS</span>
+</button>
+<button onclick="window.location.href='tasks.html'" class="p-2.5 rounded bg-surface-container-lowest/80 border border-outline-variant/40 hover:border-primary/60 hover:bg-primary/5 text-left transition-all duration-150 group">
+<span class="material-symbols-outlined text-primary text-[20px] group-hover:scale-110 transition-transform block mb-1" data-icon="add_task">add_task</span>
+<span class="text-label-sm font-label-sm text-on-surface font-semibold block">Create Task</span>
+<span class="text-[10px] text-outline font-mono">NEW INTAKE</span>
+</button>
+<button onclick="window.location.href='assistant.html'" class="p-2.5 rounded bg-surface-container-lowest/80 border border-primary-container/40 hover:border-primary-container hover:bg-primary-container/10 text-left transition-all duration-150 group">
+<span class="material-symbols-outlined text-primary-container text-[20px] group-hover:scale-110 transition-transform block mb-1" data-icon="smart_toy">smart_toy</span>
+<span class="text-label-sm font-label-sm text-primary font-semibold block">Ask JARVIS</span>
+<span class="text-[10px] text-primary/80 font-mono">NATURAL QUERY</span>
+</button>
+<button class="p-2.5 rounded bg-surface-container-lowest/80 border border-outline-variant/40 hover:border-primary/60 hover:bg-primary/5 text-left transition-all duration-150 group">
+<span class="material-symbols-outlined text-primary text-[20px] group-hover:scale-110 transition-transform block mb-1" data-icon="memory">memory</span>
+<span class="text-label-sm font-label-sm text-on-surface font-semibold block">View Memory</span>
+<span class="text-[10px] text-outline font-mono">VECTOR GRAPH</span>
+</button>
+</div>
+</div>
+<div class="mt-4 pt-3 border-t border-outline-variant/30 flex items-center justify-between text-label-sm font-label-sm text-outline font-mono">
+<span>MACRO ENGINE: V2.1</span>
+<span class="text-primary font-semibold">ALL READY</span>
+</div>
+</div>
+</div>
+<!-- COMMAND FOOTER STATUS STRIP -->
+<footer class="border-t border-outline-variant/30 pt-4 flex flex-col md:flex-row items-center justify-between gap-3 text-label-sm font-label-sm text-outline font-mono">
+<div class="flex items-center gap-3">
+<span class="flex items-center gap-1.5 text-primary">
+<span class="w-1.5 h-1.5 rounded-full bg-primary-container"></span>
+          AUTONOMOUS OS KERNEL: ACTIVE
+        </span>
+<span class="text-outline-variant">|</span>
+<span>LATENCY: 12ms</span>
+<span class="text-outline-variant">|</span>
+<span>SECURITY LEVEL: L4 RESTRICTED</span>
+</div>
+<div>
+        JARVIS INTELLIGENCE INTERFACE © 2025 // ALL TELEMETRY CHANNELS ENCRYPTED
+      </div>
+</footer>
+</main>
+<!-- LIVE SCRIPT FOR REAL-TIME TELEMETRY CLOCK & LIVE ACTIVITY -->
+<script type="module" src="src/services/api.js"></script>
+<script>
+    function updateClock() {
+      const now = new Date();
+      const hours = String(now.getUTCHours()).padStart(2, '0');
+      const minutes = String(now.getUTCMinutes()).padStart(2, '0');
+      const seconds = String(now.getUTCSeconds()).padStart(2, '0');
+      const el = document.getElementById('hud-utc-clock');
+      if (el) {
+        el.textContent = `${hours}:${minutes}:${seconds}`;
+      }
+    }
+    setInterval(updateClock, 1000);
+    updateClock();
+
+    async function loadDashboardActivity() {
+      const stream = document.getElementById('dashboard-activity-stream');
+      if (!stream || !window.jarvisApi) return;
+      try {
+        const activities = await window.jarvisApi.getActivities(4);
+        if (activities && activities.length > 0) {
+          stream.innerHTML = activities.map(a => `
+            <div class="p-2.5 rounded bg-surface-container-lowest/60 border-l-2 border-primary border-t border-r border-b border-outline-variant/20 hover:bg-primary/5 transition-colors">
+              <div class="flex items-center justify-between text-outline mb-0.5">
+                <span class="text-primary font-semibold font-mono">${a.time || (a.timestamp ? a.timestamp.slice(11, 16) : 'Now')}</span>
+                <span class="text-[10px] uppercase font-mono">${a.event_type || 'SYS'}</span>
+              </div>
+              <div class="text-on-surface font-mono text-xs">${a.title}: ${a.description}</div>
+            </div>
+          `).join('');
+        }
+      } catch (e) {
+        console.warn("Dashboard activity stream offline:", e);
+      }
+    }
+    window.addEventListener('DOMContentLoaded', loadDashboardActivity);
+  </script>
+</body>
+</html>
