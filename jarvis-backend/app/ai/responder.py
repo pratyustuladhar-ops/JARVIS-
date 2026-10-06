@@ -44,11 +44,15 @@ class ResponseGenerator:
                     return "I couldn't reliably read the text in that image."
                 if "vision" in err_str or "capture" in err_str:
                     return "I couldn't complete that visual action."
+                if res.tool_name == "local_open_application":
+                    return str(res.error)
                 return f"I encountered an error executing this request: {res.error}"
 
         # If verification failed
         for v in verification_results:
             if v.status == "FAILED":
+                if v.tool == "local_open_application":
+                    return v.detail if "could not be opened" in v.detail.lower() else f"The requested application could not be opened: {v.detail}"
                 if "text" in v.detail.lower() or "read" in v.detail.lower():
                     return "I couldn't reliably read the text in that image."
                 return f"Action executed, but database verification failed: {v.detail}"

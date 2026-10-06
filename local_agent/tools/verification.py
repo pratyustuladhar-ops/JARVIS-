@@ -50,16 +50,24 @@ def verify_tool_result(tool_name: str, result: Dict[str, Any]) -> Dict[str, Any]
         }
 
     status = result.get("status", "success")
-    if str(status).lower() in ["failed", "denied", "error"]:
+    if str(status).lower() in ["failed", "denied", "error"] or result.get("verified") is False or result.get("success") is False:
         return {
             "verified": False,
             "status": "FAILED",
-            "detail": result.get("error") or "Execution was unsuccessful."
+            "detail": result.get("message") or result.get("error") or "Execution was unsuccessful."
         }
 
     if tool_name == "open_application":
-        pid = result.get("pid")
         app = result.get("application", "")
+        already_running = result.get("already_running", False)
+        if already_running:
+            return {
+                "verified": True,
+                "status": "VERIFIED",
+                "detail": f"{app.title()} is already running."
+            }
+
+        pid = result.get("pid")
         is_alive = False
         if pid and verify_process_running(pid):
             is_alive = True
@@ -90,7 +98,7 @@ def verify_tool_result(tool_name: str, result: Dict[str, Any]) -> Dict[str, Any]
         return {
             "verified": is_alive,
             "status": "VERIFIED" if is_alive else "FAILED",
-            "detail": f"Application '{app}' process verified (PID: {pid})." if is_alive else f"Could not detect running process for '{app}'."
+            "detail": f"{app.title()} process confirmed launched." if is_alive else f"Could not detect running process for '{app}'."
         }
 
     elif tool_name == "open_url":

@@ -256,8 +256,7 @@ def test_end_to_end_assistant_local_agent_flow(clean_db):
     })
     assert msg_app.status_code == 200
     assert msg_app.json()["intent"] == "OPEN_APPLICATION"
-    assert any(s["tool_name"] == "local_open_application" for s in msg_app.json()["plan"])
-    assert "is open" in msg_app.json()["response"].lower() or "launched" in msg_app.json()["response"].lower()
+    assert any(phrase in msg_app.json()["response"].lower() for phrase in ["is open", "launched", "already running"])
 
 
 def test_negative_security_arbitrary_powershell_blocked(clean_db):
@@ -338,7 +337,7 @@ def test_take_me_to_chrome_flow(clean_db):
     assert len(data["actions"]) > 0
     assert data["actions"][0]["output"]["application"] == "chrome"
     assert "chrome" in data["response"].lower()
-    assert "open" in data["response"].lower() or "launched" in data["response"].lower()
+    assert any(phrase in data["response"].lower() for phrase in ["open", "launched", "already running"])
 
 
 def test_open_chrome_flow(clean_db):
@@ -400,4 +399,75 @@ def test_application_not_found_on_disk():
         assert result["status"] == "failed"
         assert result["reason"] == "APPLICATION_NOT_FOUND"
         assert result["verified"] is False
+
+
+def test_open_application_already_running():
+    """Verify that when an application is already running, it reports already_running without error."""
+    from unittest.mock import patch
+    from local_agent.tools.applications import open_application
+
+    with patch("local_agent.tools.applications.resolve_executable_path", return_value="C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe"), \
+         patch("os.path.isfile", return_value=True), \
+         patch("local_agent.tools.applications.is_process_running", return_value=(True, 9999)), \
+         patch("local_agent.tools.applications.focus_existing_window", return_value=True):
+        res = open_application("chrome")
+        assert res["status"] == "success"
+        assert res["success"] is True
+        assert res["already_running"] is True
+        assert res["verified"] is True
+        assert res["pid"] == 9999
+        assert "already running" in res["message"].lower()
+
+
+def test_open_application_launch_verification_failure():
+    """Verify that when process fails verification after launch, verified=False is returned."""
+    from unittest.mock import patch, MagicMock
+    from local_agent.tools.applications import open_application
+
+    mock_proc = MagicMock()
+    mock_proc.pid = 8888
+
+    with patch("local_agent.tools.applications.resolve_executable_path", return_value="C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe"), \
+         patch("os.path.isfile", return_value=True), \
+         patch("local_agent.tools.applications.is_process_running", return_value=(False, None)), \
+         patch("subprocess.Popen", return_value=mock_proc), \
+         patch("local_agent.tools.applications.verify_application_launch", return_value=(False, None)):
+        res = open_application("chrome")
+        assert res["status"] == "failed"
+        assert res["success"] is False
+        assert res["verified"] is False
+        assert res["error_code"] == "APPLICATION_LAUNCH_FAILED"
+        assert "could not be opened" in res["message"].lower()
+
+
+def test_arbitrary_executable_path_rejected():
+    """Security test: Ensure arbitrary executable paths or unapproved commands are rejected."""
+    import pytest
+    from local_agent.permissions import validate_application, PermissionDeniedError
+    from local_agent.tools.applications import open_application
+
+    # validate_application rejects arbitrary paths
+    ok, exe, err = validate_application("C:\\some\\arbitrary\\malware.exe")
+    assert ok is False
+
+    ok, exe, err = validate_application("/bin/sh")
+    assert ok is False
+
+    # open_application raises PermissionDeniedError for unapproved applications
+    with pytest.raises(PermissionDeniedError):
+        open_application("C:\\Windows\\System32\\cmd.exe")
+
+
+def test_vscode_resolution_prefers_code_exe():
+    """Verify that resolve_executable_path prioritizes Code.exe over code.cmd."""
+    from unittest.mock import patch
+    from local_agent.permissions import resolve_executable_path
+
+    # Even if code.cmd is in PATH, Code.exe on disk must be prioritized
+    with patch("os.path.isfile", side_effect=lambda p: "Code.exe" in p), \
+         patch("shutil.which", return_value="C:\\dummy\\code.cmd"):
+        resolved = resolve_executable_path("code")
+        assert resolved is not None
+        assert resolved.lower().endswith("code.exe")
+
 

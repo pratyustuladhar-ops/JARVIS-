@@ -379,9 +379,10 @@ class LocalOpenApplicationTool(BaseAgentTool):
         if not app_name:
             raise ValueError("Parameter 'application' is required.")
         res = local_agent_service.execute_tool(db, "open_application", {"application": app_name})
-        if res.status != "SUCCESS":
-            raise RuntimeError(res.error or f"Failed to launch '{app_name}'")
-        return res.output or {"status": "success", "application": app_name}
+        if res.status != "SUCCESS" or not res.verified:
+            err_msg = res.error or res.detail or f"{app_name.title()} could not be opened."
+            raise RuntimeError(err_msg)
+        return res.output or {"status": "success", "application": app_name, "verified": True}
 
 
 class LocalOpenUrlTool(BaseAgentTool):

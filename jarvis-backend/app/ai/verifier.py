@@ -105,20 +105,22 @@ class VerificationEngine:
 
         # Verify Windows Local Agent tools
         if tool_name == "local_open_application":
-            if isinstance(output, dict) and (output.get("status") == "failed" or output.get("verified") is False):
+            app = requested_params.get("application", "Application")
+            if isinstance(output, dict) and (output.get("status") == "failed" or output.get("verified") is False or output.get("success") is False):
                 return VerificationResult(
                     status="FAILED",
                     tool=tool_name,
                     entity_id=None,
-                    detail=output.get("error") or "Application process launch verification failed."
+                    detail=output.get("message") or output.get("error") or f"{app.title()} could not be opened."
                 )
             pid = output.get("pid") if isinstance(output, dict) else None
-            app = requested_params.get("application", "Application")
+            already_running = output.get("already_running") if isinstance(output, dict) else False
+            detail_msg = f"{app.title()} is already running." if already_running else f"{app.title()} process confirmed launched."
             return VerificationResult(
                 status="VERIFIED",
                 tool=tool_name,
                 entity_id=pid,
-                detail=f"{app.title()} process confirmed launched."
+                detail=detail_msg
             )
 
         if tool_name == "local_open_url":

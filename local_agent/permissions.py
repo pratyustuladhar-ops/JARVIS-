@@ -62,11 +62,15 @@ def validate_application(app_name: str) -> Tuple[bool, Optional[str], Optional[s
     if not app_name:
         return False, None, "Application name cannot be empty."
 
-    norm = app_name.lower().strip()
+    # Reject user-supplied arbitrary paths or directory traversals
+    if "/" in app_name or "\\" in app_name:
+        return False, None, f"Application '{app_name}' is not in the approved allowlist."
+
+    norm = app_name.lower().strip().rstrip(".?!,:;")
     if norm in ALLOWED_APPLICATIONS:
         return True, ALLOWED_APPLICATIONS[norm], None
 
-    # Handle cases like "code" for VS Code
+    # Handle cases like "code" for VS Code or whitespace variations
     for alias, exe in ALLOWED_APPLICATIONS.items():
         if norm == alias or norm.replace(" ", "") == alias:
             return True, exe, None
@@ -77,25 +81,33 @@ def validate_application(app_name: str) -> Tuple[bool, Optional[str], Optional[s
 def resolve_executable_path(executable: str) -> Optional[str]:
     """
     Verifies that the configured executable exists on the Windows host.
-    Checks system PATH and approved candidate standard install locations.
+    Prioritizes approved standard install locations, then checks PATH for approved executables.
     Returns resolved path if found, or None if not installed (APPLICATION_NOT_FOUND).
     """
     if not executable:
         return None
 
-    # Check direct executable or PATH
-    found = shutil.which(executable)
-    if found:
-        return found
-
     # Check candidate paths for this allowlisted executable
     candidates = APPLICATION_CANDIDATE_PATHS.get(executable, [executable])
+
+    # 1. Prioritize approved standard installation paths on disk
     for cand in candidates:
-        if os.path.isfile(cand):
-            return cand
-        found_cand = shutil.which(cand)
-        if found_cand:
-            return found_cand
+        cand_expanded = os.path.expandvars(cand)
+        if os.path.isabs(cand_expanded) and os.path.isfile(cand_expanded):
+            return os.path.abspath(cand_expanded)
+
+    # 2. Check system PATH for approved .exe binaries
+    for cand in candidates:
+        if cand.lower().endswith(".exe"):
+            found = shutil.which(cand)
+            if found and os.path.isfile(found):
+                return os.path.abspath(found)
+
+    # 3. Check any remaining candidates in PATH (e.g. code.cmd)
+    for cand in candidates:
+        found = shutil.which(cand)
+        if found and os.path.isfile(found):
+            return os.path.abspath(found)
 
     return None
 

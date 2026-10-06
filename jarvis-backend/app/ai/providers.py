@@ -95,6 +95,8 @@ class MockAIProvider(BaseAIProvider):
             # Windows Local Agent Tools
             if tool_name == "local_open_application" and status == "SUCCESS":
                 app_name = output.get("application", "Application") if isinstance(output, dict) else "Application"
+                if isinstance(output, dict) and output.get("already_running"):
+                    return f"{app_name.title()} is already running."
                 return f"{app_name.title()} is open."
 
             if tool_name == "local_open_url" and status == "SUCCESS":

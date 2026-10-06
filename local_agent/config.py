@@ -51,22 +51,27 @@ APPLICATION_CANDIDATE_PATHS: Dict[str, list] = {
     "code": [
         os.path.expandvars(r"%LOCALAPPDATA%\Programs\Microsoft VS Code\Code.exe"),
         r"C:\Program Files\Microsoft VS Code\Code.exe",
+        r"C:\Program Files (x86)\Microsoft VS Code\Code.exe",
         os.path.expandvars(r"%LOCALAPPDATA%\Programs\Microsoft VS Code\bin\code.cmd"),
+        "Code.exe",
         "code.cmd",
         "code",
     ],
     "notepad.exe": [
-        "notepad.exe",
         r"C:\Windows\System32\notepad.exe",
         r"C:\Windows\notepad.exe",
+        os.path.expandvars(r"%LOCALAPPDATA%\Microsoft\WindowsApps\notepad.exe"),
+        "notepad.exe",
     ],
     "calc.exe": [
-        "calc.exe",
         r"C:\Windows\System32\calc.exe",
+        os.path.expandvars(r"%LOCALAPPDATA%\Microsoft\WindowsApps\calc.exe"),
+        "calc.exe",
     ],
     "explorer.exe": [
-        "explorer.exe",
         r"C:\Windows\explorer.exe",
+        r"C:\Windows\System32\explorer.exe",
+        "explorer.exe",
     ],
     "msedge.exe": [
         r"C:\Program Files\Microsoft\Edge\Application\msedge.exe",
@@ -74,9 +79,20 @@ APPLICATION_CANDIDATE_PATHS: Dict[str, list] = {
         "msedge.exe",
     ],
     "wt.exe": [
-        "wt.exe",
         os.path.expandvars(r"%LOCALAPPDATA%\Microsoft\WindowsApps\wt.exe"),
+        "wt.exe",
     ],
+}
+
+# Expected running process image names for process table verification
+APPLICATION_PROCESS_NAMES: Dict[str, list] = {
+    "chrome": ["chrome.exe"],
+    "code": ["code.exe"],
+    "notepad.exe": ["notepad.exe"],
+    "calc.exe": ["calculatorapp.exe", "calc.exe", "calculator.exe"],
+    "explorer.exe": ["explorer.exe"],
+    "msedge.exe": ["msedge.exe"],
+    "wt.exe": ["windowsterminal.exe", "wt.exe"],
 }
 
 # Strict Filesystem Directory Allowlist (resolves to user directory roots only)

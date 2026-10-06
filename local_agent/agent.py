@@ -145,14 +145,14 @@ class WindowsLocalAgent:
 
             # 4. Result Verification
             verif = verify_tool_result(tool_name, raw_result if isinstance(raw_result, dict) else {"status": "success"})
-            if isinstance(raw_result, dict) and raw_result.get("status") == "failed":
+            if isinstance(raw_result, dict) and (raw_result.get("status") == "failed" or raw_result.get("verified") is False or raw_result.get("success") is False):
                 return {
                     "status": "FAILED",
                     "tool": tool_name,
                     "output": raw_result,
                     "verified": False,
                     "detail": verif.get("detail", "Execution reported failure."),
-                    "error": raw_result.get("error") or raw_result.get("reason") or "Execution failed."
+                    "error": raw_result.get("error") or raw_result.get("message") or raw_result.get("reason") or "Execution failed."
                 }
 
             return {
