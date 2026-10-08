@@ -143,5 +143,13 @@
 
   {"text": "open folder downloads", "intent": "OPEN_FOLDER"},
   {"text": "open my downloads folder", "intent": "OPEN_FOLDER"},
-  {"text": "open desktop folder", "intent": "OPEN_FOLDER"}
+  {"text": "open desktop folder", "intent": "OPEN_FOLDER"},
+
+  {"text": "open chrome and open youtube", "intent": "MULTI_STEP_COMMAND"},
+  {"text": "open chrome then open youtube", "intent": "MULTI_STEP_COMMAND"},
+  {"text": "open chrome and edge", "intent": "MULTI_STEP_COMMAND"},
+  {"text": "open notepad and calculator", "intent": "MULTI_STEP_COMMAND"},
+  {"text": "open chrome then open youtube then open spotify", "intent": "MULTI_STEP_COMMAND"},
+  {"text": "open vs code then open my project folder", "intent": "MULTI_STEP_COMMAND"},
+  {"text": "create a task to study dbms and open vs code", "intent": "MULTI_STEP_COMMAND"}
 ]

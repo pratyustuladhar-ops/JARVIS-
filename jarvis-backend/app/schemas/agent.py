@@ -53,6 +53,12 @@ class AgentMessageResponse(BaseModel):
     conversation_id: Optional[int] = None
     execution_time_ms: float = 0.0
     agent_state: str = "RESPONDING"  # THINKING, EXECUTING, VERIFYING, RESPONDING, ERROR
+    plan_id: Optional[str] = None
+    success: Optional[bool] = None
+    completed_steps: Optional[int] = None
+    total_steps: Optional[int] = None
+    failed_step: Optional[int] = None
+    steps: Optional[List[Dict[str, Any]]] = None
 
 
 class IntentResult(BaseModel):

@@ -861,6 +861,15 @@
         // Collapsible execution trace if verified or plan steps exist
         const hasVerification = agentRes && agentRes.verification && agentRes.verification.length > 0;
         const verifDetail = hasVerification ? agentRes.verification.map(v => `${v.tool}: ${v.status} (${v.detail || 'Verified'})`).join('; ') : '';
+        const hasMultiPlan = agentRes && agentRes.plan && agentRes.plan.length > 1;
+        const planBadges = hasMultiPlan ? agentRes.plan.map((s, idx) => {
+          const stepNum = s.step_number || (idx + 1);
+          const tool = s.tool_name || s.tool || 'Action';
+          const stat = s.status || 'DONE';
+          const isOk = stat === 'VERIFIED' || stat === 'COMPLETED';
+          const badgeClass = isOk ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30' : (stat === 'SKIPPED' ? 'bg-outline/10 text-outline border-outline/30' : 'bg-red-500/10 text-red-400 border-red-500/30');
+          return `<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-mono border ${badgeClass}">Step ${stepNum}/${agentRes.plan.length}: ${tool} [${stat}]</span>`;
+        }).join(' ') : '';
 
         respCard.innerHTML = `
           <div class="max-w-2xl w-full bg-[#0A0E16]/90 border border-primary/30 rounded-xl p-4 shadow-[0_4px_20px_rgba(0,0,0,0.5)]">
@@ -877,6 +886,13 @@
             <p class="text-sm md:text-base text-on-surface leading-relaxed whitespace-pre-line mb-2">
               ${responseText}
             </p>
+
+            ${hasMultiPlan ? `
+              <div class="mt-2.5 pt-2 border-t border-outline-variant/20 flex flex-wrap gap-1.5 items-center">
+                <span class="text-[10px] font-mono text-outline uppercase tracking-wider mr-1">Steps:</span>
+                ${planBadges}
+              </div>
+            ` : ''}
 
             ${hasVerification ? `
               <div class="mt-2 pt-2 border-t border-outline-variant/20 flex items-center gap-1.5 text-xs font-mono text-emerald-400">

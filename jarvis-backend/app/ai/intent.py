@@ -52,15 +52,16 @@ class IntentDetector:
         "SCREEN_CONTEXT_REQUEST",
         "BLOCKED_COMMAND",
         "GENERAL_COMMAND",
+        "MULTI_STEP_COMMAND",
         "UNKNOWN"
     ]
 
     @staticmethod
     def normalize_query(text: str) -> str:
         s = text.strip()
-        # Remove polite / conversational leading filler phrases
+        # Remove polite / conversational leading filler phrases and 'now'
         s = re.sub(
-            r"^(?:(?:can|could|would)\s+you\s+(?:please\s+)?|(?:please\s+)|(?:jarvis,?\s*)|(?:hey\s+jarvis,?\s*)|(?:hi\s+jarvis,?\s*)|(?:ok\s+jarvis,?\s*))",
+            r"^(?:(?:can|could|would)\s+you\s+(?:please\s+)?|(?:please\s+)|(?:jarvis,?\s*)|(?:hey\s+jarvis,?\s*)|(?:hi\s+jarvis,?\s*)|(?:ok\s+jarvis,?\s*)|(?:now\s+))",
             "",
             s,
             flags=re.I
@@ -91,8 +92,9 @@ class IntentDetector:
             (re.compile(r"^(?:jarvis,?\s*)?(?:go to|take me to|open)\s+(youtube|google|github|reddit)[\s?!.]*$", re.I), "OPEN_URL", 0.98),
 
             # Windows Local Agent: Open Folder
-            (re.compile(r"^(?:jarvis,?\s*)?(?:open|launch)\s+(?:my\s+)?(?:folder\s+|directory\s+)?(downloads|documents|desktop)\s+(?:folder|directory)[\s?!.]*$", re.I), "OPEN_FOLDER", 0.98),
-            (re.compile(r"^(?:jarvis,?\s*)?(?:open|view)\s+(?:my\s+)?(downloads|documents|desktop)\s+folder[\s?!.]*$", re.I), "OPEN_FOLDER", 0.98),
+            (re.compile(r"^(?:jarvis,?\s*)?(?:open|launch)\s+(?:my\s+)?(?:folder\s+|directory\s+)?(downloads|documents|desktop|project|project folder|my project)\s*(?:folder|directory)?[\s?!.]*$", re.I), "OPEN_FOLDER", 0.98),
+            (re.compile(r"^(?:jarvis,?\s*)?(?:open|view)\s+(?:my\s+)?(downloads|documents|desktop|project|my project)\s+folder[\s?!.]*$", re.I), "OPEN_FOLDER", 0.98),
+            (re.compile(r"^(?:jarvis,?\s*)?open\s+(?:my\s+)?project(?:\s+folder)?[\s?!.]*$", re.I), "OPEN_FOLDER", 0.98),
 
             # Windows Local Agent: Open Application (Allowlisted & candidate apps)
             (re.compile(r"^(?:jarvis,?\s*)?(?:open|launch|start|run|take me to|bring me to|switch to)\s+(?:the\s+)?(?:application\s+|app\s+|program\s+)?(vscode|vs code|visual studio code|code|chrome|google chrome|notepad|calculator|calc|explorer|file explorer|terminal|windows terminal|edge|microsoft edge|spotify)$", re.I), "OPEN_APPLICATION", 0.98),
@@ -292,6 +294,8 @@ class IntentDetector:
                 entities["folder_path"] = "Downloads"
             elif "document" in lower:
                 entities["folder_path"] = "Documents"
+            elif "project" in lower:
+                entities["folder_path"] = "Documents"
             else:
                 entities["folder_path"] = "Desktop"
 
@@ -334,6 +338,31 @@ class IntentDetector:
                 entities={},
                 strategy_used="rule",
                 raw_input=user_message
+            )
+
+        # Stage 0: Security check for explicit arbitrary shell execution attempts
+        for pattern, rule_intent, rule_conf in self.rules[:2]:
+            if pattern.search(cleaned) or (norm_msg and pattern.search(norm_msg)):
+                logger.warning(f"[INTENT] Security block triggered: '{rule_intent}'")
+                return IntentDetectionResult(
+                    intent="BLOCKED_COMMAND",
+                    confidence=0.99,
+                    entities={"command": cleaned},
+                    strategy_used="rule",
+                    raw_input=cleaned
+                )
+
+        # Stage 0.5: Multi-Step Agent Command Decomposition (Step 9.1)
+        from app.ai.decomposer import multi_step_decomposer
+        sub_commands = multi_step_decomposer.decompose(norm_msg or cleaned)
+        if len(sub_commands) > 1:
+            logger.info(f"[INTENT] Multi-step command detected ({len(sub_commands)} steps): {sub_commands}")
+            return IntentDetectionResult(
+                intent="MULTI_STEP_COMMAND",
+                confidence=0.98,
+                entities={"sub_commands": sub_commands, "steps_count": len(sub_commands)},
+                strategy_used="multi_step_decomposition",
+                raw_input=cleaned
             )
 
         # Stage 1: Deterministic Rule Check (tests both normalized and raw input)

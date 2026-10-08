@@ -345,6 +345,61 @@ python -m pytest -v
 
 ---
 
+## 7.1 Step 9.1 — Multi-Step AI Agent Planner
+
+Step 9.1 upgrades JARVIS from individual command execution to safe, structured, sequential multi-step task planning and execution.
+
+### Architecture Flow:
+```text
+USER
+ ↓
+Intent Detection (Hybrid: Rule + MultiStepDecomposer + ML + Fallback)
+ ↓
+Context Retrieval (Tasks, Projects, Memories, Settings)
+ ↓
+MULTI-STEP PLANNER (Pydantic Dependency Graph & Tool Allowlist)
+ ↓
+Structured Execution Plan (PlanStep: tool, arguments, depends_on)
+ ↓
+Tool Registry (Allowlisted System, Local Windows, Task, & Vision Tools)
+ ↓
+Sequential Executor
+ ↓
+Step Verification (Database State / Local Process PID & Running Check)
+ ↓
+Next Step (Halts immediately if prior step execution or verification fails)
+ ↓
+Final Verification & Granular Activity Logging
+ ↓
+Response Generator (Truthful natural status synthesis)
+ ↓
+USER
+```
+
+### Supported Examples:
+1. `"Open Chrome and open YouTube."` → Step 1: `LOCAL_OPEN_APPLICATION(chrome)` → Verify → Step 2: `LOCAL_OPEN_URL(https://youtube.com)` → Verify
+2. `"Open Notepad and Calculator."` → Step 1: `LOCAL_OPEN_APPLICATION(notepad)` → Verify → Step 2: `LOCAL_OPEN_APPLICATION(calculator)` → Verify
+3. `"Open Chrome and Edge."` → Step 1: `LOCAL_OPEN_APPLICATION(chrome)` → Verify → Step 2: `LOCAL_OPEN_APPLICATION(edge)` → Verify
+4. `"Open Chrome, then open YouTube, then open Spotify."` → 3 sequential verified steps
+5. `"Create a task to study DBMS and open VS Code."` → Step 1: `TASK_CREATE` → Verify → Step 2: `LOCAL_OPEN_APPLICATION(vscode)` → Verify
+6. `"Open VS Code then open my project folder."` → Step 1: `LOCAL_OPEN_APPLICATION(vscode)` → Verify → Step 2: `LOCAL_OPEN_FOLDER(Documents)` → Verify
+
+### Safety Model & Execution Guarantees:
+- **No Arbitrary Shell Execution**: Rejects `powershell`, `cmd`, `bash`, `python`, `shell`, `exec`.
+- **Immediate Failure Halting**: Step 2 depends on Step 1 (`depends_on: [1]`). If Step 1 fails, Step 2 is marked `SKIPPED` and NEVER executed.
+- **Truthful Failure Reporting**: `"I couldn't open Chrome, so I didn't continue with the next step."`
+- **Loop Protection**: Strict `MAX_PLAN_STEPS = 10` boundary.
+- **Granular Activity Auditing**: `PLAN_CREATED`, `STEP_STARTED`, `STEP_COMPLETED`, `STEP_VERIFIED`, `STEP_FAILED`, `PLAN_COMPLETED`, `PLAN_FAILED` with credential scrubbing.
+
+### Running Step 9.1 Tests:
+```bash
+cd jarvis-backend
+python -m pytest tests/test_multi_step_planner.py -v
+python -m pytest -v
+```
+
+---
+
 ## 8. Step 10 — Hands-Free Wake Word & Voice State Machine
 
 Step 10 introduces hands-free voice interaction so the operator can say **"Hey JARVIS"**, wake the assistant locally without clicking a button, issue a command, and receive a verified audio response via TTS.

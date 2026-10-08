@@ -20,16 +20,30 @@ logger = logging.getLogger("jarvis.ai.agent")
 class JARVISAgent:
     """
     Central JARVIS AI Agent Orchestrator:
-    Coordinates the 8-stage intelligent reasoning and execution pipeline:
+    Coordinates the 8-stage intelligent reasoning and multi-step execution pipeline:
     1. Input Intake
-    2. Intent Detection (Rule + ML + LLM Fallback)
+    2. Intent Detection (Rule + Multi-Step Decomposer + ML + LLM Fallback)
     3. Context Gathering (Selective DB retrieval)
-    4. Task Planning & Validation
-    5. Tool Execution (Safe sandboxed application tools)
-    6. Independent Persistence Verification
+    4. Task Planning & Validation (Structured Dependency Plans)
+    5. Sequential Tool Execution (Safe sandboxed application tools)
+    6. Independent Step & Persistence Verification
     7. Memory Manager Update
-    8. Contextual Response Synthesis & Activity Logging
+    8. Contextual Response Synthesis & Granular Activity Logging
     """
+
+    @staticmethod
+    def _safe_metadata(meta: Dict[str, Any]) -> Dict[str, Any]:
+        """Scrubs passwords, auth tokens, secrets, and private credentials from logged metadata."""
+        safe = {}
+        forbidden = {"token", "auth", "password", "secret", "key", "credential"}
+        for k, v in meta.items():
+            if any(f in k.lower() for f in forbidden):
+                continue
+            if isinstance(v, dict):
+                safe[k] = JARVISAgent._safe_metadata(v)
+            else:
+                safe[k] = v
+        return safe
 
     def process(
         self,
@@ -89,46 +103,199 @@ class JARVISAgent:
             visual_context=visual_ctx,
             input_type=input_type
         )
-        logger.info(f"[STAGE 2: CONTEXT] Retrived {len(context.relevant_tasks)} tasks, {len(context.relevant_projects)} projs, {len(context.relevant_memories)} mems")
+        logger.info(f"[STAGE 2: CONTEXT] Retrieved {len(context.relevant_tasks)} tasks, {len(context.relevant_projects)} projs, {len(context.relevant_memories)} mems")
 
         # 4. Stage: Planning & Plan Validation
         plan: ExecutionPlan = agent_planner.create_plan(intent_res, context)
-        logger.info(f"[STAGE 3: PLAN] Generated {len(plan.steps)} steps. Status: {plan.validation_status}")
+        logger.info(f"[STAGE 3: PLAN] Generated plan {plan.plan_id} with {len(plan.steps)} steps. Status: {plan.validation_status}")
+
+        # Activity Log: PLAN_CREATED
+        if plan.steps:
+            activity_service.record_activity(
+                db=db,
+                event_type="PLAN_CREATED",
+                title=f"Plan Created: {plan.plan_id}",
+                description=f"Generated execution plan with {len(plan.steps)} steps (intent: {plan.intent}).",
+                status="INFO" if plan.validation_status == "VALID" else "WARNING",
+                metadata_json=json.dumps(self._safe_metadata({
+                    "plan_id": plan.plan_id,
+                    "intent": plan.intent,
+                    "steps_count": len(plan.steps),
+                    "validation_status": plan.validation_status
+                }))
+            )
 
         execution_results: List[ExecutionResult] = []
         verification_results: List[VerificationResult] = []
+        failed_step_number: Optional[int] = None
 
-        # 5. Stage: Tool Selection & Execution
+        # 5. Stage: Sequential Tool Execution with Step Verification
         step_outputs: Dict[str, Any] = {}
         if visual_ctx and "image_data" in visual_ctx:
             step_outputs["image_data"] = visual_ctx["image_data"]
 
         if plan.validation_status == "VALID":
+            step_map = {s.step_number: s for s in plan.steps}
+
             for step in plan.steps:
-                if step.tool_name:
-                    # Dynamically inject intermediate visual buffer from previous step if required
-                    if "image_data" in step_outputs and "image_data" not in step.parameters:
-                        step.parameters["image_data"] = step_outputs["image_data"]
+                tool_name = step.tool_name or step.tool
+                if not tool_name:
+                    continue
 
-                    logger.info(f"[STAGE 4: EXECUTE] Running tool: {step.tool_name}")
-                    exec_res = tool_executor.execute_step(db, step)
-                    execution_results.append(exec_res)
-
-                    # Propagate output data (e.g. captured screenshot image_data) to subsequent steps
-                    if exec_res.status == "SUCCESS" and isinstance(exec_res.output, dict):
-                        if "image_data" in exec_res.output:
-                            step_outputs["image_data"] = exec_res.output["image_data"]
-
-                    # 6. Stage: Verification
-                    logger.info(f"[STAGE 5: VERIFY] Verifying tool: {step.tool_name}")
-                    verif_res = verification_engine.verify(db, exec_res, step.parameters)
-                    verification_results.append(verif_res)
-                    logger.info(f"[VERIFY RESULT] {verif_res.status}: {verif_res.detail}")
-
-                    if exec_res.status != "SUCCESS":
+                # Check step dependencies
+                unmet_dep = False
+                for dep_id in step.depends_on:
+                    dep_step = step_map.get(dep_id)
+                    if not dep_step or dep_step.status != "VERIFIED":
+                        unmet_dep = True
                         break
 
-        # 7. Stage: Memory Management (Check if user requested memory save or shared fact)
+                if unmet_dep:
+                    logger.warning(f"[EXECUTE] Step {step.step_number} SKIPPED due to unmet dependency {step.depends_on}")
+                    step.status = "SKIPPED"
+                    failed_step_number = failed_step_number or step.step_number
+                    # Mark any subsequent steps as SKIPPED
+                    for rem in plan.steps:
+                        if rem.step_number > step.step_number:
+                            rem.status = "SKIPPED"
+                    break
+
+                # Mark step RUNNING & Log Activity
+                step.status = "RUNNING"
+                activity_service.record_activity(
+                    db=db,
+                    event_type="STEP_STARTED",
+                    title=f"Step {step.step_number} Started: {tool_name}",
+                    description=f"Executing step {step.step_number} ({tool_name}) for plan {plan.plan_id}.",
+                    status="INFO",
+                    metadata_json=json.dumps(self._safe_metadata({
+                        "plan_id": plan.plan_id,
+                        "step_id": step.step_number,
+                        "tool": tool_name
+                    }))
+                )
+
+                # Inject dynamic inputs if available
+                if "image_data" in step_outputs and "image_data" not in step.parameters:
+                    step.parameters["image_data"] = step_outputs["image_data"]
+
+                # Execute step
+                logger.info(f"[STAGE 4: EXECUTE] Running step {step.step_number}: {tool_name}")
+                exec_res = tool_executor.execute_step(db, step)
+                execution_results.append(exec_res)
+
+                if exec_res.status != "SUCCESS":
+                    step.status = "FAILED"
+                    failed_step_number = step.step_number
+                    logger.error(f"[EXECUTE FAILED] Step {step.step_number} failed: {exec_res.error}")
+                    activity_service.record_activity(
+                        db=db,
+                        event_type="STEP_FAILED",
+                        title=f"Step {step.step_number} Failed: {tool_name}",
+                        description=f"Tool execution failed: {exec_res.error}",
+                        status="ERROR",
+                        metadata_json=json.dumps(self._safe_metadata({
+                            "plan_id": plan.plan_id,
+                            "step_id": step.step_number,
+                            "tool": tool_name,
+                            "error": str(exec_res.error)
+                        }))
+                    )
+                    # Mark subsequent steps SKIPPED
+                    for rem in plan.steps:
+                        if rem.step_number > step.step_number:
+                            rem.status = "SKIPPED"
+                    break
+
+                activity_service.record_activity(
+                    db=db,
+                    event_type="STEP_COMPLETED",
+                    title=f"Step {step.step_number} Completed: {tool_name}",
+                    description=f"Tool completed execution in {exec_res.duration_ms}ms.",
+                    status="INFO",
+                    metadata_json=json.dumps(self._safe_metadata({
+                        "plan_id": plan.plan_id,
+                        "step_id": step.step_number,
+                        "tool": tool_name,
+                        "duration_ms": exec_res.duration_ms
+                    }))
+                )
+
+                # Propagate outputs if present
+                if isinstance(exec_res.output, dict) and "image_data" in exec_res.output:
+                    step_outputs["image_data"] = exec_res.output["image_data"]
+
+                # 6. Stage: Step Verification
+                logger.info(f"[STAGE 5: VERIFY] Verifying step {step.step_number}: {tool_name}")
+                verif_res = verification_engine.verify(db, exec_res, step.parameters)
+                verification_results.append(verif_res)
+                logger.info(f"[VERIFY RESULT] Step {step.step_number} status: {verif_res.status} ({verif_res.detail})")
+
+                if verif_res.status != "VERIFIED":
+                    step.status = "FAILED"
+                    failed_step_number = step.step_number
+                    activity_service.record_activity(
+                        db=db,
+                        event_type="STEP_FAILED",
+                        title=f"Step {step.step_number} Verification Failed: {tool_name}",
+                        description=f"Verification failed: {verif_res.detail}",
+                        status="ERROR",
+                        metadata_json=json.dumps(self._safe_metadata({
+                            "plan_id": plan.plan_id,
+                            "step_id": step.step_number,
+                            "tool": tool_name,
+                            "detail": verif_res.detail
+                        }))
+                    )
+                    # Mark subsequent steps SKIPPED
+                    for rem in plan.steps:
+                        if rem.step_number > step.step_number:
+                            rem.status = "SKIPPED"
+                    break
+
+                step.status = "VERIFIED"
+                activity_service.record_activity(
+                    db=db,
+                    event_type="STEP_VERIFIED",
+                    title=f"Step {step.step_number} Verified: {tool_name}",
+                    description=f"Execution verified: {verif_res.detail}",
+                    status="SUCCESS",
+                    metadata_json=json.dumps(self._safe_metadata({
+                        "plan_id": plan.plan_id,
+                        "step_id": step.step_number,
+                        "tool": tool_name,
+                        "detail": verif_res.detail
+                    }))
+                )
+
+            # Record Overall Plan Completion / Failure Activity
+            if plan.steps:
+                if failed_step_number is None and all(s.status == "VERIFIED" for s in plan.steps if (s.tool_name or s.tool)):
+                    activity_service.record_activity(
+                        db=db,
+                        event_type="PLAN_COMPLETED",
+                        title=f"Plan Completed: {plan.plan_id}",
+                        description=f"All {len(plan.steps)} steps executed and verified successfully.",
+                        status="SUCCESS",
+                        metadata_json=json.dumps(self._safe_metadata({
+                            "plan_id": plan.plan_id,
+                            "total_steps": len(plan.steps)
+                        }))
+                    )
+                else:
+                    activity_service.record_activity(
+                        db=db,
+                        event_type="PLAN_FAILED",
+                        title=f"Plan Failed: {plan.plan_id}",
+                        description=f"Execution halted at step {failed_step_number or 'validation'}.",
+                        status="ERROR",
+                        metadata_json=json.dumps(self._safe_metadata({
+                            "plan_id": plan.plan_id,
+                            "failed_step": failed_step_number
+                        }))
+                    )
+
+        # 7. Stage: Memory Management
         memory_badge = None
         if context.relevant_memories:
             first_m = context.relevant_memories[0]
@@ -166,8 +333,8 @@ class JARVISAgent:
         db.add(assistant_msg)
         db.commit()
 
-        # Log trace to Activity table if a meaningful action occurred
-        if execution_results:
+        # Log trace to Activity table if single action occurred
+        if execution_results and len(plan.steps) <= 1:
             first_tool = execution_results[0].tool_name
             first_verif = verification_results[0].status if verification_results else "SUCCESS"
             activity_service.record_activity(
@@ -176,15 +343,15 @@ class JARVISAgent:
                 title=f"Agent Tool: {first_tool}",
                 description=f"Action '{first_tool}' executed with verification: {first_verif}",
                 status="SUCCESS" if first_verif == "VERIFIED" else "WARNING",
-                metadata_json=json.dumps({
+                metadata_json=json.dumps(self._safe_metadata({
                     "intent": intent_res.intent,
                     "confidence": intent_res.confidence,
                     "tool": first_tool,
                     "duration_ms": total_duration_ms
-                })
+                }))
             )
 
-        # Phase 5: Structured Command Learning Dataset Storage
+        # Command Learning Dataset Storage
         self._record_command_learning(
             command=message,
             intent=intent_res.intent,
@@ -197,9 +364,16 @@ class JARVISAgent:
             verification_detail=verification_results[0].detail if verification_results else ""
         )
 
-        agent_state = "RESPONDING"
-        if plan.validation_status == "INVALID" or any(r.status != "SUCCESS" for r in execution_results):
-            agent_state = "ERROR"
+        completed_steps_count = sum(1 for s in plan.steps if s.status == "VERIFIED")
+        total_steps_count = len(plan.steps)
+        is_success = (
+            plan.validation_status == "VALID" and
+            (failed_step_number is None) and
+            all(s.status == "VERIFIED" for s in plan.steps if (s.tool_name or s.tool)) and
+            (not any(r.status != "SUCCESS" for r in execution_results))
+        ) if plan.steps else (plan.validation_status == "VALID")
+
+        agent_state = "RESPONDING" if is_success else "ERROR"
 
         return {
             "response": final_response,
@@ -208,19 +382,38 @@ class JARVISAgent:
             "plan": [
                 {
                     "step_number": s.step_number,
-                    "tool_name": s.tool_name,
+                    "step_id": s.step_number,
+                    "tool_name": s.tool_name or s.tool,
+                    "tool": s.tool_name or s.tool,
                     "risk_level": s.risk_level,
-                    "status": s.status
+                    "status": s.status,
+                    "depends_on": s.depends_on
                 }
                 for s in plan.steps
             ],
             "actions": [r.to_dict() for r in execution_results],
             "verification": [v.to_dict() for v in verification_results],
-            "verified": all(v.status == "VERIFIED" for v in verification_results) if verification_results else (agent_state != "ERROR"),
+            "verified": is_success,
             "conversation_id": conv.id,
             "memory_accessed": memory_badge,
             "execution_time_ms": total_duration_ms,
-            "agent_state": agent_state
+            "agent_state": agent_state,
+            # Step 9.1 Structured Execution Information
+            "plan_id": plan.plan_id,
+            "success": is_success,
+            "completed_steps": completed_steps_count,
+            "total_steps": total_steps_count,
+            "failed_step": failed_step_number,
+            "steps": [
+                {
+                    "step_id": s.step_number,
+                    "tool": s.tool_name or s.tool,
+                    "status": s.status,
+                    "depends_on": s.depends_on,
+                    "result": execution_results[s.step_number - 1].to_dict() if len(execution_results) >= s.step_number else None
+                }
+                for s in plan.steps
+            ]
         }
 
     def _record_command_learning(self, **data):

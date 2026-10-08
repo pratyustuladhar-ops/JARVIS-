@@ -646,20 +646,36 @@ class AgentToolRegistry:
         self._tools[tool.name.upper()] = tool
         logger.info(f"Registered agent tool: '{tool.name}' [{tool.risk_level}]")
 
+    FORBIDDEN_TOOLS = {
+        "powershell", "cmd", "bash", "sh", "python", "shell", "terminal_exec",
+        "eval", "exec", "execute_command", "run_script", "run_command"
+    }
+
+    ALIAS_MAP = {
+        "local_list_allowed_directory": "local_list_directory",
+        "list_allowed_directory": "local_list_directory",
+        "capture_screen": "local_capture_screen",
+        "local_screen_capture": "local_capture_screen",
+        "ocr": "vision_ocr",
+        "ocr_request": "vision_ocr",
+        "memory_query": "memory_search",
+        "memory_save": "memory_create",
+        "project_query": "project_list",
+    }
+
     def get_tool(self, name: str) -> Optional[BaseAgentTool]:
         if not name:
             return None
-        norm = name.lower()
+        norm = name.strip().lower()
+        if norm in self.FORBIDDEN_TOOLS:
+            logger.warning(f"Blocked request for dangerous tool execution: '{name}'")
+            return None
+        if norm in self.ALIAS_MAP:
+            norm = self.ALIAS_MAP[norm]
         if norm in self._tools:
             return self._tools[norm]
         if name.upper() in self._tools:
             return self._tools[name.upper()]
-        if norm in ["local_list_allowed_directory", "list_allowed_directory"]:
-            return self._tools.get("local_list_directory")
-        if norm in ["capture_screen", "local_screen_capture"]:
-            return self._tools.get("local_capture_screen")
-        if norm in ["ocr", "ocr_request"]:
-            return self._tools.get("vision_ocr")
         return None
 
     def get(self, name: str) -> Optional[BaseAgentTool]:
