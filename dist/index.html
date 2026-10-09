@@ -3,6 +3,13 @@
 <head>
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<meta http-equiv="refresh" content="0; url=assistant.html"/>
+<script>
+  // Immediate seamless route redirect to AI Assistant landing page
+  if (window.location.pathname.endsWith('index.html') || window.location.pathname === '/' || window.location.pathname.endsWith('/')) {
+    window.location.replace('assistant.html');
+  }
+</script>
 <title>JARVIS // Autonomous AI Operating System Command Center</title>
 <link href="https://fonts.googleapis.com" rel="preconnect"/>
 <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
@@ -154,7 +161,7 @@
       border-color: rgba(39, 211, 255, 0.5);
     }
   </style>
-  <script type="module" crossorigin src="/assets/api-6_STEUA4.js"></script>
+  <script type="module" crossorigin src="/assets/api-BDmubSBF.js"></script>
 </head>
 <body class="bg-[#06080C] text-on-surface antialiased overflow-x-hidden min-h-screen selection:bg-primary-container selection:text-on-primary-container">
 <!-- BACKGROUND OPTICAL MESH & AMBIENT DEPTH -->
@@ -178,40 +185,60 @@
 </div>
 </div>
 <!-- Navigation Tabs -->
-<nav class="mt-5 space-y-1">
-<!-- Dashboard (Active) -->
+<nav class="mt-5 space-y-1.5 font-sans">
+<!-- Assistant (Prominent) -->
+<a class="flex items-center gap-3 px-3 py-2 text-on-surface-variant hover:text-primary hover:bg-surface-container-high/40 rounded transition-all duration-150 group" href="assistant.html">
+<span class="material-symbols-outlined text-primary group-hover:scale-105 transition-transform" data-icon="smart_toy">smart_toy</span>
+<span class="text-label-md font-label-md font-semibold tracking-wide text-primary">Assistant</span>
+<span class="ml-auto w-1.5 h-1.5 rounded-full bg-primary shadow-[0_0_6px_#27D3FF]"></span>
+</a>
+<!-- Dashboard/Home (Active) -->
 <a class="flex items-center gap-3 px-3 py-2 bg-primary/10 text-primary border-l-2 border-primary transition-all duration-150 group" href="index.html">
 <span class="material-symbols-outlined text-primary group-hover:scale-105 transition-transform" data-icon="dashboard">dashboard</span>
-<span class="text-label-md font-label-md font-medium tracking-wide">Dashboard</span>
+<span class="text-label-md font-label-md font-medium tracking-wide">Home</span>
 </a>
-<a class="flex items-center gap-3 px-3 py-2 text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high/40 border-l-2 border-transparent hover:border-primary/50 transition-all duration-150 group" href="assistant.html">
-<span class="material-symbols-outlined group-hover:text-primary transition-colors" data-icon="smart_toy">smart_toy</span>
-<span class="text-label-md font-label-md">Assistant</span>
-</a>
-<a class="flex items-center gap-3 px-3 py-2 text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high/40 border-l-2 border-transparent hover:border-primary/50 transition-all duration-150 group" href="tasks.html">
-<span class="material-symbols-outlined group-hover:text-primary transition-colors" data-icon="check_circle">check_circle</span>
-<span class="text-label-md font-label-md">Tasks</span>
-</a>
-<a class="flex items-center gap-3 px-3 py-2 text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high/40 border-l-2 border-transparent hover:border-primary/50 transition-all duration-150 group" href="memory.html">
-<span class="material-symbols-outlined group-hover:text-primary transition-colors" data-icon="memory">memory</span>
-<span class="text-label-md font-label-md">Memory</span>
-</a>
-<a class="flex items-center gap-3 px-3 py-2 text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high/40 border-l-2 border-transparent hover:border-primary/50 transition-all duration-150 group" href="projects.html">
-<span class="material-symbols-outlined group-hover:text-primary transition-colors" data-icon="folder">folder</span>
-<span class="text-label-md font-label-md">Projects</span>
-</a>
+<!-- History / Activity -->
 <a class="flex items-center gap-3 px-3 py-2 text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high/40 border-l-2 border-transparent hover:border-primary/50 transition-all duration-150 group" href="activity.html">
-<span class="material-symbols-outlined group-hover:text-primary transition-colors" data-icon="timeline">timeline</span>
-<span class="text-label-md font-label-md">Activity</span>
+<span class="material-symbols-outlined group-hover:text-primary transition-colors" data-icon="history">history</span>
+<span class="text-label-md font-label-md">History</span>
 </a>
+<!-- Settings -->
 <a class="flex items-center gap-3 px-3 py-2 text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high/40 border-l-2 border-transparent hover:border-primary/50 transition-all duration-150 group" href="settings.html">
 <span class="material-symbols-outlined group-hover:text-primary transition-colors" data-icon="settings">settings</span>
 <span class="text-label-md font-label-md">Settings</span>
 </a>
-<a class="flex items-center gap-3 px-3 py-2 text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high/40 border-l-2 border-transparent hover:border-primary/50 transition-all duration-150 group" href="cms.html">
-<span class="material-symbols-outlined group-hover:text-primary transition-colors" data-icon="admin_panel_settings">admin_panel_settings</span>
-<span class="text-label-md font-label-md">CMS Center</span>
-</a>
+
+<!-- Collapsible Advanced Subsystems (Preserved Backend Access) -->
+<div class="mt-4 pt-3 border-t border-outline-variant/30">
+  <details class="group/adv">
+    <summary class="flex items-center justify-between px-2.5 py-1.5 text-[11px] font-mono text-outline hover:text-on-surface cursor-pointer select-none rounded hover:bg-surface-container/50">
+      <span class="uppercase tracking-wider">Advanced Tools</span>
+      <span class="material-symbols-outlined text-sm group-open/adv:rotate-180 transition-transform">expand_more</span>
+    </summary>
+    <div class="pl-2 pt-1.5 space-y-1">
+      <a class="flex items-center gap-2.5 px-2.5 py-1 text-xs text-on-surface-variant hover:text-primary transition-colors rounded hover:bg-surface-container/30" href="tasks.html">
+        <span class="material-symbols-outlined text-sm">check_circle</span>
+        <span>Tasks</span>
+      </a>
+      <a class="flex items-center gap-2.5 px-2.5 py-1 text-xs text-on-surface-variant hover:text-primary transition-colors rounded hover:bg-surface-container/30" href="projects.html">
+        <span class="material-symbols-outlined text-sm">folder</span>
+        <span>Projects</span>
+      </a>
+      <a class="flex items-center gap-2.5 px-2.5 py-1 text-xs text-on-surface-variant hover:text-primary transition-colors rounded hover:bg-surface-container/30" href="memory.html">
+        <span class="material-symbols-outlined text-sm">memory</span>
+        <span>Memory</span>
+      </a>
+      <a class="flex items-center gap-2.5 px-2.5 py-1 text-xs text-on-surface-variant hover:text-primary transition-colors rounded hover:bg-surface-container/30" href="cms.html">
+        <span class="material-symbols-outlined text-sm">admin_panel_settings</span>
+        <span>CMS Center</span>
+      </a>
+      <a class="flex items-center gap-2.5 px-2.5 py-1 text-xs text-on-surface-variant hover:text-primary transition-colors rounded hover:bg-surface-container/30" href="diagnostic.html">
+        <span class="material-symbols-outlined text-sm">tune</span>
+        <span>Diagnostics</span>
+      </a>
+    </div>
+  </details>
+</div>
 </nav>
 </div>
 <!-- CTA & Footer Status -->

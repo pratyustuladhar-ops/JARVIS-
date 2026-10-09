@@ -3,6 +3,13 @@
 <head>
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<meta http-equiv="refresh" content="0; url=assistant.html"/>
+<script>
+  // Immediate seamless route redirect to AI Assistant landing page
+  if (window.location.pathname.endsWith('index.html') || window.location.pathname === '/' || window.location.pathname.endsWith('/')) {
+    window.location.replace('assistant.html');
+  }
+</script>
 <title>JARVIS // Autonomous AI Operating System Command Center</title>
 <link href="https://fonts.googleapis.com" rel="preconnect"/>
 <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>

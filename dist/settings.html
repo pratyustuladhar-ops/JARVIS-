@@ -221,7 +221,7 @@
       border: 1px solid #ffffff;
     }
   </style>
-  <script type="module" crossorigin src="/assets/api-6_STEUA4.js"></script>
+  <script type="module" crossorigin src="/assets/api-BDmubSBF.js"></script>
 </head>
 <body class="bg-surface-container-lowest text-on-surface antialiased min-h-screen selection:bg-primary-container selection:text-on-primary">
 
@@ -286,10 +286,7 @@
       </div>
       <!-- Drawer Navigation Tabs -->
       <nav class="space-y-1">
-        <a class="flex items-center gap-3 px-3 py-2.5 text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high/40 rounded transition-all" href="index.html">
-          <span class="material-symbols-outlined">dashboard</span>
-          <span class="font-label-md text-label-md">Dashboard</span>
-        </a>
+
         <a class="flex items-center gap-3 px-3 py-2.5 text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high/40 rounded transition-all" href="assistant.html">
           <span class="material-symbols-outlined">smart_toy</span>
           <span class="font-label-md text-label-md">Assistant</span>
@@ -350,10 +347,7 @@
     <!-- Quick Switcher Bar -->
     <section class="overflow-x-auto no-scrollbar -mx-4 px-4">
       <div class="flex items-center gap-2 w-max py-1">
-        <button onclick="window.location.href='index.html'" class="px-3.5 py-1.5 rounded border border-outline-variant/40 bg-surface-container-low/70 text-on-surface-variant font-label-sm text-label-sm hover:border-primary/40 active:scale-95 transition-all">
-          Dashboard
-        </button>
-        <button onclick="window.location.href='assistant.html'" class="px-3.5 py-1.5 rounded border border-outline-variant/40 bg-surface-container-low/70 text-on-surface-variant font-label-sm text-label-sm hover:border-primary/40 active:scale-95 transition-all">
+        <button onclick="window.location.href='assistant.html'" class="px-3.5 py-1.5 rounded border border-primary/60 bg-primary/10 text-primary font-label-sm text-label-sm active:scale-95 transition-all">
           Assistant
         </button>
         <button onclick="window.location.href='tasks.html'" class="px-3.5 py-1.5 rounded border border-outline-variant/40 bg-surface-container-low/70 text-on-surface-variant font-label-sm text-label-sm hover:border-primary/40 active:scale-95 transition-all">
@@ -626,6 +620,32 @@
           </div>
         </div>
       </div>
+
+      <!-- Accordion 6: Windows Local Agent -->
+      <div class="hud-corner rounded border border-outline-variant/40 bg-surface-container-lowest/80 backdrop-blur-md overflow-hidden">
+        <button class="accordion-trigger w-full px-4 py-3.5 flex items-center justify-between text-left active:bg-surface-container-high/30 transition-colors" data-target="panel-local-agent">
+          <div class="flex items-center gap-2.5">
+            <span class="material-symbols-outlined text-primary">laptop_windows</span>
+            <div>
+              <span class="font-headline-sm text-headline-sm text-on-surface block leading-tight">Windows Local Agent</span>
+              <span class="font-label-sm text-label-sm text-outline">Desktop actions, tools, heartbeat</span>
+            </div>
+          </div>
+          <span class="material-symbols-outlined text-on-surface-variant transition-transform duration-200">expand_more</span>
+        </button>
+        <div class="accordion-content px-4 pb-4 pt-1 space-y-3 border-t border-outline-variant/30 hidden" id="panel-local-agent">
+          <div class="flex items-center justify-between">
+            <div>
+              <div class="font-label-md text-label-md text-on-surface">Enable Local Agent</div>
+              <div class="font-label-sm text-label-sm text-outline">Allow approved Windows actions</div>
+            </div>
+            <label class="relative inline-flex items-center cursor-pointer min-h-[44px]">
+              <input id="mob-cfg-local-agent" checked="" class="sr-only peer" type="checkbox"/>
+              <div class="w-9 h-5 bg-surface-container-high peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-primary-container after:content-[''] after:absolute after:top-[14px] after:left-[2px] after:bg-on-surface after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-primary-container"></div>
+            </label>
+          </div>
+        </div>
+      </div>
     </section>
 
     <!-- Save Trigger for Mobile -->
@@ -679,30 +699,16 @@
         <span>EXECUTE COMMAND</span>
       </button>
       <!-- Navigation Tabs Cluster -->
-      <nav class="flex flex-col space-y-1 mt-2">
-        <a class="flex items-center gap-3 px-3 py-2 text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high/40 transition-all duration-150 rounded" href="index.html">
-          <span class="material-symbols-outlined text-lg">dashboard</span>
-          <span class="text-label-md font-label-md">Dashboard</span>
+      <nav class="flex flex-col space-y-1.5 mt-2 font-sans">
+        <a class="flex items-center gap-3 px-3 py-2 text-on-surface-variant hover:text-primary hover:bg-surface-container-high/40 rounded transition-all duration-150 group" href="assistant.html">
+          <span class="material-symbols-outlined text-primary group-hover:scale-105 transition-transform">smart_toy</span>
+          <span class="text-label-md font-label-md font-semibold tracking-wide text-primary">Assistant</span>
+          <span class="ml-auto w-1.5 h-1.5 rounded-full bg-primary shadow-[0_0_6px_#27D3FF]"></span>
         </a>
-        <a class="flex items-center gap-3 px-3 py-2 text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high/40 transition-all duration-150 rounded" href="assistant.html">
-          <span class="material-symbols-outlined text-lg">smart_toy</span>
-          <span class="text-label-md font-label-md">Assistant</span>
-        </a>
-        <a class="flex items-center gap-3 px-3 py-2 text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high/40 transition-all duration-150 rounded" href="tasks.html">
-          <span class="material-symbols-outlined text-lg">check_circle</span>
-          <span class="text-label-md font-label-md">Tasks</span>
-        </a>
-        <a class="flex items-center gap-3 px-3 py-2 text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high/40 transition-all duration-150 rounded" href="memory.html">
-          <span class="material-symbols-outlined text-lg">memory</span>
-          <span class="text-label-md font-label-md">Memory</span>
-        </a>
-        <a class="flex items-center gap-3 px-3 py-2 text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high/40 transition-all duration-150 rounded" href="projects.html">
-          <span class="material-symbols-outlined text-lg">folder</span>
-          <span class="text-label-md font-label-md">Projects</span>
-        </a>
+
         <a class="flex items-center gap-3 px-3 py-2 text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high/40 transition-all duration-150 rounded" href="activity.html">
-          <span class="material-symbols-outlined text-lg">timeline</span>
-          <span class="text-label-md font-label-md">Activity</span>
+          <span class="material-symbols-outlined text-lg">history</span>
+          <span class="text-label-md font-label-md">History</span>
         </a>
         <!-- Settings (ACTIVE TAB) -->
         <a class="flex items-center gap-3 px-3 py-2 bg-primary/10 text-primary border-l-2 border-primary rounded cyan-glow transition-all duration-150" href="settings.html">
@@ -710,11 +716,38 @@
           <span class="text-label-md font-label-md font-bold">Settings</span>
           <span class="ml-auto w-1.5 h-1.5 rounded-full bg-primary-container animate-ping"></span>
         </a>
-        <!-- CMS Command Center -->
-        <a class="flex items-center gap-3 px-3 py-2 text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high/40 transition-all duration-150 rounded" href="cms.html">
-          <span class="material-symbols-outlined text-lg">admin_panel_settings</span>
-          <span class="text-label-md font-label-md">CMS Center</span>
-        </a>
+
+        <!-- Collapsible Advanced Subsystems -->
+        <div class="mt-4 pt-3 border-t border-outline-variant/30">
+          <details class="group/adv">
+            <summary class="flex items-center justify-between px-2.5 py-1.5 text-[11px] font-mono text-outline hover:text-on-surface cursor-pointer select-none rounded hover:bg-surface-container/50">
+              <span class="uppercase tracking-wider">Advanced Tools</span>
+              <span class="material-symbols-outlined text-sm group-open/adv:rotate-180 transition-transform">expand_more</span>
+            </summary>
+            <div class="pl-2 pt-1.5 space-y-1">
+              <a class="flex items-center gap-2.5 px-2.5 py-1 text-xs text-on-surface-variant hover:text-primary transition-colors rounded hover:bg-surface-container/30" href="tasks.html">
+                <span class="material-symbols-outlined text-sm">check_circle</span>
+                <span>Tasks</span>
+              </a>
+              <a class="flex items-center gap-2.5 px-2.5 py-1 text-xs text-on-surface-variant hover:text-primary transition-colors rounded hover:bg-surface-container/30" href="projects.html">
+                <span class="material-symbols-outlined text-sm">folder</span>
+                <span>Projects</span>
+              </a>
+              <a class="flex items-center gap-2.5 px-2.5 py-1 text-xs text-on-surface-variant hover:text-primary transition-colors rounded hover:bg-surface-container/30" href="memory.html">
+                <span class="material-symbols-outlined text-sm">memory</span>
+                <span>Memory</span>
+              </a>
+              <a class="flex items-center gap-2.5 px-2.5 py-1 text-xs text-on-surface-variant hover:text-primary transition-colors rounded hover:bg-surface-container/30" href="cms.html">
+                <span class="material-symbols-outlined text-sm">admin_panel_settings</span>
+                <span>CMS Center</span>
+              </a>
+              <a class="flex items-center gap-2.5 px-2.5 py-1 text-xs text-on-surface-variant hover:text-primary transition-colors rounded hover:bg-surface-container/30" href="diagnostic.html">
+                <span class="material-symbols-outlined text-sm">tune</span>
+                <span>Diagnostics</span>
+              </a>
+            </div>
+          </details>
+        </div>
       </nav>
     </div>
     <!-- Navigation Footer Diagnostics Cluster -->
@@ -878,6 +911,30 @@
           <div class="flex flex-col">
             <span class="text-label-md font-label-md font-semibold">8. Data &amp; Backup</span>
             <span class="text-[9px] font-label-sm text-outline">Snapshots, Kernel Reset</span>
+          </div>
+        </button>
+        <!-- 9. Windows Local Agent -->
+        <button class="cat-tab w-full flex items-center gap-3 px-3 py-2.5 rounded text-left text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high/40 border border-transparent transition-all" id="tab-local-agent" onclick="switchCategory('local-agent')">
+          <span class="material-symbols-outlined text-base">laptop_windows</span>
+          <div class="flex flex-col">
+            <span class="text-label-md font-label-md font-semibold">9. Windows Local Agent</span>
+            <span class="text-[9px] font-label-sm text-outline">Desktop Actions &amp; Tools</span>
+          </div>
+        </button>
+        <!-- 10. Multimodal Vision -->
+        <button class="cat-tab w-full flex items-center gap-3 px-3 py-2.5 rounded text-left text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high/40 border border-transparent transition-all" id="tab-multimodal" onclick="switchCategory('multimodal')">
+          <span class="material-symbols-outlined text-base">visibility</span>
+          <div class="flex flex-col">
+            <span class="text-label-md font-label-md font-semibold">10. Multimodal Vision</span>
+            <span class="text-[9px] font-label-sm text-outline">Screen, OCR, Privacy</span>
+          </div>
+        </button>
+        <!-- 11. Voice & Wake Word -->
+        <button class="cat-tab w-full flex items-center gap-3 px-3 py-2.5 rounded text-left text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high/40 border border-transparent transition-all" id="tab-voice-assistant" onclick="switchCategory('voice-assistant')">
+          <span class="material-symbols-outlined text-base">hearing</span>
+          <div class="flex flex-col">
+            <span class="text-label-md font-label-md font-semibold">11. Voice &amp; Wake Word</span>
+            <span class="text-[9px] font-label-sm text-outline">Hands-Free, Phrase, TTS</span>
           </div>
         </button>
       </div>
@@ -1436,6 +1493,250 @@
             </div>
           </div>
         </section>
+
+        <!-- SECTION 9: WINDOWS LOCAL AGENT -->
+        <section class="cat-pane hidden flex-col gap-6" id="pane-local-agent">
+          <div class="p-6 bg-surface-container-low/70 border border-outline-variant/40 rounded hud-reticle-corner">
+            <div class="flex items-center justify-between pb-4 border-b border-outline-variant/30 mb-6">
+              <div class="flex items-center gap-3">
+                <span class="material-symbols-outlined text-primary text-xl">laptop_windows</span>
+                <h2 class="text-headline-sm font-headline-sm font-semibold text-on-surface">Windows Local Agent Configuration</h2>
+              </div>
+              <span class="text-label-sm font-label-sm text-outline">AGENT_WIN // 09</span>
+            </div>
+            <div class="flex flex-col gap-5">
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="flex items-center justify-between p-4 bg-surface-container-lowest border border-outline-variant/40 rounded">
+                  <div class="flex flex-col">
+                    <span class="text-label-md font-label-md font-bold text-on-surface">Enable Local Agent</span>
+                    <span class="text-body-sm font-body-sm text-outline">Allow controlled, allowlisted Windows actions.</span>
+                  </div>
+                  <label class="relative inline-flex items-center cursor-pointer">
+                    <input id="desk-cfg-local-agent-enabled" checked="" class="sr-only peer" type="checkbox"/>
+                    <div class="w-10 h-5 bg-surface-container-high peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-primary-container cyan-glow"></div>
+                  </label>
+                </div>
+                <div class="flex items-center justify-between p-4 bg-surface-container-lowest border border-outline-variant/40 rounded">
+                  <div class="flex flex-col">
+                    <span class="text-label-md font-label-md font-bold text-on-surface">Confirmation Required</span>
+                    <span class="text-body-sm font-body-sm text-outline">Prompt for confirmation on medium-risk actions.</span>
+                  </div>
+                  <label class="relative inline-flex items-center cursor-pointer">
+                    <input id="desk-cfg-local-agent-confirm" class="sr-only peer" type="checkbox"/>
+                    <div class="w-10 h-5 bg-surface-container-high peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-primary-container cyan-glow"></div>
+                  </label>
+                </div>
+              </div>
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="flex flex-col gap-1.5">
+                  <label class="text-label-sm font-label-sm text-on-surface-variant">DEVICE CALLSIGN</label>
+                  <input id="desk-cfg-local-agent-device" class="w-full bg-surface-container-lowest border border-outline-variant/50 rounded py-2 px-3 text-label-md font-label-md text-primary focus:outline-none focus:border-primary" type="text" value="JARVIS-WINDOWS-01"/>
+                  <span class="text-[10px] font-body-sm text-outline">Registered callsign for Windows host machine.</span>
+                </div>
+                <div class="flex flex-col gap-1.5">
+                  <div class="flex justify-between items-center">
+                    <label class="text-label-sm font-label-sm text-on-surface-variant">HEARTBEAT INTERVAL</label>
+                    <span class="text-label-md font-label-md text-primary font-bold" id="desk-local-agent-hb-label">10s</span>
+                  </div>
+                  <input id="desk-cfg-local-agent-hb" class="w-full" max="60" min="5" type="range" value="10" oninput="document.getElementById('desk-local-agent-hb-label').textContent = this.value + 's';"/>
+                  <span class="text-[10px] font-body-sm text-outline">Frequency of background pulse sent to backend.</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- SECTION 10: MULTIMODAL & VISION INTELLIGENCE -->
+        <section class="cat-pane hidden flex-col gap-6" id="pane-multimodal">
+          <div class="p-6 bg-surface-container-low/70 border border-outline-variant/40 rounded hud-reticle-corner">
+            <div class="flex items-center justify-between pb-4 border-b border-outline-variant/30 mb-6">
+              <div class="flex items-center gap-3">
+                <span class="material-symbols-outlined text-primary text-xl">visibility</span>
+                <h2 class="text-headline-sm font-headline-sm font-semibold text-on-surface">Multimodal &amp; Vision Intelligence</h2>
+              </div>
+              <span class="text-label-sm font-label-sm text-outline">VISION_CORE // 10</span>
+            </div>
+            <div class="flex flex-col gap-5">
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <!-- Vision Master Switch -->
+                <div class="flex items-center justify-between p-4 bg-surface-container-lowest border border-outline-variant/40 rounded">
+                  <div class="flex flex-col">
+                    <span class="text-label-md font-label-md font-bold text-on-surface">Vision Engine</span>
+                    <span class="text-body-sm font-body-sm text-outline">Enable visual reasoning, image inputs, and multimodal tools.</span>
+                  </div>
+                  <label class="relative inline-flex items-center cursor-pointer">
+                    <input id="desk-cfg-vision-enabled" checked="" class="sr-only peer" type="checkbox"/>
+                    <div class="w-10 h-5 bg-surface-container-high peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-primary-container cyan-glow"></div>
+                  </label>
+                </div>
+                <!-- Screen Understanding -->
+                <div class="flex items-center justify-between p-4 bg-surface-container-lowest border border-outline-variant/40 rounded">
+                  <div class="flex flex-col">
+                    <span class="text-label-md font-label-md font-bold text-on-surface">Screen Understanding</span>
+                    <span class="text-body-sm font-body-sm text-outline">Allow authorized on-demand screen captures and analysis.</span>
+                  </div>
+                  <label class="relative inline-flex items-center cursor-pointer">
+                    <input id="desk-cfg-screen-understanding" checked="" class="sr-only peer" type="checkbox"/>
+                    <div class="w-10 h-5 bg-surface-container-high peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-primary-container cyan-glow"></div>
+                  </label>
+                </div>
+              </div>
+              <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <!-- OCR -->
+                <div class="flex items-center justify-between p-4 bg-surface-container-lowest border border-outline-variant/40 rounded">
+                  <div class="flex flex-col">
+                    <span class="text-label-md font-label-md font-bold text-on-surface">OCR Extraction</span>
+                    <span class="text-body-sm font-body-sm text-outline">Extract code, logs, and text.</span>
+                  </div>
+                  <label class="relative inline-flex items-center cursor-pointer">
+                    <input id="desk-cfg-ocr-enabled" checked="" class="sr-only peer" type="checkbox"/>
+                    <div class="w-10 h-5 bg-surface-container-high peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-primary-container cyan-glow"></div>
+                  </label>
+                </div>
+                <!-- Speak Vision Responses -->
+                <div class="flex items-center justify-between p-4 bg-surface-container-lowest border border-outline-variant/40 rounded">
+                  <div class="flex flex-col">
+                    <span class="text-label-md font-label-md font-bold text-on-surface">Speak Vision Responses</span>
+                    <span class="text-body-sm font-body-sm text-outline">Read descriptions using TTS.</span>
+                  </div>
+                  <label class="relative inline-flex items-center cursor-pointer">
+                    <input id="desk-cfg-speak-vision" class="sr-only peer" type="checkbox"/>
+                    <div class="w-10 h-5 bg-surface-container-high peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-primary-container cyan-glow"></div>
+                  </label>
+                </div>
+                <!-- Privacy Mode -->
+                <div class="flex items-center justify-between p-4 bg-surface-container-lowest border border-outline-variant/40 rounded">
+                  <div class="flex flex-col">
+                    <span class="text-label-md font-label-md font-bold text-on-surface">Privacy Mode</span>
+                    <span class="text-body-sm font-body-sm text-outline">Zero disk retention for images.</span>
+                  </div>
+                  <label class="relative inline-flex items-center cursor-pointer">
+                    <input id="desk-cfg-vision-privacy" checked="" class="sr-only peer" type="checkbox"/>
+                    <div class="w-10 h-5 bg-surface-container-high peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-primary-container cyan-glow"></div>
+                  </label>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- SECTION 11: VOICE ASSISTANT & WAKE WORD -->
+        <section class="cat-pane hidden flex-col gap-6" id="pane-voice-assistant">
+          <div class="p-6 bg-surface-container-low/70 border border-outline-variant/40 rounded hud-reticle-corner">
+            <div class="flex items-center justify-between pb-4 border-b border-outline-variant/30 mb-6">
+              <div class="flex items-center gap-3">
+                <span class="material-symbols-outlined text-primary text-xl">hearing</span>
+                <h2 class="text-headline-sm font-headline-sm font-semibold text-on-surface">Voice Assistant &amp; Hands-Free Wake Word</h2>
+              </div>
+              <span class="text-label-sm font-label-sm text-outline">VOX_CORE // 11</span>
+            </div>
+            <div class="flex flex-col gap-5">
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <!-- Wake Word Master Switch -->
+                <div class="flex items-center justify-between p-4 bg-surface-container-lowest border border-outline-variant/40 rounded">
+                  <div class="flex flex-col">
+                    <span class="text-label-md font-label-md font-bold text-on-surface">Wake Word (Hands-Free)</span>
+                    <span class="text-body-sm font-body-sm text-outline">Wake JARVIS automatically by saying "Hey JARVIS".</span>
+                  </div>
+                  <label class="relative inline-flex items-center cursor-pointer">
+                    <input id="desk-cfg-wake-word-enabled" class="sr-only peer" type="checkbox"/>
+                    <div class="w-10 h-5 bg-surface-container-high peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-primary-container cyan-glow"></div>
+                  </label>
+                </div>
+                <!-- Auto Resume Listening -->
+                <div class="flex items-center justify-between p-4 bg-surface-container-lowest border border-outline-variant/40 rounded">
+                  <div class="flex flex-col">
+                    <span class="text-label-md font-label-md font-bold text-on-surface">Auto Resume Listening</span>
+                    <span class="text-body-sm font-body-sm text-outline">Enable follow-up window after JARVIS speaks.</span>
+                  </div>
+                  <label class="relative inline-flex items-center cursor-pointer">
+                    <input id="desk-cfg-auto-resume" checked="" class="sr-only peer" type="checkbox"/>
+                    <div class="w-10 h-5 bg-surface-container-high peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-primary-container cyan-glow"></div>
+                  </label>
+                </div>
+              </div>
+
+              <!-- Wake Phrase and Response -->
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="flex flex-col gap-1.5">
+                  <label class="text-label-sm font-label-sm text-on-surface-variant">WAKE PHRASE</label>
+                  <input id="desk-cfg-wake-phrase" class="w-full bg-surface-container-lowest border border-outline-variant/50 rounded py-2 px-3 text-label-md font-label-md text-primary focus:outline-none focus:border-primary" type="text" value="Hey JARVIS"/>
+                  <span class="text-[10px] font-body-sm text-outline">Trigger phrase spoken to wake JARVIS locally.</span>
+                </div>
+                <div class="flex flex-col gap-1.5">
+                  <label class="text-label-sm font-label-sm text-on-surface-variant">WAKE ACKNOWLEDGMENT RESPONSE</label>
+                  <input id="desk-cfg-wake-response" class="w-full bg-surface-container-lowest border border-outline-variant/50 rounded py-2 px-3 text-label-md font-label-md text-primary focus:outline-none focus:border-primary" type="text" value="Yes?"/>
+                  <span class="text-[10px] font-body-sm text-outline">Immediate TTS phrase spoken when activated.</span>
+                </div>
+              </div>
+
+              <!-- Timeouts and Sensitivity -->
+              <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div class="flex flex-col gap-1.5 p-3.5 bg-surface-container-lowest border border-outline-variant/30 rounded">
+                  <div class="flex justify-between items-center">
+                    <label class="text-label-sm font-label-sm text-on-surface-variant">COMMAND TIMEOUT</label>
+                    <span class="text-label-md font-label-md text-primary font-bold" id="desk-cmd-timeout-label">8s</span>
+                  </div>
+                  <input id="desk-cfg-command-timeout" class="w-full" max="20" min="3" type="range" value="8" oninput="document.getElementById('desk-cmd-timeout-label').textContent = this.value + 's';"/>
+                  <span class="text-[10px] font-body-sm text-outline">Listening duration before silence timeout notification.</span>
+                </div>
+                <div class="flex flex-col gap-1.5 p-3.5 bg-surface-container-lowest border border-outline-variant/30 rounded">
+                  <div class="flex justify-between items-center">
+                    <label class="text-label-sm font-label-sm text-on-surface-variant">FOLLOW-UP TIMEOUT</label>
+                    <span class="text-label-md font-label-md text-primary font-bold" id="desk-followup-timeout-label">8s</span>
+                  </div>
+                  <input id="desk-cfg-follow-up-timeout" class="w-full" max="20" min="2" type="range" value="8" oninput="document.getElementById('desk-followup-timeout-label').textContent = this.value + 's';"/>
+                  <span class="text-[10px] font-body-sm text-outline">Window after TTS to receive chained command.</span>
+                </div>
+                <div class="flex flex-col gap-1.5 p-3.5 bg-surface-container-lowest border border-outline-variant/30 rounded">
+                  <div class="flex justify-between items-center">
+                    <label class="text-label-sm font-label-sm text-on-surface-variant">WAKE SENSITIVITY</label>
+                    <span class="text-label-md font-label-md text-primary font-bold" id="desk-wake-sens-label">0.70</span>
+                  </div>
+                  <input id="desk-cfg-wake-sensitivity" class="w-full" max="100" min="10" type="range" value="70" oninput="document.getElementById('desk-wake-sens-label').textContent = (this.value / 100).toFixed(2);"/>
+                  <span class="text-[10px] font-body-sm text-outline">Detection confidence threshold (0.10 to 1.00).</span>
+                </div>
+              </div>
+
+              <!-- Voice Synthesis Settings -->
+              <div class="grid grid-cols-1 md:grid-cols-4 gap-4 pt-2 border-t border-outline-variant/30">
+                <div class="flex items-center justify-between p-3.5 bg-surface-container-lowest border border-outline-variant/30 rounded">
+                  <div class="flex flex-col">
+                    <span class="text-label-md font-label-md font-bold text-on-surface">Voice TTS Master</span>
+                    <span class="text-[11px] font-body-sm text-outline">Enable spoken audio output.</span>
+                  </div>
+                  <label class="relative inline-flex items-center cursor-pointer">
+                    <input id="desk-cfg-voice-enabled" checked="" class="sr-only peer" type="checkbox"/>
+                    <div class="w-10 h-5 bg-surface-container-high peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-primary-container cyan-glow"></div>
+                  </label>
+                </div>
+                <div class="flex flex-col gap-1.5 p-3 bg-surface-container-lowest border border-outline-variant/30 rounded">
+                  <label class="text-[11px] font-label-sm text-on-surface-variant">VOICE PROFILE</label>
+                  <select id="desk-cfg-voice-name" class="w-full bg-surface-container-low border border-outline-variant/50 rounded py-1 px-2 text-xs text-primary focus:outline-none">
+                    <option value="default">System Default (Natural UK Male)</option>
+                    <option value="UK English Male">UK English Male (Tactical JARVIS)</option>
+                    <option value="George">George (British Professional)</option>
+                    <option value="Daniel">Daniel (Synthesized Enclave)</option>
+                  </select>
+                </div>
+                <div class="flex flex-col gap-1.5 p-3 bg-surface-container-lowest border border-outline-variant/30 rounded">
+                  <div class="flex justify-between items-center">
+                    <label class="text-[11px] font-label-sm text-on-surface-variant">SPEECH RATE</label>
+                    <span class="text-xs text-primary font-bold" id="desk-speech-rate-label">1.0x</span>
+                  </div>
+                  <input id="desk-cfg-voice-rate" class="w-full" max="20" min="5" type="range" value="10" oninput="document.getElementById('desk-speech-rate-label').textContent = (this.value / 10).toFixed(1) + 'x';"/>
+                </div>
+                <div class="flex flex-col gap-1.5 p-3 bg-surface-container-lowest border border-outline-variant/30 rounded">
+                  <div class="flex justify-between items-center">
+                    <label class="text-[11px] font-label-sm text-on-surface-variant">VOLUME</label>
+                    <span class="text-xs text-primary font-bold" id="desk-speech-vol-label">100%</span>
+                  </div>
+                  <input id="desk-cfg-voice-volume" class="w-full" max="100" min="0" type="range" value="100" oninput="document.getElementById('desk-speech-vol-label').textContent = this.value + '%';"/>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
       </div>
     </main>
   </div>
@@ -1536,6 +1837,8 @@
       { id: 'telemetry', terms: ['telemetry', 'diagnostic', 'kernel', 'fastapi', 'postgres', 'status', 'threads', 'uptime'] },
       { id: 'security', terms: ['security', 'privacy', 'sandbox', 'enclave', 'hitl', 'docker', 'api key', 'anthropic', 'openai'] },
       { id: 'data-backup', terms: ['data', 'backup', 'snapshot', 'json', 'reset', 'archive', 'recovery'] },
+      { id: 'local-agent', terms: ['local', 'agent', 'windows', 'desktop', 'tools', 'heartbeat', 'device'] },
+      { id: 'voice-assistant', terms: ['voice', 'wake', 'word', 'hands-free', 'hey jarvis', 'tts', 'speech', 'microphone', 'audio', 'timeout', 'phrase'] },
     ];
 
     let firstMatch = null;
@@ -1676,6 +1979,52 @@
       if (deskNotifyAudio) activeSettingsState.notify_audio_ping = deskNotifyAudio.checked;
       if (deskNotifySec) activeSettingsState.notify_security_broadcast = deskNotifySec.checked;
       if (deskDocker) activeSettingsState.isolated_docker_sandbox = deskDocker.checked;
+      const deskLocalAgentEnabled = document.getElementById('desk-cfg-local-agent-enabled');
+      const deskLocalAgentConfirm = document.getElementById('desk-cfg-local-agent-confirm');
+      const deskLocalAgentHb = document.getElementById('desk-cfg-local-agent-hb');
+      const deskLocalAgentDevice = document.getElementById('desk-cfg-local-agent-device');
+
+      if (deskLocalAgentEnabled) activeSettingsState.local_agent_enabled = deskLocalAgentEnabled.checked;
+      if (deskLocalAgentConfirm) activeSettingsState.local_agent_confirmation_required = deskLocalAgentConfirm.checked;
+      if (deskLocalAgentHb) activeSettingsState.local_agent_heartbeat_interval = parseInt(deskLocalAgentHb.value);
+      if (deskLocalAgentDevice) activeSettingsState.local_agent_device_name = deskLocalAgentDevice.value.trim() || activeSettingsState.local_agent_device_name;
+
+      const deskVisionEnabled = document.getElementById('desk-cfg-vision-enabled');
+      const deskScreenUnderstanding = document.getElementById('desk-cfg-screen-understanding');
+      const deskOcrEnabled = document.getElementById('desk-cfg-ocr-enabled');
+      const deskSpeakVision = document.getElementById('desk-cfg-speak-vision');
+      const deskVisionPrivacy = document.getElementById('desk-cfg-vision-privacy');
+
+      if (deskVisionEnabled) activeSettingsState.vision_enabled = deskVisionEnabled.checked;
+      if (deskScreenUnderstanding) activeSettingsState.screen_understanding_enabled = deskScreenUnderstanding.checked;
+      if (deskOcrEnabled) activeSettingsState.ocr_enabled = deskOcrEnabled.checked;
+      if (deskSpeakVision) activeSettingsState.speak_vision_responses = deskSpeakVision.checked;
+      if (deskVisionPrivacy) activeSettingsState.vision_privacy_mode = deskVisionPrivacy.checked;
+
+      // Step 10: Voice Assistant & Hands-Free Wake Word
+      const deskWakeWordEnabled = document.getElementById('desk-cfg-wake-word-enabled');
+      const deskWakePhrase = document.getElementById('desk-cfg-wake-phrase');
+      const deskWakeResponse = document.getElementById('desk-cfg-wake-response');
+      const deskCmdTimeout = document.getElementById('desk-cfg-command-timeout');
+      const deskFollowUpTimeout = document.getElementById('desk-cfg-follow-up-timeout');
+      const deskAutoResume = document.getElementById('desk-cfg-auto-resume');
+      const deskWakeSens = document.getElementById('desk-cfg-wake-sensitivity');
+      const deskVoiceEnabled = document.getElementById('desk-cfg-voice-enabled');
+      const deskVoiceName = document.getElementById('desk-cfg-voice-name');
+      const deskVoiceRate = document.getElementById('desk-cfg-voice-rate');
+      const deskVoiceVolume = document.getElementById('desk-cfg-voice-volume');
+
+      if (deskWakeWordEnabled) activeSettingsState.wake_word_enabled = deskWakeWordEnabled.checked;
+      if (deskWakePhrase) activeSettingsState.wake_phrase = deskWakePhrase.value.trim() || activeSettingsState.wake_phrase;
+      if (deskWakeResponse) activeSettingsState.wake_acknowledgment = deskWakeResponse.value.trim() || activeSettingsState.wake_acknowledgment;
+      if (deskCmdTimeout) activeSettingsState.command_timeout_seconds = parseInt(deskCmdTimeout.value);
+      if (deskFollowUpTimeout) activeSettingsState.follow_up_timeout_seconds = parseInt(deskFollowUpTimeout.value);
+      if (deskAutoResume) activeSettingsState.auto_resume_listening = deskAutoResume.checked;
+      if (deskWakeSens) activeSettingsState.wake_word_sensitivity = parseFloat((parseInt(deskWakeSens.value) / 100).toFixed(2));
+      if (deskVoiceEnabled) activeSettingsState.voice_enabled = deskVoiceEnabled.checked;
+      if (deskVoiceName) activeSettingsState.voice_name = deskVoiceName.value;
+      if (deskVoiceRate) activeSettingsState.voice_rate = parseFloat((parseInt(deskVoiceRate.value) / 10).toFixed(1));
+      if (deskVoiceVolume) activeSettingsState.voice_volume = parseFloat((parseInt(deskVoiceVolume.value) / 100).toFixed(2));
     }
     return activeSettingsState;
   }
@@ -1747,6 +2096,77 @@
     }
     if (deskVfx && typeof settings.particle_vfx === 'boolean') deskVfx.checked = settings.particle_vfx;
     if (deskGlass && typeof settings.glassmorphism === 'boolean') deskGlass.checked = settings.glassmorphism;
+
+    const deskLocalAgentEnabled = document.getElementById('desk-cfg-local-agent-enabled');
+    const deskLocalAgentConfirm = document.getElementById('desk-cfg-local-agent-confirm');
+    const deskLocalAgentHb = document.getElementById('desk-cfg-local-agent-hb');
+    const deskLocalAgentDevice = document.getElementById('desk-cfg-local-agent-device');
+
+    if (deskLocalAgentEnabled && typeof settings.local_agent_enabled === 'boolean') deskLocalAgentEnabled.checked = settings.local_agent_enabled;
+    if (deskLocalAgentConfirm && typeof settings.local_agent_confirmation_required === 'boolean') deskLocalAgentConfirm.checked = settings.local_agent_confirmation_required;
+    if (deskLocalAgentHb && settings.local_agent_heartbeat_interval !== undefined) {
+      deskLocalAgentHb.value = settings.local_agent_heartbeat_interval;
+      const lbl = document.getElementById('desk-local-agent-hb-label');
+      if (lbl) lbl.textContent = settings.local_agent_heartbeat_interval + 's';
+    }
+    if (deskLocalAgentDevice && settings.local_agent_device_name) deskLocalAgentDevice.value = settings.local_agent_device_name;
+
+    const deskVisionEnabled = document.getElementById('desk-cfg-vision-enabled');
+    const deskScreenUnderstanding = document.getElementById('desk-cfg-screen-understanding');
+    const deskOcrEnabled = document.getElementById('desk-cfg-ocr-enabled');
+    const deskSpeakVision = document.getElementById('desk-cfg-speak-vision');
+    const deskVisionPrivacy = document.getElementById('desk-cfg-vision-privacy');
+
+    if (deskVisionEnabled && typeof settings.vision_enabled === 'boolean') deskVisionEnabled.checked = settings.vision_enabled;
+    if (deskScreenUnderstanding && typeof settings.screen_understanding_enabled === 'boolean') deskScreenUnderstanding.checked = settings.screen_understanding_enabled;
+    if (deskOcrEnabled && typeof settings.ocr_enabled === 'boolean') deskOcrEnabled.checked = settings.ocr_enabled;
+    if (deskSpeakVision && typeof settings.speak_vision_responses === 'boolean') deskSpeakVision.checked = settings.speak_vision_responses;
+    if (deskVisionPrivacy && typeof settings.vision_privacy_mode === 'boolean') deskVisionPrivacy.checked = settings.vision_privacy_mode;
+
+    // Step 10: Populate Voice Assistant & Wake Word Controls
+    const deskWakeWordEnabled = document.getElementById('desk-cfg-wake-word-enabled');
+    const deskWakePhrase = document.getElementById('desk-cfg-wake-phrase');
+    const deskWakeResponse = document.getElementById('desk-cfg-wake-response');
+    const deskCmdTimeout = document.getElementById('desk-cfg-command-timeout');
+    const deskFollowUpTimeout = document.getElementById('desk-cfg-follow-up-timeout');
+    const deskAutoResume = document.getElementById('desk-cfg-auto-resume');
+    const deskWakeSens = document.getElementById('desk-cfg-wake-sensitivity');
+    const deskVoiceEnabled = document.getElementById('desk-cfg-voice-enabled');
+    const deskVoiceName = document.getElementById('desk-cfg-voice-name');
+    const deskVoiceRate = document.getElementById('desk-cfg-voice-rate');
+    const deskVoiceVolume = document.getElementById('desk-cfg-voice-volume');
+
+    if (deskWakeWordEnabled && typeof settings.wake_word_enabled === 'boolean') deskWakeWordEnabled.checked = settings.wake_word_enabled;
+    if (deskWakePhrase && settings.wake_phrase) deskWakePhrase.value = settings.wake_phrase;
+    if (deskWakeResponse && settings.wake_acknowledgment) deskWakeResponse.value = settings.wake_acknowledgment;
+    if (deskCmdTimeout && settings.command_timeout_seconds !== undefined) {
+      deskCmdTimeout.value = settings.command_timeout_seconds;
+      const lbl = document.getElementById('desk-cmd-timeout-label');
+      if (lbl) lbl.textContent = settings.command_timeout_seconds + 's';
+    }
+    if (deskFollowUpTimeout && settings.follow_up_timeout_seconds !== undefined) {
+      deskFollowUpTimeout.value = settings.follow_up_timeout_seconds;
+      const lbl = document.getElementById('desk-followup-timeout-label');
+      if (lbl) lbl.textContent = settings.follow_up_timeout_seconds + 's';
+    }
+    if (deskAutoResume && typeof settings.auto_resume_listening === 'boolean') deskAutoResume.checked = settings.auto_resume_listening;
+    if (deskWakeSens && settings.wake_word_sensitivity !== undefined) {
+      deskWakeSens.value = Math.round(settings.wake_word_sensitivity * 100);
+      const lbl = document.getElementById('desk-wake-sens-label');
+      if (lbl) lbl.textContent = Number(settings.wake_word_sensitivity).toFixed(2);
+    }
+    if (deskVoiceEnabled && typeof settings.voice_enabled === 'boolean') deskVoiceEnabled.checked = settings.voice_enabled;
+    if (deskVoiceName && settings.voice_name) deskVoiceName.value = settings.voice_name;
+    if (deskVoiceRate && settings.voice_rate !== undefined) {
+      deskVoiceRate.value = Math.round(settings.voice_rate * 10);
+      const lbl = document.getElementById('desk-speech-rate-label');
+      if (lbl) lbl.textContent = Number(settings.voice_rate).toFixed(1) + 'x';
+    }
+    if (deskVoiceVolume && settings.voice_volume !== undefined) {
+      deskVoiceVolume.value = Math.round(settings.voice_volume * 100);
+      const lbl = document.getElementById('desk-speech-vol-label');
+      if (lbl) lbl.textContent = Math.round(settings.voice_volume * 100) + '%';
+    }
 
     // Mobile
     const mobName = document.getElementById('mob-cfg-assistant-name');

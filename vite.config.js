@@ -6,6 +6,21 @@ export default defineConfig({
     port: 5173,
     host: 'localhost',
   },
+  plugins: [
+    {
+      name: 'root-redirect-to-assistant',
+      configureServer(server) {
+        server.middlewares.use((req, res, next) => {
+          if (req.url === '/' || req.url === '/index.html') {
+            res.writeHead(302, { Location: '/assistant.html' });
+            res.end();
+            return;
+          }
+          next();
+        });
+      },
+    },
+  ],
   build: {
     rollupOptions: {
       input: {
