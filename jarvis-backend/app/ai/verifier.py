@@ -152,26 +152,32 @@ class VerificationEngine:
             )
 
         if tool_name == "local_open_url":
-            if isinstance(output, dict) and output.get("status") == "failed":
+            if not isinstance(output, dict):
                 return VerificationResult(
                     status="FAILED",
                     tool=tool_name,
-                    detail=output.get("error") or "URL verification failed."
+                    detail="URL execution produced invalid output."
+                )
+            if output.get("status") in ["failed", "denied", "error"] or output.get("verified") is False or output.get("success") is False:
+                return VerificationResult(
+                    status="FAILED",
+                    tool=tool_name,
+                    detail=output.get("error") or output.get("message") or "URL verification failed."
                 )
             url = requested_params.get("url", "")
             return VerificationResult(
                 status="VERIFIED",
                 tool=tool_name,
                 entity_id=None,
-                detail=f"Browser navigated to {url}."
+                detail=f"URL dispatched to browser: {url}."
             )
 
         if tool_name in ["local_get_system_info", "local_get_current_time", "local_list_directory", "local_open_file", "local_open_folder"]:
-            if isinstance(output, dict) and output.get("status") == "failed":
+            if isinstance(output, dict) and (output.get("status") in ["failed", "denied", "error"] or output.get("verified") is False or output.get("success") is False):
                 return VerificationResult(
                     status="FAILED",
                     tool=tool_name,
-                    detail=output.get("error") or f"Action {tool_name} failed verification."
+                    detail=output.get("error") or output.get("message") or f"Action {tool_name} failed verification."
                 )
             return VerificationResult(
                 status="VERIFIED",

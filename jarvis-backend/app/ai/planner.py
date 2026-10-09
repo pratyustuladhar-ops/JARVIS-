@@ -82,13 +82,15 @@ class PlanValidator:
 
         for step in plan.steps:
             tool_name = step.tool_name or step.tool
-            if tool_name:
-                norm_tool = tool_name.strip().lower()
-                if norm_tool in self.FORBIDDEN_TOOLS or any(fb in norm_tool for fb in ["powershell", "cmd", "bash", "shell"]):
-                    return False, "Arbitrary system commands cannot be executed."
+            if not tool_name:
+                return False, f"Step {step.step_number} has no executable tool assigned."
 
-                if not agent_tool_registry.has_tool(tool_name):
-                    return False, f"Unauthorized or unknown tool requested: '{tool_name}'."
+            norm_tool = tool_name.strip().lower()
+            if norm_tool in self.FORBIDDEN_TOOLS or any(fb in norm_tool for fb in ["powershell", "cmd", "bash", "shell"]):
+                return False, "Arbitrary system commands cannot be executed."
+
+            if not agent_tool_registry.has_tool(tool_name):
+                return False, f"Unauthorized or unknown tool requested: '{tool_name}'."
 
                 tool = agent_tool_registry.get_tool(tool_name)
                 # Verify required parameters

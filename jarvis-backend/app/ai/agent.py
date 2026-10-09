@@ -160,86 +160,107 @@ class JARVISAgent:
                             rem.status = "SKIPPED"
                     break
 
-                # Mark step RUNNING & Log Activity
-                step.status = "RUNNING"
-                activity_service.record_activity(
-                    db=db,
-                    event_type="STEP_STARTED",
-                    title=f"Step {step.step_number} Started: {tool_name}",
-                    description=f"Executing step {step.step_number} ({tool_name}) for plan {plan.plan_id}.",
-                    status="INFO",
-                    metadata_json=json.dumps(self._safe_metadata({
-                        "plan_id": plan.plan_id,
-                        "step_id": step.step_number,
-                        "tool": tool_name
-                    }))
-                )
-
-                # Inject dynamic inputs if available
-                if "image_data" in step_outputs and "image_data" not in step.parameters:
-                    step.parameters["image_data"] = step_outputs["image_data"]
-
-                # Execute step
-                logger.info(f"[STAGE 4: EXECUTE] Running step {step.step_number}: {tool_name}")
-                exec_res = tool_executor.execute_step(db, step)
-                execution_results.append(exec_res)
-
-                if exec_res.status != "SUCCESS":
-                    step.status = "FAILED"
-                    failed_step_number = step.step_number
-                    logger.error(f"[EXECUTE FAILED] Step {step.step_number} failed: {exec_res.error}")
+                try:
+                    # Mark step RUNNING & Log Activity
+                    step.status = "RUNNING"
                     activity_service.record_activity(
                         db=db,
-                        event_type="STEP_FAILED",
-                        title=f"Step {step.step_number} Failed: {tool_name}",
-                        description=f"Tool execution failed: {exec_res.error}",
-                        status="ERROR",
+                        event_type="STEP_STARTED",
+                        title=f"Step {step.step_number} Started: {tool_name}",
+                        description=f"Executing step {step.step_number} ({tool_name}) for plan {plan.plan_id}.",
+                        status="INFO",
+                        metadata_json=json.dumps(self._safe_metadata({
+                            "plan_id": plan.plan_id,
+                            "step_id": step.step_number,
+                            "tool": tool_name
+                        }))
+                    )
+
+                    # Inject dynamic inputs if available
+                    if "image_data" in step_outputs and "image_data" not in step.parameters:
+                        step.parameters["image_data"] = step_outputs["image_data"]
+
+                    # Execute step
+                    logger.info(f"[STAGE 4: EXECUTE] Running step {step.step_number}: {tool_name}")
+                    exec_res = tool_executor.execute_step(db, step)
+                    execution_results.append(exec_res)
+
+                    if exec_res.status != "SUCCESS":
+                        step.status = "FAILED"
+                        failed_step_number = step.step_number
+                        logger.error(f"[EXECUTE FAILED] Step {step.step_number} failed: {exec_res.error}")
+                        activity_service.record_activity(
+                            db=db,
+                            event_type="STEP_FAILED",
+                            title=f"Step {step.step_number} Failed: {tool_name}",
+                            description=f"Tool execution failed: {exec_res.error}",
+                            status="ERROR",
+                            metadata_json=json.dumps(self._safe_metadata({
+                                "plan_id": plan.plan_id,
+                                "step_id": step.step_number,
+                                "tool": tool_name,
+                                "error": str(exec_res.error)
+                            }))
+                        )
+                        # Mark subsequent steps SKIPPED
+                        for rem in plan.steps:
+                            if rem.step_number > step.step_number:
+                                rem.status = "SKIPPED"
+                        break
+
+                    activity_service.record_activity(
+                        db=db,
+                        event_type="STEP_COMPLETED",
+                        title=f"Step {step.step_number} Completed: {tool_name}",
+                        description=f"Tool completed execution in {exec_res.duration_ms}ms.",
+                        status="INFO",
                         metadata_json=json.dumps(self._safe_metadata({
                             "plan_id": plan.plan_id,
                             "step_id": step.step_number,
                             "tool": tool_name,
-                            "error": str(exec_res.error)
+                            "duration_ms": exec_res.duration_ms
                         }))
                     )
-                    # Mark subsequent steps SKIPPED
-                    for rem in plan.steps:
-                        if rem.step_number > step.step_number:
-                            rem.status = "SKIPPED"
-                    break
 
-                activity_service.record_activity(
-                    db=db,
-                    event_type="STEP_COMPLETED",
-                    title=f"Step {step.step_number} Completed: {tool_name}",
-                    description=f"Tool completed execution in {exec_res.duration_ms}ms.",
-                    status="INFO",
-                    metadata_json=json.dumps(self._safe_metadata({
-                        "plan_id": plan.plan_id,
-                        "step_id": step.step_number,
-                        "tool": tool_name,
-                        "duration_ms": exec_res.duration_ms
-                    }))
-                )
+                    # Propagate outputs if present
+                    if isinstance(exec_res.output, dict) and "image_data" in exec_res.output:
+                        step_outputs["image_data"] = exec_res.output["image_data"]
 
-                # Propagate outputs if present
-                if isinstance(exec_res.output, dict) and "image_data" in exec_res.output:
-                    step_outputs["image_data"] = exec_res.output["image_data"]
+                    # 6. Stage: Step Verification
+                    logger.info(f"[STAGE 5: VERIFY] Verifying step {step.step_number}: {tool_name}")
+                    verif_res = verification_engine.verify(db, exec_res, step.parameters)
+                    verification_results.append(verif_res)
+                    logger.info(f"[VERIFY RESULT] Step {step.step_number} status: {verif_res.status} ({verif_res.detail})")
 
-                # 6. Stage: Step Verification
-                logger.info(f"[STAGE 5: VERIFY] Verifying step {step.step_number}: {tool_name}")
-                verif_res = verification_engine.verify(db, exec_res, step.parameters)
-                verification_results.append(verif_res)
-                logger.info(f"[VERIFY RESULT] Step {step.step_number} status: {verif_res.status} ({verif_res.detail})")
+                    if verif_res.status != "VERIFIED":
+                        step.status = "FAILED"
+                        failed_step_number = step.step_number
+                        activity_service.record_activity(
+                            db=db,
+                            event_type="STEP_FAILED",
+                            title=f"Step {step.step_number} Verification Failed: {tool_name}",
+                            description=f"Verification failed: {verif_res.detail}",
+                            status="ERROR",
+                            metadata_json=json.dumps(self._safe_metadata({
+                                "plan_id": plan.plan_id,
+                                "step_id": step.step_number,
+                                "tool": tool_name,
+                                "detail": verif_res.detail
+                            }))
+                        )
+                        # Mark subsequent steps SKIPPED
+                        for rem in plan.steps:
+                            if rem.step_number > step.step_number:
+                                rem.status = "SKIPPED"
+                        break
 
-                if verif_res.status != "VERIFIED":
-                    step.status = "FAILED"
-                    failed_step_number = step.step_number
+                    step.status = "VERIFIED"
                     activity_service.record_activity(
                         db=db,
-                        event_type="STEP_FAILED",
-                        title=f"Step {step.step_number} Verification Failed: {tool_name}",
-                        description=f"Verification failed: {verif_res.detail}",
-                        status="ERROR",
+                        event_type="STEP_VERIFIED",
+                        title=f"Step {step.step_number} Verified: {tool_name}",
+                        description=f"Execution verified: {verif_res.detail}",
+                        status="SUCCESS",
                         metadata_json=json.dumps(self._safe_metadata({
                             "plan_id": plan.plan_id,
                             "step_id": step.step_number,
@@ -247,26 +268,31 @@ class JARVISAgent:
                             "detail": verif_res.detail
                         }))
                     )
-                    # Mark subsequent steps SKIPPED
+                except Exception as ex:
+                    logger.error(f"[EXECUTE EXCEPTION] Step {step.step_number} encountered unexpected exception: {ex}", exc_info=True)
+                    step.status = "FAILED"
+                    failed_step_number = failed_step_number or step.step_number
+                    if len(execution_results) < step.step_number:
+                        execution_results.append(ExecutionResult(
+                            tool_name=tool_name,
+                            status="FAILED",
+                            error=str(ex)
+                        ))
+                    if len(verification_results) < step.step_number:
+                        verification_results.append(VerificationResult(
+                            status="FAILED",
+                            tool=tool_name,
+                            detail=f"Exception during execution: {ex}"
+                        ))
                     for rem in plan.steps:
                         if rem.step_number > step.step_number:
                             rem.status = "SKIPPED"
                     break
 
-                step.status = "VERIFIED"
-                activity_service.record_activity(
-                    db=db,
-                    event_type="STEP_VERIFIED",
-                    title=f"Step {step.step_number} Verified: {tool_name}",
-                    description=f"Execution verified: {verif_res.detail}",
-                    status="SUCCESS",
-                    metadata_json=json.dumps(self._safe_metadata({
-                        "plan_id": plan.plan_id,
-                        "step_id": step.step_number,
-                        "tool": tool_name,
-                        "detail": verif_res.detail
-                    }))
-                )
+            # Ensure no step is left in RUNNING status
+            for s in plan.steps:
+                if s.status == "RUNNING":
+                    s.status = "FAILED"
 
             # Record Overall Plan Completion / Failure Activity
             if plan.steps:

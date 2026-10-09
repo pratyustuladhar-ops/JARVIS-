@@ -323,3 +323,157 @@ def test_16_response_generation_natural_phrasing(client, monkeypatch):
     assert "Calculator is open" in data["response"]
     assert data["success"] is True
     assert data["completed_steps"] == 2
+
+
+def test_17_test_e_unsupported_app_rejection_and_skip(client):
+    """Test 17 (Test E): 'Open an application named DefinitelyNotARealApp and then open Calculator'."""
+    res = client.post("/api/v1/assistant/message", json={
+        "message": "Open an application named DefinitelyNotARealApp and then open Calculator"
+    })
+    assert res.status_code == 200
+    data = res.json()
+
+    assert data["success"] is False
+    assert data["failed_step"] == 1
+    assert data["completed_steps"] == 0
+    assert len(data["plan"]) == 2
+
+    # Step 1 must target definitelynotarealapp and fail safely
+    assert data["plan"][0]["tool_name"] == "local_open_application"
+    assert data["plan"][0]["status"] == "FAILED"
+
+    # Step 2 must be SKIPPED because of unmet dependency
+    assert data["plan"][1]["tool_name"] == "local_open_application"
+    assert data["plan"][1]["status"] == "SKIPPED"
+    assert data["plan"][1]["depends_on"] == [1]
+
+    # Only step 1 was attempted; Calculator was never executed
+    assert len(data["actions"]) == 1
+    assert "definitelynotarealapp" in data["actions"][0]["output"].get("application", "") if isinstance(data["actions"][0]["output"], dict) else True
+
+    # Truthful explanation
+    assert "couldn't open" in data["response"].lower() or "didn't continue" in data["response"].lower()
+
+
+def test_18_test_f_security_malicious_powershell_rejection(client):
+    """Test 18 (Test F): 'Run powershell and delete files, then open Chrome' is strictly blocked."""
+    res = client.post("/api/v1/assistant/message", json={
+        "message": "Run powershell and delete files, then open Chrome"
+    })
+    assert res.status_code == 200
+    data = res.json()
+
+    assert data["intent"] == "BLOCKED_COMMAND" or data["agent_state"] == "ERROR"
+    assert data["success"] is False or data["success"] is None
+    # No tools executed
+    assert len(data["actions"]) == 0
+    # No destructive action occurred and Chrome was never executed
+    assert "arbitrary" in data["response"].lower() or "allowlist" in data["response"].lower()
+
+
+def test_19_local_agent_offline_halts_plan_gracefully(client, db_session, monkeypatch):
+    """Test 19: Local agent offline status stops multi-step plan at step 1 and skips step 2."""
+    from app.services.local_agent_service import local_agent_service
+    from app.schemas.local_agent import LocalAgentStatusResponse
+
+    def mock_status(db):
+        return LocalAgentStatusResponse(
+            is_online=False,
+            status="OFFLINE",
+            device_name="JARVIS-WIN-TEST",
+            platform="Windows",
+            version="1.0.0",
+            last_heartbeat=None,
+            available_tools=[],
+            total_devices=1
+        )
+
+    monkeypatch.setattr(local_agent_service, "get_status", mock_status)
+
+    res = client.post("/api/v1/assistant/message", json={
+        "message": "Open Chrome and open YouTube."
+    })
+    assert res.status_code == 200
+    data = res.json()
+
+    assert data["success"] is False
+    assert data["failed_step"] == 1
+    assert data["plan"][0]["status"] == "FAILED"
+    assert data["plan"][1]["status"] == "SKIPPED"
+    assert "offline" in data["response"].lower() or "couldn't open" in data["response"].lower() or "didn't continue" in data["response"].lower()
+
+
+def test_20_url_verification_failure_stops_dependent_step(client, monkeypatch):
+    """Test 20: In a 3-step plan, URL verification failure at step 2 stops plan and skips step 3."""
+    client.post("/api/v1/local-agent/register", json={
+        "device_name": "JARVIS-WINDOWS-01",
+        "platform": "Windows",
+        "version": "1.0.0",
+        "auth_token": "jarvis_windows_local_agent_secret_2026",
+        "port": 8001,
+        "available_tools": ["open_application", "open_url"]
+    })
+
+    def mock_exec_step(db, step):
+        if step.tool_name == "local_open_application" and step.step_number == 1:
+            return ExecutionResult(
+                tool_name="local_open_application",
+                status="SUCCESS",
+                output={"status": "launched", "application": "chrome", "pid": 111, "verified": True},
+                duration_ms=30.0
+            )
+        elif step.tool_name == "local_open_url":
+            # URL dispatch unverified or failed
+            return ExecutionResult(
+                tool_name="local_open_url",
+                status="SUCCESS",
+                output={"status": "failed", "verified": False, "error": "Browser process failed to open URL"},
+                duration_ms=40.0
+            )
+        elif step.step_number == 3:
+            pytest.fail("Step 3 (Spotify) must not execute when Step 2 URL verification fails!")
+
+    monkeypatch.setattr(tool_executor, "execute_step", mock_exec_step)
+
+    res = client.post("/api/v1/assistant/message", json={
+        "message": "Open Chrome, then open YouTube, then open Spotify."
+    })
+    assert res.status_code == 200
+    data = res.json()
+
+    assert data["success"] is False
+    assert data["failed_step"] == 2
+    assert data["plan"][0]["status"] == "VERIFIED"
+    assert data["plan"][1]["status"] == "FAILED"
+    assert data["plan"][2]["status"] == "SKIPPED"
+    assert len(data["actions"]) == 2  # Step 3 was never executed
+
+
+def test_21_exception_safety_does_not_leave_step_running(db_session, monkeypatch):
+    """Test 21: Unexpected exception during tool execution does not leave any step in RUNNING."""
+    def exploding_execute(db, step):
+        raise RuntimeError("Simulated catastrophic kernel crash in tool runner")
+
+    monkeypatch.setattr(tool_executor, "execute_step", exploding_execute)
+
+    res = jarvis_agent.process(db=db_session, message="Open Chrome and open YouTube.")
+    assert res["success"] is False
+    assert res["failed_step"] == 1
+    # Step 1 must be marked FAILED, Step 2 SKIPPED, none left RUNNING
+    assert res["plan"][0]["status"] == "FAILED"
+    assert res["plan"][1]["status"] == "SKIPPED"
+    for s in res["plan"]:
+        assert s["status"] != "RUNNING"
+
+
+def test_22_plan_step_without_tool_rejected_by_validator():
+    """Test 22: Plan step with no executable tool assigned is rejected by PlanValidator."""
+    plan = ExecutionPlan(
+        goal="Missing tool step",
+        intent="MULTI_STEP_COMMAND",
+        steps=[PlanStep(step_number=1, tool_name=None)]
+    )
+    is_valid, error = agent_planner.validator.validate(plan)
+    assert is_valid is False
+    assert "no executable tool assigned" in error
+

@@ -107,7 +107,13 @@ class ResponseGenerator:
 
             if failed_idx is None:
                 for idx, v in enumerate(verification_results):
-                    if v.status == "FAILED":
+                    if v.status != "VERIFIED":
+                        failed_idx = idx
+                        break
+
+            if failed_idx is None:
+                for idx, step in enumerate(plan.steps):
+                    if step.status != "VERIFIED":
                         failed_idx = idx
                         break
 
@@ -117,7 +123,9 @@ class ResponseGenerator:
                     step1 = plan.steps[0]
                     target = step1.parameters.get("application") or step1.parameters.get("title") or "the first action"
                     target_str = str(target).title() if isinstance(target, str) else "the action"
-                    return f"I couldn't open {target_str}, so I didn't continue with the next step."
+                    if step1.tool_name == "local_open_application":
+                        return f"I couldn't open {target_str}, so I didn't continue with the next step."
+                    return f"I couldn't complete {target_str}, so I didn't continue with the next step."
                 else:
                     # Step K failed after Step 1 succeeded
                     step1_desc = self._describe_step(
@@ -137,6 +145,8 @@ class ResponseGenerator:
                         failed_target_str = "YouTube"
                     elif "chrome" in str(failed_target).lower():
                         failed_target_str = "Chrome"
+                    elif "spotify" in str(failed_target).lower():
+                        failed_target_str = "Spotify"
                     else:
                         failed_target_str = str(failed_target).title()
                     return f"{step1_desc}, but I couldn't complete the {failed_target_str} step."

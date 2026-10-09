@@ -439,5 +439,5 @@ cd jarvis-backend
 python -m pytest tests/test_wake_word.py -v
 python -m pytest -v
 ```
-All 87 tests run and pass in ~4 seconds.
+All 116 tests run and pass.
 

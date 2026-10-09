@@ -403,9 +403,9 @@ class LocalOpenUrlTool(BaseAgentTool):
         if not url:
             raise ValueError("Parameter 'url' is required.")
         res = local_agent_service.execute_tool(db, "open_url", {"url": url})
-        if res.status != "SUCCESS":
+        if res.status != "SUCCESS" or not res.verified:
             raise RuntimeError(res.error or f"Failed opening URL '{url}'")
-        return res.output or {"status": "success", "url": url}
+        return res.output or {"status": "success", "url": url, "verified": res.verified}
 
 
 class LocalGetSystemInfoTool(BaseAgentTool):
@@ -417,7 +417,7 @@ class LocalGetSystemInfoTool(BaseAgentTool):
     def execute(self, db: Session, params: Dict[str, Any]) -> Any:
         from app.services.local_agent_service import local_agent_service
         res = local_agent_service.execute_tool(db, "get_system_info", params)
-        if res.status != "SUCCESS":
+        if res.status != "SUCCESS" or not res.verified:
             raise RuntimeError(res.error or "Failed retrieving local system telemetry")
         return res.output
 
@@ -431,7 +431,7 @@ class LocalGetCurrentTimeTool(BaseAgentTool):
     def execute(self, db: Session, params: Dict[str, Any]) -> Any:
         from app.services.local_agent_service import local_agent_service
         res = local_agent_service.execute_tool(db, "get_current_time", params)
-        if res.status != "SUCCESS":
+        if res.status != "SUCCESS" or not res.verified:
             raise RuntimeError(res.error or "Failed retrieving Windows local time")
         return res.output
 
@@ -451,7 +451,7 @@ class LocalListDirectoryTool(BaseAgentTool):
         from app.services.local_agent_service import local_agent_service
         dir_name = params.get("directory") or params.get("path") or "Desktop"
         res = local_agent_service.execute_tool(db, "list_allowed_directory", {"directory": dir_name})
-        if res.status != "SUCCESS":
+        if res.status != "SUCCESS" or not res.verified:
             raise RuntimeError(res.error or f"Failed accessing directory '{dir_name}'")
         return res.output
 
@@ -474,7 +474,7 @@ class LocalOpenFileTool(BaseAgentTool):
         if not file_path:
             raise ValueError("Parameter 'file_path' is required.")
         res = local_agent_service.execute_tool(db, "open_file", {"file_path": file_path})
-        if res.status != "SUCCESS":
+        if res.status != "SUCCESS" or not res.verified:
             raise RuntimeError(res.error or f"Failed opening file '{file_path}'")
         return res.output
 
@@ -494,7 +494,7 @@ class LocalOpenFolderTool(BaseAgentTool):
         from app.services.local_agent_service import local_agent_service
         folder = params.get("folder_path") or params.get("folder") or params.get("directory") or "Desktop"
         res = local_agent_service.execute_tool(db, "open_folder", {"folder_path": folder})
-        if res.status != "SUCCESS":
+        if res.status != "SUCCESS" or not res.verified:
             raise RuntimeError(res.error or f"Failed opening folder '{folder}'")
         return res.output
 

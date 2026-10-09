@@ -99,6 +99,7 @@ class IntentDetector:
             # Windows Local Agent: Open Application (Allowlisted & candidate apps)
             (re.compile(r"^(?:jarvis,?\s*)?(?:open|launch|start|run|take me to|bring me to|switch to)\s+(?:the\s+)?(?:application\s+|app\s+|program\s+)?(vscode|vs code|visual studio code|code|chrome|google chrome|notepad|calculator|calc|explorer|file explorer|terminal|windows terminal|edge|microsoft edge|spotify)$", re.I), "OPEN_APPLICATION", 0.98),
             (re.compile(r"^(?:jarvis,?\s*)?(?:open|launch|start)\s+(?:my\s+)?browser[\s?!.]*$", re.I), "OPEN_APPLICATION", 0.98),
+            (re.compile(r"^(?:jarvis,?\s*)?(?:open|launch|start|run|take me to|bring me to|switch to)\s+(?:(?:an?|the)\s+)?(?:(?:application|app|program)(?::|\b))\s*(?:named\s+|called\s+|titled\s+|:\s*)?(.+)$", re.I), "OPEN_APPLICATION", 0.98),
             (re.compile(r"^(?:jarvis,?\s*)?(?:open|launch|start|run|take me to|bring me to|switch to)\s+(?:the\s+)?(?:application\s+|app\s+|program\s+)?([a-zA-Z0-9_\-\.]+(?:\.exe)?)$", re.I), "OPEN_APPLICATION", 0.95),
             (re.compile(r"^(?:jarvis,?\s*)?(?:open|launch|start|run|take me to)\s+application:?\s+(.+)$", re.I), "OPEN_APPLICATION", 0.98),
 
@@ -231,7 +232,7 @@ class IntentDetector:
 
         # Windows Local Agent: Application extraction
         if intent == "OPEN_APPLICATION":
-            m = re.search(r"(?:open|launch|start|run|take me to|bring me to|switch to|navigate to)\s+(?:the\s+)?(?:application:?\s+)?(.+)", cleaned, re.I)
+            m = re.search(r"(?:open|launch|start|run|take me to|bring me to|switch to|navigate to)\s+(?:(?:an?|the)\s+)?(?:(?:application|app|program)(?::|\b))?\s*(?:named\s+|called\s+|titled\s+|:\s*)?(.+)", cleaned, re.I)
             if m:
                 app_raw = m.group(1).strip().lower().rstrip(".?!,:;")
                 # Normalize aliases
