@@ -53,6 +53,11 @@ class IntentDetector:
         "BLOCKED_COMMAND",
         "GENERAL_COMMAND",
         "MULTI_STEP_COMMAND",
+        # Step 9.2 Browser Automation Intents
+        "BROWSER_SEARCH",
+        "BROWSER_NAVIGATE",
+        "BROWSER_PAGE_INFO",
+        "BROWSER_CLOSE",
         "UNKNOWN"
     ]
 
@@ -78,6 +83,22 @@ class IntentDetector:
             # Security: Explicitly block arbitrary shell execution attempts
             (re.compile(r"^(?:jarvis,?\s*)?(?:run|execute|eval)\s+(?:this\s+)?(?:powershell|cmd|command|bash|shell|python|script):?\s*(.+)$", re.I), "BLOCKED_COMMAND", 0.99),
             (re.compile(r"^(?:jarvis,?\s*)?(?:powershell|cmd|bash)\s+(.+)$", re.I), "BLOCKED_COMMAND", 0.99),
+
+            # Step 9.2 Browser Automation: YouTube / Google / Web Search (Priority over general navigation)
+            (re.compile(r"^(?:jarvis,?\s*)?(?:open\s+(?:the\s+)?(?:website\s+)?|go\s+to\s+)?(youtube|google|wikipedia|github)\s+(?:and\s+|then\s+)?search(?:\s+for)?\s+(.+)$", re.I), "BROWSER_SEARCH", 0.99),
+            (re.compile(r"^(?:jarvis,?\s*)?search\s+(youtube|google|wikipedia|github)\s+for\s+(.+)$", re.I), "BROWSER_SEARCH", 0.99),
+            (re.compile(r"^(?:jarvis,?\s*)?search\s+for\s+(.+)\s+on\s+(youtube|google|wikipedia|github)$", re.I), "BROWSER_SEARCH", 0.99),
+            (re.compile(r"^(?:jarvis,?\s*)?(?:search\s+the\s+web\s+for|search\s+web\s+for|search\s+google\s+for|google)\s+(.+)$", re.I), "BROWSER_SEARCH", 0.98),
+
+            # Step 9.2 Browser Automation: Page Info & Title
+            (re.compile(r"^(?:jarvis,?\s*)?(?:what(?:'s|\s+is)\s+(?:the\s+)?(?:title|page\s+title)\s+(?:of\s+this\s+(?:webpage|page)|of\s+the\s+(?:webpage|page))|what\s+is\s+this\s+webpage\s+title|what\s+page\s+is\s+open|what\s+webpage\s+is\s+open|get\s+page\s+info)[\s?!.]*$", re.I), "BROWSER_PAGE_INFO", 0.99),
+
+            # Step 9.2 Browser Automation: Close Browser
+            (re.compile(r"^(?:jarvis,?\s*)?(?:close\s+(?:the\s+)?browser(?:\s+session)?|close\s+the\s+browser\s+window)[\s?!.]*$", re.I), "BROWSER_CLOSE", 0.98),
+
+            # Step 9.2 Browser Automation: Explicit Browser Navigation
+            (re.compile(r"^(?:jarvis,?\s*)?(?:open|navigate to|browse to)\s+(?:the\s+)?website\s+(.+)$", re.I), "BROWSER_NAVIGATE", 0.99),
+            (re.compile(r"^(?:jarvis,?\s*)?(?:open|navigate to|browse to)\s+(.+)\s+in\s+(?:the\s+)?browser$", re.I), "BROWSER_NAVIGATE", 0.99),
 
             # Multimodal Vision & Screen Intelligence (Step 9)
             (re.compile(r"^(?:jarvis,?\s*)?(?:what(?:'s|\s+is)\s+(?:on|currently\s+on)\s+my\s+screen|what\s+am\s+i\s+looking\s+at|what\s+application\s+am\s+i\s+using|what\s+app\s+is\s+open|capture(?:\s+my)?\s+screen|take\s+a\s+screenshot|screenshot)[\s?!.]*$", re.I), "SCREEN_ANALYSIS", 0.98),
@@ -313,6 +334,67 @@ class IntentDetector:
                 entities["file_path"] = "a file from desktop"
             else:
                 entities["file_path"] = cleaned
+
+        # Step 9.2 Browser Automation: Search entity extraction
+        if intent == "BROWSER_SEARCH":
+            site = "youtube" if "youtube" in cleaned.lower() else ("google" if "google" in cleaned.lower() else "web")
+            if "wikipedia" in cleaned.lower():
+                site = "wikipedia"
+            elif "github" in cleaned.lower():
+                site = "github"
+
+            # Match: "open youtube and search for X", "search youtube for X", "search for X on youtube", "search google for X"
+            query = ""
+            m1 = re.search(r"(?:and\s+search|then\s+search|search)(?:\s+for)?\s+(.+)$", cleaned, re.I)
+            m2 = re.search(r"search\s+(?:for\s+)?(.+?)\s+on\s+(?:youtube|google|wikipedia|github)", cleaned, re.I)
+            if m2:
+                query = m2.group(1).strip()
+            elif m1:
+                query = m1.group(1).strip()
+            else:
+                query = cleaned
+
+            # Strip leading site prefix and 'for' (e.g. 'google for Java interview questions' -> 'Java interview questions')
+            query = re.sub(r"^(?:youtube|google|wikipedia|github)\s+for\s+", "", query, flags=re.I).strip()
+            query = re.sub(r"^(?:youtube|google|wikipedia|github)\s+", "", query, flags=re.I).strip()
+            query = re.sub(r"^for\s+", "", query, flags=re.I).strip()
+            query = re.sub(r"\s+on\s+(?:youtube|google|wikipedia|github).*$", "", query, flags=re.I).strip()
+            query = query.strip("\"'.,?!")
+
+            base_urls = {
+                "youtube": "https://www.youtube.com",
+                "google": "https://www.google.com",
+                "wikipedia": "https://www.wikipedia.org",
+                "github": "https://github.com",
+                "web": "https://www.google.com"
+            }
+            entities["site"] = site
+            entities["query"] = query
+            entities["url"] = base_urls.get(site, "https://www.google.com")
+
+        # Step 9.2 Browser Automation: Explicit navigation entity extraction
+        if intent == "BROWSER_NAVIGATE":
+            m = re.search(r"(?:open|navigate to|browse to)\s+(?:(?:the\s+)?website\s+)?(\S+)", cleaned, re.I)
+            target = m.group(1).strip() if m else cleaned
+            target_clean = target.lower().rstrip(".?!,:;")
+            if "youtube" in target_clean:
+                entities["url"] = "https://www.youtube.com"
+            elif "google" in target_clean:
+                entities["url"] = "https://www.google.com"
+            elif "github" in target_clean:
+                entities["url"] = "https://github.com"
+            elif target_clean.startswith("http://") or target_clean.startswith("https://"):
+                entities["url"] = target
+            else:
+                entities["url"] = f"https://{target}"
+
+        # Step 9.2 Browser Automation: Page Info
+        if intent == "BROWSER_PAGE_INFO":
+            entities["action"] = "get_page_info"
+
+        # Step 9.2 Browser Automation: Close
+        if intent == "BROWSER_CLOSE":
+            entities["action"] = "close"
 
         return entities
 

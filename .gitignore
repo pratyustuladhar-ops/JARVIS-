@@ -17,10 +17,11 @@ __pycache__/
 *.pyd
 .pytest_cache/
 
-# Databases
+# Databases and runtime data
 *.db
 *.sqlite
 *.sqlite3
+jarvis_browser_profiles/
 
 # Environment files
 .env

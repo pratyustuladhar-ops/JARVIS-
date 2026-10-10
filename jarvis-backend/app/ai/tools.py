@@ -603,6 +603,251 @@ class VisionOcrTool(BaseAgentTool):
         return res
 
 
+# ==================== STEP 9.2: BROWSER AUTOMATION TOOLS ====================
+
+class BrowserOpenTool(BaseAgentTool):
+    name = "browser_open"
+    description = "Start or reuse an isolated, JARVIS-controlled browser session (Edge/Chrome)"
+    risk_level = "LOW_RISK"
+    input_schema = {
+        "type": "object",
+        "properties": {
+            "session_id": {"type": "string", "description": "Optional session identifier"},
+            "browser_type": {"type": "string", "description": "Browser engine alias (msedge, chrome)"},
+            "headless": {"type": "boolean", "description": "Run in background or visible window"}
+        }
+    }
+
+    def execute(self, db: Session, params: Dict[str, Any]) -> Any:
+        from app.services.browser.automation_service import browser_automation_service
+        return browser_automation_service.open_session(
+            session_id=params.get("session_id"),
+            browser_type=params.get("browser_type", "msedge"),
+            headless=params.get("headless", False)
+        )
+
+
+class BrowserNavigateTool(BaseAgentTool):
+    name = "browser_navigate"
+    description = "Navigate the controlled browser session to a verified HTTP or HTTPS web URL"
+    risk_level = "LOW_RISK"
+    input_schema = {
+        "type": "object",
+        "properties": {
+            "url": {"type": "string", "description": "Target HTTP or HTTPS URL to navigate to"},
+            "session_id": {"type": "string", "description": "Optional browser session identifier"},
+            "timeout_ms": {"type": "integer", "description": "Timeout in milliseconds"}
+        },
+        "required": ["url"]
+    }
+
+    def execute(self, db: Session, params: Dict[str, Any]) -> Any:
+        from app.services.browser.automation_service import browser_automation_service
+        url = params.get("url") or params.get("target") or params.get("link")
+        if not url:
+            raise ValueError("Parameter 'url' is required for browser_navigate.")
+        return browser_automation_service.navigate(
+            url=url,
+            session_id=params.get("session_id"),
+            timeout_ms=params.get("timeout_ms", 30000)
+        )
+
+
+class BrowserGetPageInfoTool(BaseAgentTool):
+    name = "browser_get_page_info"
+    description = "Retrieve page title, active URL, and loaded state from the controlled browser"
+    risk_level = "LOW_RISK"
+    input_schema = {
+        "type": "object",
+        "properties": {
+            "session_id": {"type": "string", "description": "Optional browser session identifier"}
+        }
+    }
+
+    def execute(self, db: Session, params: Dict[str, Any]) -> Any:
+        from app.services.browser.automation_service import browser_automation_service
+        return browser_automation_service.get_page_info(session_id=params.get("session_id"))
+
+
+class BrowserFindElementTool(BaseAgentTool):
+    name = "browser_find_element"
+    description = "Locate an element on the active webpage using accessible role, label, or selector"
+    risk_level = "LOW_RISK"
+    input_schema = {
+        "type": "object",
+        "properties": {
+            "session_id": {"type": "string"},
+            "selector": {"type": "string"},
+            "role": {"type": "string"},
+            "name": {"type": "string"},
+            "text": {"type": "string"},
+            "timeout_ms": {"type": "integer"}
+        }
+    }
+
+    def execute(self, db: Session, params: Dict[str, Any]) -> Any:
+        from app.services.browser.automation_service import browser_automation_service
+        return browser_automation_service.find_element(
+            selector=params.get("selector"),
+            role=params.get("role"),
+            name=params.get("name"),
+            text=params.get("text"),
+            session_id=params.get("session_id"),
+            timeout_ms=params.get("timeout_ms", 10000)
+        )
+
+
+class BrowserFillInputTool(BaseAgentTool):
+    name = "browser_fill_input"
+    description = "Enter text or search query into an input or search field on the active webpage"
+    risk_level = "LOW_RISK"
+    input_schema = {
+        "type": "object",
+        "properties": {
+            "text": {"type": "string", "description": "Text query or content to enter"},
+            "session_id": {"type": "string"},
+            "selector": {"type": "string"},
+            "role": {"type": "string"},
+            "name": {"type": "string"},
+            "clear_first": {"type": "boolean"},
+            "timeout_ms": {"type": "integer"}
+        },
+        "required": ["text"]
+    }
+
+    def execute(self, db: Session, params: Dict[str, Any]) -> Any:
+        from app.services.browser.automation_service import browser_automation_service
+        text = params.get("text") or params.get("query") or params.get("value")
+        if text is None:
+            raise ValueError("Parameter 'text' is required for browser_fill_input.")
+        return browser_automation_service.fill_input(
+            text=str(text),
+            selector=params.get("selector"),
+            role=params.get("role"),
+            name=params.get("name"),
+            session_id=params.get("session_id"),
+            clear_first=params.get("clear_first", True),
+            timeout_ms=params.get("timeout_ms", 10000)
+        )
+
+
+class BrowserClickElementTool(BaseAgentTool):
+    name = "browser_click_element"
+    description = "Click an unambiguous button, link, or control on the active webpage"
+    risk_level = "LOW_RISK"
+    input_schema = {
+        "type": "object",
+        "properties": {
+            "session_id": {"type": "string"},
+            "selector": {"type": "string"},
+            "role": {"type": "string"},
+            "name": {"type": "string"},
+            "text": {"type": "string"},
+            "timeout_ms": {"type": "integer"}
+        }
+    }
+
+    def execute(self, db: Session, params: Dict[str, Any]) -> Any:
+        from app.services.browser.automation_service import browser_automation_service
+        return browser_automation_service.click_element(
+            selector=params.get("selector"),
+            role=params.get("role"),
+            name=params.get("name"),
+            text=params.get("text"),
+            session_id=params.get("session_id"),
+            timeout_ms=params.get("timeout_ms", 10000)
+        )
+
+
+class BrowserPressKeyTool(BaseAgentTool):
+    name = "browser_press_key"
+    description = "Press a keyboard key (e.g. Enter, Escape, Tab) on the active webpage or element"
+    risk_level = "LOW_RISK"
+    input_schema = {
+        "type": "object",
+        "properties": {
+            "key": {"type": "string", "description": "Key name (Enter, Tab, Escape)"},
+            "session_id": {"type": "string"},
+            "selector": {"type": "string"},
+            "timeout_ms": {"type": "integer"}
+        },
+        "required": ["key"]
+    }
+
+    def execute(self, db: Session, params: Dict[str, Any]) -> Any:
+        from app.services.browser.automation_service import browser_automation_service
+        key = params.get("key") or "Enter"
+        return browser_automation_service.press_key(
+            key=key,
+            selector=params.get("selector"),
+            session_id=params.get("session_id"),
+            timeout_ms=params.get("timeout_ms", 10000)
+        )
+
+
+class BrowserGetTextTool(BaseAgentTool):
+    name = "browser_get_text"
+    description = "Extract visible textual content from an element or active webpage"
+    risk_level = "LOW_RISK"
+    input_schema = {
+        "type": "object",
+        "properties": {
+            "session_id": {"type": "string"},
+            "selector": {"type": "string"},
+            "max_chars": {"type": "integer"}
+        }
+    }
+
+    def execute(self, db: Session, params: Dict[str, Any]) -> Any:
+        from app.services.browser.automation_service import browser_automation_service
+        return browser_automation_service.get_text(
+            selector=params.get("selector"),
+            max_chars=params.get("max_chars", 2000),
+            session_id=params.get("session_id"),
+            timeout_ms=params.get("timeout_ms", 10000)
+        )
+
+
+class BrowserWaitForStateTool(BaseAgentTool):
+    name = "browser_wait_for_state"
+    description = "Wait for a page condition, load state, or search results element to appear"
+    risk_level = "LOW_RISK"
+    input_schema = {
+        "type": "object",
+        "properties": {
+            "session_id": {"type": "string"},
+            "state": {"type": "string"},
+            "selector": {"type": "string"},
+            "timeout_ms": {"type": "integer"}
+        }
+    }
+
+    def execute(self, db: Session, params: Dict[str, Any]) -> Any:
+        from app.services.browser.automation_service import browser_automation_service
+        return browser_automation_service.wait_for_state(
+            state=params.get("state", "networkidle"),
+            selector=params.get("selector"),
+            session_id=params.get("session_id"),
+            timeout_ms=params.get("timeout_ms", 15000)
+        )
+
+
+class BrowserCloseTool(BaseAgentTool):
+    name = "browser_close"
+    description = "Cleanly close the JARVIS-controlled browser session and isolate resources"
+    risk_level = "LOW_RISK"
+    input_schema = {
+        "type": "object",
+        "properties": {
+            "session_id": {"type": "string"}
+        }
+    }
+
+    def execute(self, db: Session, params: Dict[str, Any]) -> Any:
+        from app.services.browser.automation_service import browser_automation_service
+        return browser_automation_service.close(session_id=params.get("session_id"))
+
+
 # ==================== TOOL REGISTRY ====================
 
 class AgentToolRegistry:
@@ -637,6 +882,17 @@ class AgentToolRegistry:
             LocalCaptureScreenTool(),
             VisionAnalysisTool(),
             VisionOcrTool(),
+            # Step 9.2 Browser Automation Tools
+            BrowserOpenTool(),
+            BrowserNavigateTool(),
+            BrowserGetPageInfoTool(),
+            BrowserFindElementTool(),
+            BrowserFillInputTool(),
+            BrowserClickElementTool(),
+            BrowserPressKeyTool(),
+            BrowserGetTextTool(),
+            BrowserWaitForStateTool(),
+            BrowserCloseTool(),
         ]
         for t in tools:
             self.register(t)
@@ -661,6 +917,14 @@ class AgentToolRegistry:
         "memory_query": "memory_search",
         "memory_save": "memory_create",
         "project_query": "project_list",
+        # Browser tool aliases
+        "browser_search": "browser_fill_input",
+        "navigate": "browser_navigate",
+        "page_info": "browser_get_page_info",
+        "browser_info": "browser_get_page_info",
+        "click": "browser_click_element",
+        "press_key": "browser_press_key",
+        "close_browser": "browser_close",
     }
 
     def get_tool(self, name: str) -> Optional[BaseAgentTool]:

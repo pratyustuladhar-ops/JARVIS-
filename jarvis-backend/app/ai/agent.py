@@ -179,6 +179,8 @@ class JARVISAgent:
                     # Inject dynamic inputs if available
                     if "image_data" in step_outputs and "image_data" not in step.parameters:
                         step.parameters["image_data"] = step_outputs["image_data"]
+                    if "session_id" in step_outputs and "session_id" not in step.parameters:
+                        step.parameters["session_id"] = step_outputs["session_id"]
 
                     # Execute step
                     logger.info(f"[STAGE 4: EXECUTE] Running step {step.step_number}: {tool_name}")
@@ -223,8 +225,11 @@ class JARVISAgent:
                     )
 
                     # Propagate outputs if present
-                    if isinstance(exec_res.output, dict) and "image_data" in exec_res.output:
-                        step_outputs["image_data"] = exec_res.output["image_data"]
+                    if isinstance(exec_res.output, dict):
+                        if "image_data" in exec_res.output:
+                            step_outputs["image_data"] = exec_res.output["image_data"]
+                        if "session_id" in exec_res.output:
+                            step_outputs["session_id"] = exec_res.output["session_id"]
 
                     # 6. Stage: Step Verification
                     logger.info(f"[STAGE 5: VERIFY] Verifying step {step.step_number}: {tool_name}")

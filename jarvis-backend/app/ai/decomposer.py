@@ -85,7 +85,11 @@ class MultiStepDecomposer:
             raw,
             flags=re.I
         ).strip()
-        cleaned = re.sub(r"[?!.]+$", "", cleaned).strip()
+        # Keep unified browser search commands intact (e.g. "Open YouTube and search for...")
+        if re.search(r"\b(?:and\s+search|then\s+search)\b", cleaned, re.I) and any(
+            site in cleaned.lower() for site in ["youtube", "google", "wikipedia", "github"]
+        ):
+            return [cleaned]
 
         # Pattern 0: "first <cmd1> then <cmd2>"
         first_then_match = re.match(

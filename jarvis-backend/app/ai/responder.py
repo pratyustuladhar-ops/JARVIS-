@@ -42,6 +42,36 @@ class ResponseGenerator:
                 return "GitHub is open"
             return f"{url} is open"
 
+        # Step 9.2: Browser Automation Step Descriptions
+        if tool == "browser_open":
+            return "browser session started"
+
+        if tool == "browser_navigate":
+            url = params.get("url", "")
+            if "youtube" in url.lower():
+                return "navigated to YouTube"
+            if "google" in url.lower():
+                return "navigated to Google"
+            if "github" in url.lower():
+                return "navigated to GitHub"
+            return f"navigated to {url}"
+
+        if tool == "browser_fill_input":
+            txt = params.get("text", "")
+            return f"entered query '{txt}'"
+
+        if tool == "browser_press_key":
+            return "submitted search"
+
+        if tool == "browser_wait_for_state":
+            return "search results loaded"
+
+        if tool == "browser_get_page_info":
+            return "verified page state"
+
+        if tool == "browser_close":
+            return "closed browser session"
+
         if tool == "task_create":
             title = params.get("title", "Task")
             return f"Task '{title}' created"
@@ -94,10 +124,27 @@ class ResponseGenerator:
         if plan.validation_status == "INVALID":
             if intent == "BLOCKED_COMMAND" or any(w in user_message.lower() for w in ["powershell", "cmd", "bash", "shell"]):
                 return "I can't execute arbitrary system commands. Only pre-approved Windows tools from the allowlist are permitted."
+            if "Navigation blocked" in str(plan.validation_error) or "blocked" in str(plan.validation_error).lower():
+                return "Navigation blocked: The requested destination is not permitted by JARVIS security policies (private, internal, or unsupported URL)."
             return f"I understood your request, but could not proceed: {plan.validation_error}"
 
-        # 2. Multi-Step Execution Responses
-        if len(plan.steps) > 1 or intent == "MULTI_STEP_COMMAND":
+        # 2. Specialized Single-Turn Browser Information Query
+        if intent == "BROWSER_PAGE_INFO":
+            for res in execution_results:
+                if res.status == "SUCCESS" and res.tool_name == "browser_get_page_info" and isinstance(res.output, dict):
+                    title = res.output.get("title")
+                    if title:
+                        return f'The title of the active webpage is: "{title}".'
+            for res in execution_results:
+                if res.status != "SUCCESS":
+                    return f"Failed retrieving page information: {res.error}"
+            return "No active webpage title could be retrieved."
+
+        if intent == "BROWSER_CLOSE":
+            return "Done. The controlled browser session has been closed cleanly."
+
+        # 3. Multi-Step Execution Responses
+        if len(plan.steps) > 1 or intent in ["MULTI_STEP_COMMAND", "BROWSER_SEARCH", "BROWSER_NAVIGATE", "OPEN_URL"]:
             # Check for failure in any step
             failed_idx = None
             for idx, res in enumerate(execution_results):
@@ -121,10 +168,12 @@ class ResponseGenerator:
                 # Step 1 failed
                 if failed_idx == 0:
                     step1 = plan.steps[0]
-                    target = step1.parameters.get("application") or step1.parameters.get("title") or "the first action"
+                    target = step1.parameters.get("application") or step1.parameters.get("title") or step1.parameters.get("url") or "the first action"
                     target_str = str(target).title() if isinstance(target, str) else "the action"
                     if step1.tool_name == "local_open_application":
                         return f"I couldn't open {target_str}, so I didn't continue with the next step."
+                    if step1.tool_name == "browser_navigate":
+                        return "I couldn't navigate to the requested webpage, so I didn't continue with the next step."
                     return f"I couldn't complete {target_str}, so I didn't continue with the next step."
                 else:
                     # Step K failed after Step 1 succeeded
@@ -151,6 +200,19 @@ class ResponseGenerator:
                         failed_target_str = str(failed_target).title()
                     return f"{step1_desc}, but I couldn't complete the {failed_target_str} step."
 
+            # Dedicated Clean Formulations for Verified Browser Workflows
+            if intent == "BROWSER_SEARCH":
+                query = ""
+                for s in plan.steps:
+                    if s.tool_name == "browser_fill_input":
+                        query = s.parameters.get("text", "")
+                site_name = "YouTube" if "youtube" in user_message.lower() else ("Google" if "google" in user_message.lower() else "the website")
+                return f"Done. Navigated to {site_name}, searched for '{query}', and verified that search results appeared."
+
+            if intent in ["BROWSER_NAVIGATE", "OPEN_URL"] and any(s.tool_name == "browser_navigate" for s in plan.steps):
+                site_name = "YouTube" if "youtube" in user_message.lower() else ("Google" if "google" in user_message.lower() else "the website")
+                return f"Done. Navigated to {site_name} and verified the page state."
+
             # All steps succeeded and verified!
             step_descs = []
             for i, step in enumerate(plan.steps):
@@ -167,12 +229,24 @@ class ResponseGenerator:
             elif step_descs:
                 return f"Done. {step_descs[0]}."
 
-        # 3. Single-step error handling
+        # 4. Single-step error handling
         for res in execution_results:
             if res.status != "SUCCESS":
                 err_str = str(res.error).lower()
                 if "allowlist" in err_str or "not in the approved allowlist" in err_str:
                     return "I don't have permission to open that application. Only pre-approved applications (Chrome, Edge, VS Code, Spotify, Notepad, Calculator, Explorer, Terminal) can be launched."
+                if res.tool_name and res.tool_name.startswith("browser_"):
+                    if "navigation blocked" in err_str or "blocked" in err_str or "unsupported url scheme" in err_str:
+                        return "Navigation blocked: The requested destination is not permitted by JARVIS security policies (private, internal, or unsupported URL)."
+                    if "unavailable" in err_str or "could not initialize browser" in err_str:
+                        return "Browser automation is unavailable: No compatible browser (Microsoft Edge or Google Chrome) could be launched."
+                    if "element matching" in err_str or ("not found" in err_str and "element" in err_str):
+                        return "I could not locate the requested element on the webpage."
+                    if "ambiguous" in err_str or "multiple matching elements" in err_str:
+                        return "Multiple matching elements were found. I couldn't safely determine which one to interact with."
+                    if "timed out" in err_str or "timeout" in err_str:
+                        return "Browser operation timed out."
+                    return f"Browser operation failed: {res.error}"
                 if "traversal" in err_str or "outside approved" in err_str:
                     return "Access denied. Path traversal and access outside approved user directories (Desktop, Documents, Downloads) is strictly prohibited."
                 if "not installed" in err_str or "could not be safely resolved" in err_str or "application_not_found" in err_str or "not found on this system" in err_str:

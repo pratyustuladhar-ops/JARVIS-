@@ -67,7 +67,7 @@ class ExecutionPlan(BaseModel):
 class PlanValidator:
     """Validates plans before execution to enforce security, dependencies, and parameter integrity."""
 
-    MAX_STEPS = 5
+    MAX_STEPS = 6
     MAX_PLAN_STEPS = 10
 
     FORBIDDEN_TOOLS = {
@@ -76,7 +76,7 @@ class PlanValidator:
     }
 
     def validate(self, plan: ExecutionPlan) -> Tuple[bool, Optional[str]]:
-        max_allowed = self.MAX_PLAN_STEPS if plan.intent == "MULTI_STEP_COMMAND" else self.MAX_STEPS
+        max_allowed = self.MAX_PLAN_STEPS if plan.intent in ["MULTI_STEP_COMMAND", "BROWSER_SEARCH"] else self.MAX_STEPS
         if len(plan.steps) > max_allowed:
             return False, f"Plan exceeds maximum allowed steps limit ({max_allowed})."
 
@@ -92,19 +92,28 @@ class PlanValidator:
             if not agent_tool_registry.has_tool(tool_name):
                 return False, f"Unauthorized or unknown tool requested: '{tool_name}'."
 
-                tool = agent_tool_registry.get_tool(tool_name)
-                # Verify required parameters
-                required_props = tool.input_schema.get("required", [])
-                params = step.parameters or step.arguments or {}
-                for prop in required_props:
-                    if prop not in params or not params[prop]:
-                        is_dynamic = False
-                        if prop == "image_data":
-                            earlier_steps = [s for s in plan.steps if s.step_number < step.step_number]
-                            if any((s.tool_name or s.tool) in ["local_capture_screen", "capture_screen"] for s in earlier_steps):
-                                is_dynamic = True
-                        if not is_dynamic:
-                            return False, f"Tool '{tool_name}' missing required parameter '{prop}'."
+            tool = agent_tool_registry.get_tool(tool_name)
+            params = step.parameters or step.arguments or {}
+
+            # Centralized URL security check
+            if "url" in params and params["url"]:
+                from app.services.browser.security import URLSecurityValidator, BrowserSecurityError
+                try:
+                    URLSecurityValidator.validate(params["url"])
+                except BrowserSecurityError as bse:
+                    return False, f"Navigation blocked: {bse}"
+
+            # Verify required parameters
+            required_props = tool.input_schema.get("required", []) if hasattr(tool, "input_schema") else []
+            for prop in required_props:
+                if prop not in params or params[prop] is None:
+                    is_dynamic = False
+                    if prop == "image_data":
+                        earlier_steps = [s for s in plan.steps if s.step_number < step.step_number]
+                        if any((s.tool_name or s.tool) in ["local_capture_screen", "capture_screen"] for s in earlier_steps):
+                            is_dynamic = True
+                    if not is_dynamic:
+                        return False, f"Tool '{tool_name}' missing required parameter '{prop}'."
 
             # Verify step dependencies
             if step.depends_on:
@@ -257,6 +266,31 @@ class AgentPlanner:
                 risk_level="LOW_RISK"
             )
 
+        elif intent == "BROWSER_NAVIGATE":
+            url_target = entities.get("url") or goal
+            return PlanStep(
+                step_number=step_number,
+                tool_name="browser_navigate",
+                parameters={"url": url_target},
+                risk_level="LOW_RISK"
+            )
+
+        elif intent == "BROWSER_PAGE_INFO":
+            return PlanStep(
+                step_number=step_number,
+                tool_name="browser_get_page_info",
+                parameters={},
+                risk_level="LOW_RISK"
+            )
+
+        elif intent == "BROWSER_CLOSE":
+            return PlanStep(
+                step_number=step_number,
+                tool_name="browser_close",
+                parameters={},
+                risk_level="LOW_RISK"
+            )
+
         elif intent == "OPEN_URL":
             url_target = entities.get("url") or goal
             return PlanStep(
@@ -357,6 +391,7 @@ class AgentPlanner:
                 return plan
 
             from app.ai.intent import intent_detector
+            executed_tools = []
             for idx, sub_cmd in enumerate(sub_commands):
                 step_num = idx + 1
                 dep = [idx] if idx > 0 else []
@@ -372,15 +407,122 @@ class AgentPlanner:
                     )
                     return plan
 
-                step = self._plan_single_step(
-                    intent=sub_res.intent,
-                    entities=sub_res.entities,
-                    goal=sub_cmd,
-                    step_number=step_num,
-                    context=context
-                )
+                # If preceded by local_open_application in the same multi-step command, use local_open_url
+                if sub_res.intent == "OPEN_URL" and "local_open_application" in executed_tools:
+                    step = PlanStep(
+                        step_number=step_num,
+                        tool_name="local_open_url",
+                        parameters={"url": sub_res.entities.get("url") or sub_cmd},
+                        risk_level="LOW_RISK"
+                    )
+                else:
+                    step = self._plan_single_step(
+                        intent=sub_res.intent,
+                        entities=sub_res.entities,
+                        goal=sub_cmd,
+                        step_number=step_num,
+                        context=context
+                    )
                 step.depends_on = dep
                 steps.append(step)
+                executed_tools.append(step.tool_name or step.tool)
+
+        # Step 9.2: Intelligent Browser Automation Workflows
+        elif intent == "BROWSER_SEARCH":
+            site = entities.get("site", "youtube").lower()
+            query = entities.get("query", goal)
+            url = entities.get("url") or ("https://www.google.com" if site == "google" else "https://www.youtube.com")
+
+            if "google" in site or "google" in url:
+                search_selector = 'textarea[name="q"], input[name="q"]'
+                results_selector = "#search, #rso, div.g"
+            else:
+                search_selector = 'input[name="search_query"], input#search, [name="search_query"]'
+                results_selector = "ytd-video-renderer, ytd-item-section-renderer, #contents"
+
+            steps.append(PlanStep(
+                step_number=1,
+                tool_name="browser_navigate",
+                parameters={"url": url},
+                risk_level="LOW_RISK"
+            ))
+            steps.append(PlanStep(
+                step_number=2,
+                tool_name="browser_fill_input",
+                parameters={"selector": search_selector, "text": query},
+                depends_on=[1],
+                risk_level="LOW_RISK"
+            ))
+            steps.append(PlanStep(
+                step_number=3,
+                tool_name="browser_press_key",
+                parameters={"key": "Enter"},
+                depends_on=[2],
+                risk_level="LOW_RISK"
+            ))
+            steps.append(PlanStep(
+                step_number=4,
+                tool_name="browser_wait_for_state",
+                parameters={"selector": results_selector, "state": "networkidle"},
+                depends_on=[3],
+                risk_level="LOW_RISK"
+            ))
+            steps.append(PlanStep(
+                step_number=5,
+                tool_name="browser_get_page_info",
+                parameters={},
+                depends_on=[4],
+                risk_level="LOW_RISK"
+            ))
+
+        elif intent == "BROWSER_NAVIGATE":
+            url = entities.get("url") or goal
+            steps.append(PlanStep(
+                step_number=1,
+                tool_name="browser_navigate",
+                parameters={"url": url},
+                risk_level="LOW_RISK"
+            ))
+            steps.append(PlanStep(
+                step_number=2,
+                tool_name="browser_get_page_info",
+                parameters={},
+                depends_on=[1],
+                risk_level="LOW_RISK"
+            ))
+
+        elif intent == "BROWSER_PAGE_INFO":
+            steps.append(PlanStep(
+                step_number=1,
+                tool_name="browser_get_page_info",
+                parameters={},
+                risk_level="LOW_RISK"
+            ))
+
+        elif intent == "BROWSER_CLOSE":
+            steps.append(PlanStep(
+                step_number=1,
+                tool_name="browser_close",
+                parameters={},
+                risk_level="LOW_RISK"
+            ))
+
+        elif intent == "OPEN_URL":
+            url = entities.get("url") or goal
+            # Standalone Workflow A: Controlled browser navigation and verification
+            steps.append(PlanStep(
+                step_number=1,
+                tool_name="browser_navigate",
+                parameters={"url": url},
+                risk_level="LOW_RISK"
+            ))
+            steps.append(PlanStep(
+                step_number=2,
+                tool_name="browser_get_page_info",
+                parameters={},
+                depends_on=[1],
+                risk_level="LOW_RISK"
+            ))
 
         # Multimodal & Vision Intelligence
         elif intent in ["SCREEN_ANALYSIS", "SCREEN_CONTEXT_REQUEST"]:

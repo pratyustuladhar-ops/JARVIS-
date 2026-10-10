@@ -231,6 +231,65 @@ class VerificationEngine:
                 detail=f"OCR text extraction verified ({len(txt)} characters)."
             )
 
+        # Step 9.2: Browser Automation Tools Verification
+        if tool_name == "browser_open":
+            if not isinstance(output, dict) or output.get("status") != "READY":
+                return VerificationResult("FAILED", tool_name, None, output.get("error") if isinstance(output, dict) else "Browser session failed to initialize.")
+            sess_id = output.get("session_id", "default")
+            return VerificationResult("VERIFIED", tool_name, sess_id, f"Browser session '{sess_id}' confirmed ready.")
+
+        if tool_name == "browser_navigate":
+            if not isinstance(output, dict) or output.get("navigation_status") != "SUCCESS":
+                err = output.get("error") if isinstance(output, dict) else "Browser navigation failed."
+                return VerificationResult("FAILED", tool_name, None, err)
+            status_code = output.get("status_code", 200)
+            if status_code >= 400:
+                return VerificationResult("FAILED", tool_name, None, f"HTTP error {status_code} received from destination.")
+            final_url = output.get("final_url") or output.get("url") or requested_params.get("url", "")
+            return VerificationResult("VERIFIED", tool_name, None, f"Navigated successfully to {final_url} (HTTP {status_code}).")
+
+        if tool_name == "browser_find_element":
+            if not isinstance(output, dict) or not output.get("found"):
+                return VerificationResult("FAILED", tool_name, None, output.get("error") if isinstance(output, dict) else "Element not found on page.")
+            return VerificationResult("VERIFIED", tool_name, None, f"Target element verified on page ({output.get('description', 'element')}).")
+
+        if tool_name == "browser_fill_input":
+            if not isinstance(output, dict) or not output.get("filled"):
+                return VerificationResult("FAILED", tool_name, None, output.get("error") if isinstance(output, dict) else "Failed to enter text into field.")
+            return VerificationResult("VERIFIED", tool_name, None, f"Text input verified ({output.get('text_length', 0)} characters entered).")
+
+        if tool_name == "browser_click_element":
+            if not isinstance(output, dict) or not output.get("clicked"):
+                return VerificationResult("FAILED", tool_name, None, output.get("error") if isinstance(output, dict) else "Click operation failed.")
+            return VerificationResult("VERIFIED", tool_name, None, f"Click interaction verified on {output.get('target', 'element')}.")
+
+        if tool_name == "browser_press_key":
+            if not isinstance(output, dict) or not output.get("pressed"):
+                return VerificationResult("FAILED", tool_name, None, output.get("error") if isinstance(output, dict) else "Key submission failed.")
+            return VerificationResult("VERIFIED", tool_name, None, f"Key submission '{output.get('key')}' verified.")
+
+        if tool_name == "browser_wait_for_state":
+            if not isinstance(output, dict) or not output.get("satisfied"):
+                return VerificationResult("FAILED", tool_name, None, output.get("error") if isinstance(output, dict) else "Wait condition was not satisfied.")
+            cond = output.get("waited_for") or output.get("found_selector") or "state"
+            return VerificationResult("VERIFIED", tool_name, None, f"Page state verified: {cond} satisfied.")
+
+        if tool_name == "browser_get_page_info":
+            if not isinstance(output, dict) or (not output.get("title") and not output.get("url")):
+                return VerificationResult("FAILED", tool_name, None, output.get("error") if isinstance(output, dict) else "Failed to retrieve page metadata.")
+            title = output.get("title") or "Page"
+            return VerificationResult("VERIFIED", tool_name, None, f"Page state verified: '{title}'.")
+
+        if tool_name == "browser_get_text":
+            if not isinstance(output, dict) or output.get("text") is None:
+                return VerificationResult("FAILED", tool_name, None, output.get("error") if isinstance(output, dict) else "Failed to retrieve page text.")
+            return VerificationResult("VERIFIED", tool_name, None, f"Extracted {output.get('char_count', 0)} characters of text from page.")
+
+        if tool_name == "browser_close":
+            if not isinstance(output, dict) or output.get("closed") is False:
+                return VerificationResult("FAILED", tool_name, None, output.get("error") if isinstance(output, dict) else "Browser session closure failed.")
+            return VerificationResult("VERIFIED", tool_name, None, "Browser session closed and isolated.")
+
         # Read-only operations (list, search, status)
         return VerificationResult(
             status="VERIFIED",

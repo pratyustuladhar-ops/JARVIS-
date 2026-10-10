@@ -32,6 +32,13 @@ JARVIS features a React + TypeScript tactical HUD, a high-performance FastAPI ba
   - Loop & Step Limits (`MAX_PLAN_STEPS = 10`) and arbitrary command rejection (`powershell`, `cmd`, `bash`, `python`).
   - Granular Activity Logging (`PLAN_CREATED`, `STEP_STARTED`, `STEP_COMPLETED`, `STEP_VERIFIED`, `STEP_FAILED`, `PLAN_COMPLETED`, `PLAN_FAILED`).
   - Natural truthful response synthesis for success and partial/full failure.
+- **Intelligent Browser Automation (Step 9.2)**:
+  - Controlled browser automation service powered by Playwright with existing Microsoft Edge / Chrome installations.
+  - 10 registered browser tools: `browser_open`, `browser_navigate`, `browser_get_page_info`, `browser_find_element`, `browser_fill_input`, `browser_click_element`, `browser_press_key`, `browser_get_text`, `browser_wait_for_state`, `browser_close`.
+  - Strict URL Security & SSRF Protection: HTTP/HTTPS scheme enforcement, loopback/private/metadata IP blocking, DNS rebinding prevention, route interception, credential redaction.
+  - Dedicated isolated browser profiles (`jarvis_browser_profiles/<session_id>`) protecting user's personal browser data.
+  - End-to-end multi-step web interaction (e.g. YouTube & Google search workflows) with independent state verification.
+  - Prompt injection immunity: untrusted webpage text is treated strictly as data and cannot hijack agent tool dispatching.
 - **Hands-Free Wake Word (Step 10)**:
   - Configurable wake phrase (`"Hey JARVIS"`).
   - Modular Wake Word Engine Abstraction (`BaseWakeWordProvider`, `LocalKeywordSpotterProvider`, `PorcupineWakeWordProvider`, `MockWakeWordProvider`).
@@ -201,13 +208,17 @@ Visit the application in your browser:
 
 ## Automated Test Suite
 
-Run the full pytest suite (110 tests covering Steps 1–9.1 & 10):
+Run the full pytest suite (139 tests covering Steps 1–9.2 & 10):
 ```powershell
 cd jarvis-backend
-python -m pytest tests/test_multi_step_planner.py -v
+python -m pytest tests/test_browser_automation.py -v
 python -m pytest -v
 ```
 
-All 110 tests pass with 100% success rate.
+All 139 tests pass with 100% success rate.
+Frontend tests (20 tests covering UI routing & wake word state machine):
+```powershell
+npm test
+```
 #   J A R V I S -  
  
