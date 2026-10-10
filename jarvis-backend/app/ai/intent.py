@@ -13,8 +13,14 @@ class IntentDetectionResult(BaseModel):
     intent: str
     confidence: float
     entities: Dict[str, Any] = {}
-    strategy_used: str  # "rule", "ml", "llm_fallback"
+    strategy_used: str  # "rule", "ml", "llm_fallback", "context"
     raw_input: str
+    action: Optional[str] = None
+    slots: Dict[str, Any] = {}
+    context_reference: Optional[str] = None
+    requires_clarification: bool = False
+    clarification_question: Optional[str] = None
+    execution_plan: Optional[List[Dict[str, Any]]] = None
 
 
 class IntentDetector:
@@ -59,6 +65,15 @@ class IntentDetector:
         "BROWSER_PAGE_INFO",
         "BROWSER_CLICK_ELEMENT",
         "BROWSER_CLOSE",
+        # Music & Spotify Intents
+        "MUSIC_PLAY",
+        "MUSIC_PAUSE",
+        "MUSIC_RESUME",
+        "MUSIC_NEXT",
+        "MUSIC_PREVIOUS",
+        "MUSIC_SEARCH",
+        "MUSIC_VOLUME",
+        "MUSIC_STOP",
         "UNKNOWN"
     ]
 
@@ -86,10 +101,28 @@ class IntentDetector:
             (re.compile(r"^(?:jarvis,?\s*)?(?:powershell|cmd|bash)\s+(.+)$", re.I), "BLOCKED_COMMAND", 0.99),
 
             # Step 9.2 Browser Automation: YouTube / Google / Web Search (Priority over general navigation)
-            (re.compile(r"^(?:jarvis,?\s*)?(?:open\s+(?:the\s+)?(?:website\s+)?|go\s+to\s+)?(youtube|google|wikipedia|github)\s*(?:,\s*|\s+and\s+|\s+then\s+|\s+)search(?:\s+for)?\s+(.+)$", re.I), "BROWSER_SEARCH", 0.99),
+            (re.compile(r"^(?:jarvis,?\s*)?(?:open\s+(?:the\s+)?(?:website\s+)?|go\s+to\s+)?(youtube|google|wikipedia|github|chrome|edge|browser)\s*(?:,\s*|\s+and\s+|\s+then\s+|\s+)search(?:\s+for)?\s+(.+)$", re.I), "BROWSER_SEARCH", 0.99),
             (re.compile(r"^(?:jarvis,?\s*)?search\s+(youtube|google|wikipedia|github)\s+for\s+(.+)$", re.I), "BROWSER_SEARCH", 0.99),
-            (re.compile(r"^(?:jarvis,?\s*)?search\s+for\s+(.+)\s+on\s+(youtube|google|wikipedia|github)$", re.I), "BROWSER_SEARCH", 0.99),
+            (re.compile(r"^(?:jarvis,?\s*)?search\s+for\s+(.+)\s+on\s+(youtube|google|wikipedia|github|chrome|web)$", re.I), "BROWSER_SEARCH", 0.99),
             (re.compile(r"^(?:jarvis,?\s*)?(?:search\s+the\s+web\s+for|search\s+web\s+for|search\s+google\s+for|google)\s+(.+)$", re.I), "BROWSER_SEARCH", 0.98),
+
+            # Music & Spotify: Dedicated Controls & Variations (Priority over generic commands)
+            (re.compile(r"^(?:jarvis,?\s*)?(?:set|turn|change)\s+(?:the\s+)?(?:spotify\s+)?volume\s+(?:to\s+)?(\d+)\s*%?[\s?!.]*$", re.I), "MUSIC_VOLUME", 0.99),
+            (re.compile(r"^(?:jarvis,?\s*)?(?:turn\s+(?:the\s+)?(?:music|volume)\s+(?:up|down)(?:\s+to\s+(\d+)\s*%?)?)[\s?!.]*$", re.I), "MUSIC_VOLUME", 0.98),
+            (re.compile(r"^(?:jarvis,?\s*)?(?:pause(?:\s+(?:the\s+)?(?:music|playback|song|track|spotify|it))?|hold\s+on\s+the\s+music)[\s?!.]*$", re.I), "MUSIC_PAUSE", 0.99),
+            (re.compile(r"^(?:jarvis,?\s*)?(?:resume(?:\s+(?:the\s+)?(?:music|playback|song|track|spotify|what\s+i\s+was\s+listening\s+to|it))?|continue\s+playing|unpause)[\s?!.]*$", re.I), "MUSIC_RESUME", 0.99),
+            (re.compile(r"^(?:jarvis,?\s*)?(?:skip(?:\s+(?:this\s+)?(?:song|track|one))?|play\s+(?:the\s+)?next\s+(?:track|song)|next\s+(?:song|track)|skip\s+to\s+next)[\s?!.]*$", re.I), "MUSIC_NEXT", 0.99),
+            (re.compile(r"^(?:jarvis,?\s*)?(?:play\s+(?:the\s+)?previous\s+(?:track|song)|previous\s+(?:song|track)|go\s+back\s+(?:to\s+)?(?:the\s+)?previous\s+(?:song|track)|play\s+(?:the\s+)?last\s+track)[\s?!.]*$", re.I), "MUSIC_PREVIOUS", 0.99),
+            (re.compile(r"^(?:jarvis,?\s*)?(?:stop\s+(?:the\s+)?(?:music|playback|song|track|spotify)|stop\s+playing)[\s?!.]*$", re.I), "MUSIC_STOP", 0.99),
+            (re.compile(r"^(?:jarvis,?\s*)?(?:search\s+spotify\s+for\s+|find\s+on\s+spotify\s+)(.+)$", re.I), "MUSIC_SEARCH", 0.99),
+            (re.compile(r"^(?:jarvis,?\s*)?(?:search\s+for|find)\s+(.+?)\s+by\s+(.+)$", re.I), "MUSIC_SEARCH", 0.98),
+            (re.compile(r"^(?:jarvis,?\s*)?(?:search\s+for|find)\s+(?:song|track|music):?\s*(.+)$", re.I), "MUSIC_SEARCH", 0.98),
+            (re.compile(r"^(?:jarvis,?\s*)?(?:search\s+for|find)\s+(?!the\s+web\b|web\b|google\b|youtube\b|wikipedia\b|github\b|all\b)(.+)$", re.I), "MUSIC_SEARCH", 0.96),
+            (re.compile(r"^(?:jarvis,?\s*)?(?:play|put\s+on|listen\s+to|spin)\s+(?:some\s+|that\s+)?(.+?)\s+(?:by|from)\s+(.+)$", re.I), "MUSIC_PLAY", 0.99),
+            (re.compile(r"^(?:jarvis,?\s*)?(?:play|put\s+on|listen\s+to|spin)\s+(?:some\s+)?([a-zA-Z\s]+?)\s+music[\s?!.]*$", re.I), "MUSIC_PLAY", 0.98),
+            (re.compile(r"^(?:jarvis,?\s*)?(?:play|put\s+on|listen\s+to|spin)\s+(?:some\s+)?(green day|queen|the beatles|linkin park|coldplay|eminem|taylor swift|ed sheeran|nirvana|metallica|ac/dc|pink floyd|radiohead|daft punk|drake)[\s?!.]*$", re.I), "MUSIC_PLAY", 0.98),
+            (re.compile(r"^(?:jarvis,?\s*)?(?:play|put\s+on|listen\s+to|spin)\s+(?:their\s+)?(?:other\s+)?(?:popular\s+)?(?:song|track)[\s?!.]*$", re.I), "MUSIC_PLAY", 0.98),
+            (re.compile(r"^(?:jarvis,?\s*)?(?:play|put\s+on|listen\s+to|spin)\s+(.+)$", re.I), "MUSIC_PLAY", 0.95),
 
             # Step 9.2 Browser Automation: Page Info & Title
             (re.compile(r"^(?:jarvis,?\s*)?(?:what(?:'s|\s+is)\s+(?:the\s+)?(?:current\s+|active\s+)?(?:title|page\s+title|webpage\s+title)(?:\s+of\s+(?:this|the|the\s+current|the\s+active)?\s*(?:webpage|page|website|tab))?|what\s+is\s+(?:this|the\s+current|the)\s+webpage\s+title|what\s+page\s+is\s+open|what\s+webpage\s+is\s+open|get\s+(?:current\s+)?page\s+info|get\s+current\s+webpage\s+title|read\s+(?:the\s+)?(?:current\s+)?(?:page\s+)?title)[\s?!.]*$", re.I), "BROWSER_PAGE_INFO", 0.99),
@@ -160,8 +193,9 @@ class IntentDetector:
             (re.compile(r"^(update|mark|set|change) task #?(\d+)", re.I), "UPDATE_TASK", 0.95),
 
             # Task create
-            (re.compile(r"^(create|add|schedule|new) task:?\s+(.+)", re.I), "CREATE_TASK", 0.95),
-            (re.compile(r"^remind me to\s+(.+)", re.I), "CREATE_TASK", 0.95),
+            (re.compile(r"^(?:create|add|schedule|new)\s+(?:a\s+)?task\s+(?:to\s+|called\s+|named\s+|:\s+)?(.+)", re.I), "CREATE_TASK", 0.98),
+            (re.compile(r"^(?:create|add|schedule|new)\s+task:?\s*(.+)", re.I), "CREATE_TASK", 0.98),
+            (re.compile(r"^remind me to\s+(.+)", re.I), "CREATE_TASK", 0.98),
 
             # Project create
             (re.compile(r"^(create|add|start|new) project:?\s+(.+)", re.I), "CREATE_PROJECT", 0.95),
@@ -409,26 +443,157 @@ class IntentDetector:
         if intent == "BROWSER_CLOSE":
             entities["action"] = "close"
 
+        # Music & Spotify Intents
+        if intent == "MUSIC_PLAY":
+            entities["action"] = "play"
+            entities["music_service"] = "spotify"
+            m_by = re.search(r"(?:play|put\s+on|listen\s+to|spin)\s+(?:some\s+|that\s+)?(.+?)\s+(?:by|from)\s+(.+)$", cleaned, re.I)
+            m_genre = re.search(r"(?:play|put\s+on|listen\s+to|spin)\s+(?:some\s+)?([a-zA-Z\s]+?)\s+music[\s?!.]*$", cleaned, re.I)
+            m_pronoun = re.search(r"(?:play|put\s+on)\s+(?:their|his|her)\s+(?:other\s+)?(?:popular\s+)?(?:song|track)", cleaned, re.I)
+
+            if m_pronoun:
+                entities["context_reference"] = "previous_artist"
+                entities["track"] = "popular song"
+            elif m_by:
+                t = m_by.group(1).strip().strip("\"'")
+                a = m_by.group(2).strip().strip("\"'.,?!")
+                t = re.sub(r"^(?:that|the)\s+", "", t, flags=re.I).strip()
+                entities["track"] = t
+                entities["artist"] = a
+            elif m_genre:
+                g = m_genre.group(1).strip().lower()
+                entities["genre"] = g
+            else:
+                m_direct = re.search(r"(?:play|put\s+on|listen\s+to|spin)\s+(?:some\s+)?(.+)$", cleaned, re.I)
+                target = m_direct.group(1).strip().strip("\"'.,?!") if m_direct else cleaned
+                known_artists = ["green day", "queen", "the beatles", "linkin park", "coldplay", "nirvana", "metallica", "ac/dc", "pink floyd", "radiohead", "daft punk", "drake", "eminem", "taylor swift", "ed sheeran"]
+                if target.lower() in known_artists:
+                    entities["artist"] = target
+                elif "music" in target.lower() or target.lower() in ["rock", "pop", "jazz", "classical", "hip hop", "lofi", "study", "metal", "electronic"]:
+                    entities["genre"] = re.sub(r"\s+music$", "", target, flags=re.I).strip()
+                else:
+                    entities["track"] = target
+
+        elif intent == "MUSIC_SEARCH":
+            entities["action"] = "search"
+            entities["music_service"] = "spotify"
+            m_by = re.search(r"(?:search\s+for|find|look\s+up)\s+(.+?)\s+by\s+(.+?)(?:\s+on\s+spotify)?[\s?!.]*$", cleaned, re.I)
+            if m_by:
+                t = m_by.group(1).strip().strip("\"'")
+                a = m_by.group(2).strip().strip("\"'.,?!")
+                entities["track"] = t
+                entities["artist"] = a
+                entities["query"] = f"{t} {a}"
+            else:
+                m_q = re.search(r"(?:search\s+spotify\s+for|search\s+for|find|look\s+up)\s+(?:song\s+|track\s+|music\s+)?(.+?)(?:\s+on\s+spotify)?[\s?!.]*$", cleaned, re.I)
+                q = m_q.group(1).strip().strip("\"'.,?!") if m_q else cleaned
+                entities["query"] = q
+                entities["track"] = q
+
+        elif intent in ["MUSIC_PAUSE", "MUSIC_STOP"]:
+            entities["action"] = "pause"
+            entities["context_reference"] = "active_playback"
+
+        elif intent == "MUSIC_RESUME":
+            entities["action"] = "resume"
+            entities["context_reference"] = "active_playback"
+
+        elif intent == "MUSIC_NEXT":
+            entities["action"] = "next"
+            entities["context_reference"] = "active_playback"
+
+        elif intent == "MUSIC_PREVIOUS":
+            entities["action"] = "previous"
+            entities["context_reference"] = "active_playback"
+
+        elif intent == "MUSIC_VOLUME":
+            entities["action"] = "volume"
+            m_vol = re.search(r"(\d+)", cleaned)
+            if m_vol:
+                entities["volume_percent"] = int(m_vol.group(1))
+            elif "up" in cleaned.lower():
+                entities["volume_direction"] = "up"
+                entities["volume_percent"] = 70
+            elif "down" in cleaned.lower():
+                entities["volume_direction"] = "down"
+                entities["volume_percent"] = 30
+            else:
+                entities["volume_percent"] = 50
+
         return entities
+
+    def _build_result(
+        self,
+        intent: str,
+        confidence: float,
+        entities: Dict[str, Any],
+        strategy_used: str,
+        raw_input: str,
+        context: Optional[Any] = None
+    ) -> IntentDetectionResult:
+        """Constructs rich structured IntentDetectionResult with slots and context resolution."""
+        action = entities.get("action")
+        slots = {k: v for k, v in entities.items() if k not in ["command", "prompt", "sub_commands"]}
+        context_ref = entities.get("context_reference")
+        requires_clarif = False
+        clarif_q = None
+
+        # Context-aware follow-up resolution
+        if context_ref == "previous_artist" and not entities.get("artist"):
+            resolved_artist = None
+            if context:
+                # Check recent memories or visual context or conversation
+                if hasattr(context, "relevant_memories") and context.relevant_memories:
+                    for m in context.relevant_memories:
+                        text = m.get("content", "").lower()
+                        for band in ["green day", "queen", "the beatles", "linkin park", "coldplay", "nirvana"]:
+                            if band in text:
+                                resolved_artist = band.title()
+                                break
+            if resolved_artist:
+                entities["artist"] = resolved_artist
+                slots["artist"] = resolved_artist
+            else:
+                requires_clarif = True
+                clarif_q = "Which artist's songs would you like me to play?"
+
+        # Clarification if intent has no target
+        if intent == "MUSIC_PLAY" and not any(k in entities for k in ["track", "artist", "genre", "context_reference"]):
+            requires_clarif = True
+            clarif_q = "What song, artist, or genre would you like me to play?"
+
+        return IntentDetectionResult(
+            intent=intent,
+            confidence=confidence,
+            entities=entities,
+            strategy_used=strategy_used,
+            raw_input=raw_input,
+            action=action,
+            slots=slots,
+            context_reference=context_ref,
+            requires_clarification=requires_clarif,
+            clarification_question=clarif_q
+        )
 
     def detect(
         self,
         user_message: str,
         input_type: Optional[str] = None,
-        has_image: bool = False
+        has_image: bool = False,
+        context: Optional[Any] = None
     ) -> IntentDetectionResult:
         cleaned = user_message.strip()
         norm_msg = self.normalize_query(cleaned)
         if not cleaned:
             if has_image:
-                return IntentDetectionResult(
+                return self._build_result(
                     intent="IMAGE_ANALYSIS",
                     confidence=0.95,
                     entities={"prompt": "Analyze image payload"},
                     strategy_used="multimodal_context",
                     raw_input=""
                 )
-            return IntentDetectionResult(
+            return self._build_result(
                 intent="UNKNOWN",
                 confidence=0.0,
                 entities={},
@@ -440,7 +605,7 @@ class IntentDetector:
         for pattern, rule_intent, rule_conf in self.rules[:2]:
             if pattern.search(cleaned) or (norm_msg and pattern.search(norm_msg)):
                 logger.warning(f"[INTENT] Security block triggered: '{rule_intent}'")
-                return IntentDetectionResult(
+                return self._build_result(
                     intent="BLOCKED_COMMAND",
                     confidence=0.99,
                     entities={"command": cleaned},
@@ -453,7 +618,7 @@ class IntentDetector:
         sub_commands = multi_step_decomposer.decompose(norm_msg or cleaned)
         if len(sub_commands) > 1:
             logger.info(f"[INTENT] Multi-step command detected ({len(sub_commands)} steps): {sub_commands}")
-            return IntentDetectionResult(
+            return self._build_result(
                 intent="MULTI_STEP_COMMAND",
                 confidence=0.98,
                 entities={"sub_commands": sub_commands, "steps_count": len(sub_commands)},
@@ -472,26 +637,27 @@ class IntentDetector:
             if matched_text:
                 entities = self.extract_entities(matched_text, rule_intent)
                 logger.info(f"[INTENT] Rule match: '{rule_intent}' with confidence {rule_conf}")
-                return IntentDetectionResult(
+                return self._build_result(
                     intent=rule_intent,
                     confidence=rule_conf,
                     entities=entities,
                     strategy_used="rule",
-                    raw_input=cleaned
+                    raw_input=cleaned,
+                    context=context
                 )
 
         # Stage 1.5: If an image is explicitly attached and user is asking a question or requesting analysis
         if has_image or input_type == "image":
             lower_msg = cleaned.lower()
             if any(w in lower_msg for w in ["read", "ocr", "text", "error", "log"]):
-                return IntentDetectionResult(
+                return self._build_result(
                     intent="OCR_REQUEST",
                     confidence=0.96,
                     entities={"prompt": cleaned},
                     strategy_used="multimodal_payload",
                     raw_input=cleaned
                 )
-            return IntentDetectionResult(
+            return self._build_result(
                 intent="IMAGE_ANALYSIS",
                 confidence=0.95,
                 entities={"prompt": cleaned},
@@ -505,12 +671,13 @@ class IntentDetector:
 
         if ml_conf >= self.confidence_threshold and ml_intent in self.CANDIDATE_INTENTS:
             entities = self.extract_entities(cleaned, ml_intent)
-            return IntentDetectionResult(
+            return self._build_result(
                 intent=ml_intent,
                 confidence=ml_conf,
                 entities=entities,
                 strategy_used="ml",
-                raw_input=cleaned
+                raw_input=cleaned,
+                context=context
             )
 
         # Stage 3: LLM Provider Fallback (if confidence is below threshold)
@@ -519,12 +686,13 @@ class IntentDetector:
         llm_intent, llm_conf = provider.classify_intent(cleaned, self.CANDIDATE_INTENTS)
         entities = self.extract_entities(cleaned, llm_intent)
 
-        return IntentDetectionResult(
+        return self._build_result(
             intent=llm_intent,
             confidence=llm_conf,
             entities=entities,
             strategy_used="llm_fallback",
-            raw_input=cleaned
+            raw_input=cleaned,
+            context=context
         )
 
 

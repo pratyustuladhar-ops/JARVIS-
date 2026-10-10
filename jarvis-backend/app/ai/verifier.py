@@ -290,6 +290,21 @@ class VerificationEngine:
                 return VerificationResult("FAILED", tool_name, None, output.get("error") if isinstance(output, dict) else "Browser session closure failed.")
             return VerificationResult("VERIFIED", tool_name, None, "Browser session closed and isolated.")
 
+        # Music & Spotify Tools Verification
+        if tool_name == "spotify_play":
+            if not isinstance(output, dict) or not output.get("verified"):
+                msg = output.get("message") if isinstance(output, dict) else "Spotify playback request could not be completed."
+                return VerificationResult("FAILED", tool_name, None, msg)
+            t = output.get("resolved_track") or output.get("track") or "track"
+            a = output.get("resolved_artist") or output.get("artist") or "artist"
+            return VerificationResult("VERIFIED", tool_name, None, f"Playback confirmed: '{t}' by '{a}'.")
+
+        if tool_name in ["spotify_pause", "spotify_resume", "spotify_next", "spotify_previous", "spotify_volume", "spotify_search"]:
+            if not isinstance(output, dict) or not output.get("verified"):
+                msg = output.get("message") if isinstance(output, dict) else "Spotify operation failed."
+                return VerificationResult("FAILED", tool_name, None, msg)
+            return VerificationResult("VERIFIED", tool_name, None, output.get("message", "Spotify operation confirmed."))
+
         # Read-only operations (list, search, status)
         return VerificationResult(
             status="VERIFIED",

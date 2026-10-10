@@ -59,6 +59,8 @@ class AgentMessageResponse(BaseModel):
     total_steps: Optional[int] = None
     failed_step: Optional[int] = None
     steps: Optional[List[Dict[str, Any]]] = None
+    requires_clarification: Optional[bool] = None
+    slots: Optional[Dict[str, Any]] = None
 
 
 class IntentResult(BaseModel):

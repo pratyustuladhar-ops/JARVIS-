@@ -250,49 +250,121 @@
   </header>
 
   <!-- ==================================================== -->
-  <!-- MAIN ASSISTANT CANVAS                                -->
+  <!-- MAIN ASSISTANT CANVAS (FULL VIEWPORT FLEX COLUMN)    -->
   <!-- ==================================================== -->
-  <main class="ml-60 pt-16 min-h-screen flex flex-col items-center">
-    
-    <div class="w-full max-w-4xl px-6 py-6 flex flex-col items-center flex-1">
+  <main class="md:ml-60 pt-14 h-[100dvh] flex flex-col overflow-hidden relative">
 
-      <!-- ==================================================== -->
-      <!-- SECTION 1: 3D HOLOGRAPHIC JARVIS CORE & READOUT      -->
-      <!-- ==================================================== -->
-      <section class="flex flex-col items-center text-center mt-1 mb-4 relative w-full">
+    <!-- ==================================================== -->
+    <!-- SECTION 1: TOP HUD - 3D HOLOGRAPHIC CORE & STATUS    -->
+    <!-- ==================================================== -->
+    <section id="jarvis-core-hud" class="w-full border-b border-outline-variant/30 bg-[#070B10]/80 backdrop-blur-md px-4 md:px-8 py-2.5 flex items-center justify-between shrink-0 shadow-[0_4px_20px_rgba(0,0,0,0.4)] z-10">
+      <div class="flex items-center gap-3 md:gap-4 min-w-0">
+        <!-- 3D Holographic Core Canvas (Compact responsive HUD size) -->
+        <div class="relative w-16 h-16 md:w-20 md:h-20 flex items-center justify-center shrink-0">
+          <div class="volumetric-aura !w-24 !h-24"></div>
+          <canvas id="jarvis-core-canvas" class="w-16 h-16 md:w-20 md:h-20 cursor-pointer" title="JARVIS 3D Holographic Core"></canvas>
+        </div>
         
-        <!-- Volumetric Background Light Flare -->
-        <div class="volumetric-aura"></div>
+        <div class="flex flex-col min-w-0">
+          <!-- Dynamic State Readout Pill -->
+          <div class="inline-flex items-center gap-2 px-2.5 py-0.5 rounded-full bg-surface-container/90 border border-outline-variant/70 shadow-[0_0_12px_rgba(0,0,0,0.5)] backdrop-blur-md w-fit mb-0.5">
+            <span id="status-dot" class="w-2 h-2 rounded-full bg-primary animate-pulse shrink-0"></span>
+            <span class="text-[10px] font-mono text-outline shrink-0">STATUS:</span>
+            <span id="status-text" class="text-[10px] font-mono font-bold tracking-wider text-primary truncate">IDLE // READY FOR COMMAND</span>
+          </div>
+          <!-- Contextual Greeting / Response Prompt -->
+          <h1 id="core-contextual-prompt" class="text-sm md:text-base font-headline font-semibold text-white tracking-tight truncate">
+            How can I assist you, sir?
+          </h1>
+          <p class="text-[11px] text-on-surface-variant hidden sm:block truncate">
+            Natural language intelligence, Spotify music control, &amp; Windows automation active.
+          </p>
+        </div>
+      </div>
 
-        <!-- 3D Canvas Energy Core -->
-        <div class="relative w-[340px] h-[340px] flex items-center justify-center mb-2">
-          <canvas id="jarvis-core-canvas" class="w-[340px] h-[340px] cursor-pointer" title="JARVIS 3D Holographic Core"></canvas>
+      <!-- HUD Right Status -->
+      <div class="hidden sm:flex items-center gap-2 text-xs font-mono text-outline shrink-0">
+        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-surface-container/70 border border-outline-variant/40 text-[11px] text-on-surface-variant">
+          <span class="material-symbols-outlined text-sm text-primary">graphic_eq</span>
+          <span id="session-timestamp">CORE ACTIVE</span>
+        </span>
+      </div>
+    </section>
+
+    <!-- ==================================================== -->
+    <!-- SECTION 2: INDEPENDENT CONVERSATION SCROLL AREA      -->
+    <!-- ==================================================== -->
+    <div id="conversation-scroll-wrapper" class="flex-1 overflow-y-auto px-4 md:px-8 py-6 custom-scrollbar relative flex flex-col">
+      <!-- Chat Messages Container -->
+      <div id="chat-messages-container" class="max-w-4xl mx-auto w-full space-y-4 pb-6">
+        
+        <!-- Default Welcome Card -->
+        <div class="flex justify-start">
+          <div class="max-w-2xl w-full bg-[#0A0E16]/85 border border-primary/30 rounded-xl p-4 shadow-[0_4px_20px_rgba(0,0,0,0.5)]">
+            <div class="flex items-center justify-between border-b border-outline-variant/30 pb-2 mb-2 text-xs font-mono">
+              <div class="flex items-center gap-2">
+                <span class="flex items-center justify-center w-5 h-5 rounded bg-primary/20 text-primary border border-primary/40">
+                  <span class="material-symbols-outlined text-xs">smart_toy</span>
+                </span>
+                <span class="font-bold text-primary tracking-wider">JARVIS</span>
+              </div>
+              <span class="text-[10px] text-outline font-mono">ONLINE // READY</span>
+            </div>
+            <p class="text-sm md:text-base text-on-surface leading-relaxed">
+              JARVIS natural language &amp; music intelligence online. You can speak or type commands such as <span class="text-primary font-mono font-medium">"Play Wake Me Up When September Ends by Green Day"</span>, <span class="text-primary font-mono font-medium">"Pause the music"</span>, <span class="text-primary font-mono font-medium">"Open Chrome and search machine learning"</span>, or <span class="text-primary font-mono font-medium">"Create a task to revise DBMS tomorrow"</span>.
+            </p>
+          </div>
         </div>
 
-        <!-- Dynamic State Readout Pill -->
-        <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-surface-container/80 border border-outline-variant/70 shadow-[0_0_20px_rgba(0,0,0,0.6)] backdrop-blur-md mb-2">
-          <span id="status-dot" class="w-2.5 h-2.5 rounded-full bg-primary animate-pulse"></span>
-          <span class="text-[11px] font-mono text-outline">STATUS:</span>
-          <span id="status-text" class="text-[11px] font-mono font-bold tracking-wider text-primary">IDLE // READY FOR COMMAND</span>
+      </div>
+
+      <!-- Floating Scroll-To-Latest Control -->
+      <button 
+        id="btn-scroll-latest" 
+        type="button"
+        onclick="scrollToLatestMessage()" 
+        class="hidden transition-all duration-200 fixed bottom-28 right-8 md:right-12 z-30 items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#0E1522]/95 border border-primary/50 text-primary shadow-[0_0_20px_rgba(39,211,255,0.35)] backdrop-blur-md text-xs font-mono hover:bg-primary/20"
+        title="Scroll to latest message"
+      >
+        <span class="material-symbols-outlined text-sm animate-bounce">arrow_downward</span>
+        <span>Latest</span>
+      </button>
+    </div>
+
+    <!-- ==================================================== -->
+    <!-- SECTION 3: FIXED CHATGPT-STYLE BOTTOM COMPOSER DOCK   -->
+    <!-- ==================================================== -->
+    <footer id="bottom-composer-dock" class="w-full shrink-0 border-t border-outline-variant/40 bg-[#06080C]/95 backdrop-blur-lg px-4 md:px-8 pt-2 pb-3 md:pb-4 z-20 shadow-[0_-10px_30px_rgba(0,0,0,0.7)]">
+      <div class="max-w-4xl mx-auto w-full flex flex-col gap-2">
+        
+        <!-- Quick Action Suggestion Chips (Horizontal scroll) -->
+        <div class="flex items-center gap-1.5 overflow-x-auto pb-1 no-scrollbar text-xs">
+          <span class="text-outline text-[11px] font-mono shrink-0 mr-1 flex items-center gap-1">
+            <span class="material-symbols-outlined text-xs text-primary">auto_awesome</span>
+            Prompt:
+          </span>
+          <button type="button" onclick="sendQuickCommand('Play Wake Me Up When September Ends by Green Day')" class="shrink-0 px-2.5 py-1 rounded-full bg-surface-container/60 hover:bg-primary/10 border border-outline-variant/50 hover:border-primary/60 text-on-surface-variant hover:text-primary transition-all font-mono text-[11px]">
+            Play Green Day
+          </button>
+          <button type="button" onclick="sendQuickCommand('Pause the music')" class="shrink-0 px-2.5 py-1 rounded-full bg-surface-container/60 hover:bg-primary/10 border border-outline-variant/50 hover:border-primary/60 text-on-surface-variant hover:text-primary transition-all font-mono text-[11px]">
+            Pause music
+          </button>
+          <button type="button" onclick="sendQuickCommand('Resume what I was listening to')" class="shrink-0 px-2.5 py-1 rounded-full bg-surface-container/60 hover:bg-primary/10 border border-outline-variant/50 hover:border-primary/60 text-on-surface-variant hover:text-primary transition-all font-mono text-[11px]">
+            Resume music
+          </button>
+          <button type="button" onclick="sendQuickCommand('Open Chrome and search for machine learning')" class="shrink-0 px-2.5 py-1 rounded-full bg-surface-container/60 hover:bg-primary/10 border border-outline-variant/50 hover:border-primary/60 text-on-surface-variant hover:text-primary transition-all font-mono text-[11px]">
+            Search Chrome
+          </button>
+          <button type="button" onclick="sendQuickCommand('Create a task to study DBMS tomorrow')" class="shrink-0 px-2.5 py-1 rounded-full bg-surface-container/60 hover:bg-primary/10 border border-outline-variant/50 hover:border-primary/60 text-on-surface-variant hover:text-primary transition-all font-mono text-[11px]">
+            Create task
+          </button>
+          <button type="button" onclick="sendQuickCommand('What time is it?')" class="shrink-0 px-2.5 py-1 rounded-full bg-surface-container/60 hover:bg-primary/10 border border-outline-variant/50 hover:border-primary/60 text-on-surface-variant hover:text-primary transition-all font-mono text-[11px]">
+            Time
+          </button>
         </div>
 
-        <!-- Contextual Greeting / Response Prompt -->
-        <h1 id="core-contextual-prompt" class="text-xl md:text-2xl font-headline font-semibold text-white tracking-tight mb-1">
-          How can I assist you, sir?
-        </h1>
-        <p class="text-xs text-on-surface-variant max-w-md">
-          Say <span class="text-primary font-mono font-medium">"Hey JARVIS"</span> or enter a command below to control Windows, open apps, or analyze files.
-        </p>
-
-      </section>
-
-      <!-- ==================================================== -->
-      <!-- SECTION 2: FLOATING COMMAND INPUT DOCK               -->
-      <!-- ==================================================== -->
-      <section class="w-full mb-6">
-        
         <!-- Multimodal Attachment Preview Card -->
-        <div id="image-preview-container" class="hidden items-center gap-3 mb-2 p-2 bg-[#0C1018] border border-primary/40 rounded-xl max-w-md mx-auto animate-fadeIn">
+        <div id="image-preview-container" class="hidden items-center gap-3 p-2 bg-[#0C1018] border border-primary/40 rounded-xl w-full animate-fadeIn">
           <img id="image-preview-thumb" class="h-10 w-10 object-cover rounded-lg border border-outline-variant/50" src="" alt="Attachment preview"/>
           <div class="flex flex-col flex-1 min-w-0 text-xs">
             <span id="image-preview-name" class="font-mono text-primary truncate">image.png</span>
@@ -303,142 +375,94 @@
           </button>
         </div>
 
-        <!-- Glassmorphism Command Bar -->
-        <div class="relative bg-[#0A0D15]/90 border border-outline-variant/70 focus-within:border-primary/80 focus-within:shadow-[0_0_25px_rgba(39,211,255,0.25)] rounded-2xl p-2 transition-all duration-200 shadow-[0_8px_30px_rgba(0,0,0,0.7)] backdrop-blur-md">
+        <!-- Glassmorphism ChatGPT-Style Input Composer -->
+        <div class="relative bg-[#0A0D15]/95 border border-outline-variant/70 focus-within:border-primary/80 focus-within:shadow-[0_0_25px_rgba(39,211,255,0.25)] rounded-2xl p-2 md:p-2.5 transition-all duration-200 shadow-[0_8px_30px_rgba(0,0,0,0.7)] backdrop-blur-md">
           
-          <div class="flex items-center gap-2 px-2">
-            <!-- Terminal Prefix Symbol -->
-            <span class="text-primary font-mono text-base font-bold select-none pl-1">&gt;</span>
-
-            <!-- Main Input Field -->
-            <input 
-              id="agent-input-buffer" 
-              type="text" 
-              class="flex-1 bg-transparent border-0 text-white placeholder:text-outline text-sm md:text-base font-sans focus:ring-0 focus:outline-none px-2 py-1.5"
-              placeholder="type your command... (e.g. Open Chrome, What time is it?)"
-              autocomplete="off"
-            />
-
-            <!-- Audio Wave Meter -->
-            <div id="audio-wave-meter" class="hidden sm:flex items-center gap-0.5 px-2 py-1 bg-surface-container rounded-lg border border-outline-variant/40" title="Audio Input Level">
-              <span class="wave-bar w-0.5 h-3 bg-primary/60 rounded-full"></span>
-              <span class="wave-bar w-0.5 h-4 bg-primary rounded-full"></span>
-              <span class="wave-bar w-0.5 h-2.5 bg-primary/70 rounded-full"></span>
-            </div>
-
-            <!-- Voice Push-to-Talk Microphone -->
-            <button 
-              id="btn-microphone" 
-              type="button" 
-              onclick="handleMicrophoneClick()" 
-              class="p-2.5 rounded-xl bg-surface-container hover:bg-primary/20 text-on-surface-variant hover:text-primary border border-outline-variant/40 hover:border-primary/50 transition-all relative group"
-              title="Voice Input (Click to speak)"
-            >
-              <span id="mic-icon" class="material-symbols-outlined text-xl">mic</span>
-              <span id="mic-active-ping" class="hidden absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full bg-primary animate-ping"></span>
-            </button>
-
-            <!-- Screen Capture Trigger -->
-            <button 
-              type="button" 
-              id="btn-screen-capture" 
-              onclick="handleScreenCaptureTrigger()" 
-              class="p-2.5 rounded-xl bg-surface-container hover:bg-primary/20 text-on-surface-variant hover:text-primary border border-outline-variant/40 hover:border-primary/50 transition-all"
-              title="Capture screen frame"
-            >
-              <span class="material-symbols-outlined text-xl">screenshot_monitor</span>
-            </button>
-
-            <!-- File Upload Input (Hidden) -->
-            <input type="file" id="image-upload-input" accept="image/*" class="hidden" onchange="handleImageSelected(this)"/>
+          <div class="flex items-end gap-2 px-1">
             
-            <!-- Attach File Button -->
-            <button 
-              type="button" 
-              onclick="document.getElementById('image-upload-input').click()" 
-              class="p-2.5 rounded-xl bg-surface-container hover:bg-primary/20 text-on-surface-variant hover:text-primary border border-outline-variant/40 hover:border-primary/50 transition-all"
-              title="Attach screenshot or image"
-            >
-              <span class="material-symbols-outlined text-xl">add_photo_alternate</span>
-            </button>
-
-            <!-- Transmit Button -->
-            <button 
-              id="btn-transmit" 
-              type="button" 
-              onclick="handleTransmit()" 
-              class="flex items-center gap-1.5 px-4 py-2 bg-primary/15 hover:bg-primary/25 border border-primary text-primary hover:shadow-[0_0_15px_rgba(39,211,255,0.4)] rounded-xl transition-all duration-150 text-xs md:text-sm font-mono font-bold tracking-wider"
-            >
-              <span>SEND</span>
-              <span class="material-symbols-outlined text-base">send</span>
-            </button>
-          </div>
-
-        </div>
-
-        <!-- Quick Action Suggestion Chips -->
-        <div class="flex items-center justify-center gap-2 flex-wrap mt-3 text-xs">
-          <span class="text-outline text-[11px] font-mono mr-1">Suggestions:</span>
-          <button onclick="sendQuickCommand('Open Chrome')" class="px-2.5 py-1 rounded-full bg-surface-container/60 hover:bg-primary/10 border border-outline-variant/50 hover:border-primary/60 text-on-surface-variant hover:text-primary transition-all font-mono text-[11px]">
-            Open Chrome
-          </button>
-          <button onclick="sendQuickCommand('Launch VS Code')" class="px-2.5 py-1 rounded-full bg-surface-container/60 hover:bg-primary/10 border border-outline-variant/50 hover:border-primary/60 text-on-surface-variant hover:text-primary transition-all font-mono text-[11px]">
-            Launch VS Code
-          </button>
-          <button onclick="sendQuickCommand('Open YouTube')" class="px-2.5 py-1 rounded-full bg-surface-container/60 hover:bg-primary/10 border border-outline-variant/50 hover:border-primary/60 text-on-surface-variant hover:text-primary transition-all font-mono text-[11px]">
-            Open YouTube
-          </button>
-          <button onclick="sendQuickCommand('What time is it?')" class="px-2.5 py-1 rounded-full bg-surface-container/60 hover:bg-primary/10 border border-outline-variant/50 hover:border-primary/60 text-on-surface-variant hover:text-primary transition-all font-mono text-[11px]">
-            What time is it?
-          </button>
-          <button onclick="sendQuickCommand('Show my system information')" class="px-2.5 py-1 rounded-full bg-surface-container/60 hover:bg-primary/10 border border-outline-variant/50 hover:border-primary/60 text-on-surface-variant hover:text-primary transition-all font-mono text-[11px]">
-            System specs
-          </button>
-          <button onclick="sendQuickCommand('List my Downloads')" class="px-2.5 py-1 rounded-full bg-surface-container/60 hover:bg-primary/10 border border-outline-variant/50 hover:border-primary/60 text-on-surface-variant hover:text-primary transition-all font-mono text-[11px]">
-            List Downloads
-          </button>
-        </div>
-
-      </section>
-
-      <!-- ==================================================== -->
-      <!-- SECTION 3: CONVERSATION FEED (READABLE STREAM)       -->
-      <!-- ==================================================== -->
-      <section class="w-full flex-1 flex flex-col mt-2">
-        <div class="flex items-center justify-between border-b border-outline-variant/30 pb-2 mb-4">
-          <span class="text-xs font-mono text-outline uppercase tracking-wider flex items-center gap-1.5">
-            <span class="material-symbols-outlined text-sm text-primary">chat</span>
-            Recent Conversation
-          </span>
-          <span id="session-timestamp" class="text-[10px] font-mono text-outline">ONLINE</span>
-        </div>
-
-        <!-- Chat Messages Container -->
-        <div id="chat-messages-container" class="space-y-4 pb-12 custom-scrollbar">
-          
-          <!-- Default Welcome Card -->
-          <div class="flex justify-start">
-            <div class="max-w-2xl w-full bg-[#0A0E16]/85 border border-primary/30 rounded-xl p-4 shadow-[0_4px_20px_rgba(0,0,0,0.5)]">
-              <div class="flex items-center justify-between border-b border-outline-variant/30 pb-2 mb-2 text-xs font-mono">
-                <div class="flex items-center gap-2">
-                  <span class="flex items-center justify-center w-5 h-5 rounded bg-primary/20 text-primary border border-primary/40">
-                    <span class="material-symbols-outlined text-xs">smart_toy</span>
-                  </span>
-                  <span class="font-bold text-primary tracking-wider">JARVIS</span>
-                </div>
-                <span class="text-[10px] text-outline font-mono">INITIALIZED</span>
-              </div>
-              <p class="text-sm md:text-base text-on-surface leading-relaxed">
-                JARVIS intelligent interface online. Say <span class="text-primary font-mono">"Hey JARVIS"</span> for hands-free listening, or execute actions such as <span class="text-primary font-mono">"Open Chrome"</span>, <span class="text-primary font-mono">"Open Notepad and Calculator"</span>, or <span class="text-primary font-mono">"Capture screen"</span>.
-              </p>
+            <!-- Terminal Prefix Symbol -->
+            <div class="text-primary font-mono text-base font-bold select-none pl-1 pb-2">
+              &gt;
             </div>
+
+            <!-- Multiline Auto-Growing Textarea -->
+            <textarea 
+              id="agent-input-buffer" 
+              rows="1" 
+              class="flex-1 bg-transparent border-0 text-white placeholder:text-outline text-sm md:text-base font-sans focus:ring-0 focus:outline-none px-2 py-2 resize-none max-h-36 overflow-y-auto custom-scrollbar leading-relaxed"
+              placeholder="Message JARVIS…"
+              autocomplete="off"
+            ></textarea>
+
+            <!-- Persistent Bottom Controls: Wave Meter, Microphone, Screen Capture, Attach, Transmit -->
+            <div class="flex items-center gap-1.5 pb-1 shrink-0">
+              
+              <!-- Audio Wave Meter -->
+              <div id="audio-wave-meter" class="hidden sm:flex items-center gap-0.5 px-2 py-1 bg-surface-container rounded-lg border border-outline-variant/40" title="Audio Input Level">
+                <span class="wave-bar w-0.5 h-3 bg-primary/60 rounded-full"></span>
+                <span class="wave-bar w-0.5 h-4 bg-primary rounded-full"></span>
+                <span class="wave-bar w-0.5 h-2.5 bg-primary/70 rounded-full"></span>
+              </div>
+
+              <!-- Push-to-Talk Microphone (Persistent at bottom) -->
+              <button 
+                id="btn-microphone" 
+                type="button" 
+                onclick="handleMicrophoneClick()" 
+                class="p-2 rounded-xl bg-surface-container hover:bg-primary/20 text-on-surface-variant hover:text-primary border border-outline-variant/40 hover:border-primary/50 transition-all relative group"
+                title="Voice Input (Click to speak)"
+              >
+                <span id="mic-icon" class="material-symbols-outlined text-xl">mic</span>
+                <span id="mic-active-ping" class="hidden absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full bg-primary animate-ping"></span>
+              </button>
+
+              <!-- Screen Capture Trigger -->
+              <button 
+                type="button" 
+                id="btn-screen-capture" 
+                onclick="handleScreenCaptureTrigger()" 
+                class="p-2 rounded-xl bg-surface-container hover:bg-primary/20 text-on-surface-variant hover:text-primary border border-outline-variant/40 hover:border-primary/50 transition-all"
+                title="Capture screen frame"
+              >
+                <span class="material-symbols-outlined text-xl">screenshot_monitor</span>
+              </button>
+
+              <!-- File Upload Input (Hidden) -->
+              <input type="file" id="image-upload-input" accept="image/*" class="hidden" onchange="handleImageSelected(this)"/>
+              
+              <!-- Attach File Button -->
+              <button 
+                type="button" 
+                onclick="document.getElementById('image-upload-input').click()" 
+                class="p-2 rounded-xl bg-surface-container hover:bg-primary/20 text-on-surface-variant hover:text-primary border border-outline-variant/40 hover:border-primary/50 transition-all"
+                title="Attach screenshot or image"
+              >
+                <span class="material-symbols-outlined text-xl">add_photo_alternate</span>
+              </button>
+
+              <!-- Transmit Button -->
+              <button 
+                id="btn-transmit" 
+                type="button" 
+                onclick="handleTransmit()" 
+                class="flex items-center gap-1 px-3.5 py-2 bg-primary/15 hover:bg-primary/25 border border-primary text-primary hover:shadow-[0_0_15px_rgba(39,211,255,0.4)] rounded-xl transition-all duration-150 text-xs md:text-sm font-mono font-bold tracking-wider"
+              >
+                <span>SEND</span>
+                <span class="material-symbols-outlined text-base">send</span>
+              </button>
+            </div>
+
           </div>
 
         </div>
 
-      </section>
+        <!-- Small Keyboard Instruction Hint -->
+        <div class="text-center text-[10px] font-mono text-outline/70">
+          Enter to send • Shift + Enter for new line • Natural language &amp; Spotify controls online
+        </div>
 
-    </div>
+      </div>
+    </footer>
 
   </main>
 
@@ -454,6 +478,7 @@
     let activeConversationId = null;
     let isListening = false;
     let isSpeaking = false;
+    let isTransmitting = false;
     let recognition = null;
     const speechSynthesisSupported = ('speechSynthesis' in window);
     let speechRecognitionSupported = false;
@@ -463,6 +488,9 @@
 
     // Wake Word Controller instance
     let wakeController = null;
+
+    // Scroll state tracking for reading position preservation
+    let isUserScrolledUp = false;
 
     // Voice Configuration settings
     const voiceConfig = {
@@ -478,11 +506,44 @@
     let attachedImageMime = 'image/png';
     let attachedImageFilename = 'screenshot.png';
 
-    // Audio level analyzer for real mic visualization
-    let audioContext = null;
-    let analyserNode = null;
-    let audioStream = null;
-    let audioLevelAnimId = null;
+    // Auto-resize composer textarea
+    window.autoResizeComposer = function(el) {
+      if (!el) return;
+      el.style.height = 'auto';
+      const newHeight = Math.min(el.scrollHeight, 140);
+      el.style.height = (newHeight > 24 ? newHeight : 24) + 'px';
+    };
+
+    // Scroll management
+    function getScrollWrapper() {
+      return document.getElementById('conversation-scroll-wrapper');
+    }
+
+    function checkIfNearBottom() {
+      const wrapper = getScrollWrapper();
+      if (!wrapper) return true;
+      const threshold = 120;
+      return (wrapper.scrollHeight - wrapper.scrollTop - wrapper.clientHeight) <= threshold;
+    }
+
+    function scrollToBottom(behavior = 'smooth') {
+      const wrapper = getScrollWrapper();
+      if (!wrapper) return;
+      wrapper.scrollTo({
+        top: wrapper.scrollHeight,
+        behavior: behavior
+      });
+    }
+
+    window.scrollToLatestMessage = function() {
+      isUserScrolledUp = false;
+      scrollToBottom('smooth');
+      const btn = document.getElementById('btn-scroll-latest');
+      if (btn) {
+        btn.classList.add('hidden');
+        btn.classList.remove('inline-flex');
+      }
+    };
 
     // Advanced Tools toggle
     window.toggleAdvancedNav = function() {
@@ -519,6 +580,9 @@
           </div>
         `;
       }
+      isUserScrolledUp = false;
+      const scrollBtn = document.getElementById('btn-scroll-latest');
+      if (scrollBtn) scrollBtn.classList.add('hidden');
     };
 
     // Toggle Reduced Motion
@@ -553,57 +617,57 @@
 
       if (s === 'LISTENING' || s === 'WAKE_WORD_DETECTED') {
         statusText.innerText = "LISTENING // AUDIO ACTIVE";
-        statusText.className = "text-[11px] font-mono font-bold tracking-wider text-primary animate-pulse";
-        statusDot.className = "w-2.5 h-2.5 rounded-full bg-primary animate-ping";
+        statusText.className = "text-[10px] font-mono font-bold tracking-wider text-primary animate-pulse";
+        statusDot.className = "w-2 h-2 rounded-full bg-primary animate-ping";
         waveBars.forEach(b => b.classList.add('active'));
         if (micBtn && micIcon) {
-          micBtn.className = "p-2.5 rounded-xl bg-primary/25 text-primary border border-primary shadow-[0_0_12px_rgba(39,211,255,0.6)] transition-all relative";
+          micBtn.className = "p-2 rounded-xl bg-primary/25 text-primary border border-primary shadow-[0_0_12px_rgba(39,211,255,0.6)] transition-all relative";
           micIcon.innerText = "mic";
           if (micPing) micPing.classList.remove('hidden');
         }
         if (promptTitle) promptTitle.innerText = "Listening for your command...";
       } else if (s === 'PROCESSING' || s === 'THINKING' || s === 'ANALYZING') {
         statusText.innerText = "PROCESSING // ANALYZING INTENT";
-        statusText.className = "text-[11px] font-mono font-bold tracking-wider text-secondary animate-pulse";
-        statusDot.className = "w-2.5 h-2.5 rounded-full bg-secondary animate-ping";
+        statusText.className = "text-[10px] font-mono font-bold tracking-wider text-secondary animate-pulse";
+        statusDot.className = "w-2 h-2 rounded-full bg-secondary animate-ping";
         waveBars.forEach(b => b.classList.remove('active'));
         if (micPing) micPing.classList.add('hidden');
         if (promptTitle) promptTitle.innerText = "Synthesizing agent response...";
       } else if (s === 'EXECUTING') {
         statusText.innerText = "EXECUTING // RUNNING ACTIONS";
-        statusText.className = "text-[11px] font-mono font-bold tracking-wider text-primary";
-        statusDot.className = "w-2.5 h-2.5 rounded-full bg-primary animate-ping";
+        statusText.className = "text-[10px] font-mono font-bold tracking-wider text-primary";
+        statusDot.className = "w-2 h-2 rounded-full bg-primary animate-ping";
         waveBars.forEach(b => b.classList.remove('active'));
         if (micPing) micPing.classList.add('hidden');
         if (promptTitle) promptTitle.innerText = "Executing system plan...";
       } else if (s === 'VERIFYING') {
         statusText.innerText = "VERIFYING // VALIDATING OUTCOME";
-        statusText.className = "text-[11px] font-mono font-bold tracking-wider text-emerald-400";
-        statusDot.className = "w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping";
+        statusText.className = "text-[10px] font-mono font-bold tracking-wider text-emerald-400";
+        statusDot.className = "w-2 h-2 rounded-full bg-emerald-400 animate-ping";
         waveBars.forEach(b => b.classList.remove('active'));
         if (micPing) micPing.classList.add('hidden');
         if (promptTitle) promptTitle.innerText = "Verifying tool execution...";
       } else if (s === 'RESPONDING' || s === 'SPEAKING') {
         statusText.innerText = "RESPONDING // VOCALIZING";
-        statusText.className = "text-[11px] font-mono font-bold tracking-wider text-emerald-400";
-        statusDot.className = "w-2.5 h-2.5 rounded-full bg-emerald-400";
+        statusText.className = "text-[10px] font-mono font-bold tracking-wider text-emerald-400";
+        statusDot.className = "w-2 h-2 rounded-full bg-emerald-400";
         waveBars.forEach(b => b.classList.add('active'));
         if (micBtn && micIcon) {
-          micBtn.className = "p-2.5 rounded-xl bg-secondary/25 text-secondary border border-secondary shadow-[0_0_12px_rgba(209,188,255,0.6)] transition-all relative";
+          micBtn.className = "p-2 rounded-xl bg-secondary/25 text-secondary border border-secondary shadow-[0_0_12px_rgba(209,188,255,0.6)] transition-all relative";
           micIcon.innerText = "stop_circle";
         }
         if (promptTitle) promptTitle.innerText = "JARVIS is speaking...";
       } else if (s === 'ERROR') {
         statusText.innerText = detailText ? `ERROR // ${detailText.toUpperCase()}` : "ERROR // ATTENTION REQUIRED";
-        statusText.className = "text-[11px] font-mono font-bold tracking-wider text-error";
-        statusDot.className = "w-2.5 h-2.5 rounded-full bg-error";
+        statusText.className = "text-[10px] font-mono font-bold tracking-wider text-error";
+        statusDot.className = "w-2 h-2 rounded-full bg-error";
         waveBars.forEach(b => b.classList.remove('active'));
         if (micPing) micPing.classList.add('hidden');
-        if (promptTitle) promptTitle.innerText = "A critical error occurred.";
+        if (promptTitle) promptTitle.innerText = detailText || "A system error occurred.";
       } else if (s === 'OFFLINE') {
         statusText.innerText = "OFFLINE // AGENT UNREACHABLE";
-        statusText.className = "text-[11px] font-mono font-bold tracking-wider text-amber-400";
-        statusDot.className = "w-2.5 h-2.5 rounded-full bg-amber-400";
+        statusText.className = "text-[10px] font-mono font-bold tracking-wider text-amber-400";
+        statusDot.className = "w-2 h-2 rounded-full bg-amber-400";
         waveBars.forEach(b => b.classList.remove('active'));
         if (micPing) micPing.classList.add('hidden');
         if (promptTitle) promptTitle.innerText = "Local Agent is offline.";
@@ -611,11 +675,11 @@
         // IDLE / READY
         const isWakeOn = wakeController && wakeController.isEnabled();
         statusText.innerText = isWakeOn ? "IDLE // READY FOR COMMAND" : "STANDBY // MANUAL INPUT ONLY";
-        statusText.className = "text-[11px] font-mono font-bold tracking-wider text-primary";
-        statusDot.className = "w-2.5 h-2.5 rounded-full bg-primary";
+        statusText.className = "text-[10px] font-mono font-bold tracking-wider text-primary";
+        statusDot.className = "w-2 h-2 rounded-full bg-primary";
         waveBars.forEach(b => b.classList.remove('active'));
         if (micBtn && micIcon) {
-          micBtn.className = "p-2.5 rounded-xl bg-surface-container hover:bg-primary/20 text-on-surface-variant hover:text-primary border border-outline-variant/40 hover:border-primary/50 transition-all relative";
+          micBtn.className = "p-2 rounded-xl bg-surface-container hover:bg-primary/20 text-on-surface-variant hover:text-primary border border-outline-variant/40 hover:border-primary/50 transition-all relative";
           micIcon.innerText = "mic";
           if (micPing) micPing.classList.add('hidden');
         }
@@ -628,6 +692,7 @@
       const input = document.getElementById('agent-input-buffer');
       if (input) {
         input.value = text;
+        window.autoResizeComposer(input);
         handleTransmit();
       }
     };
@@ -713,6 +778,8 @@
     // PRIMARY TRANSMIT PIPELINE
     // ==========================================
     window.handleTransmit = async function() {
+      if (isTransmitting) return;
+
       const input = document.getElementById('agent-input-buffer');
       const container = document.getElementById('chat-messages-container');
       if (!input || !container) return;
@@ -725,14 +792,20 @@
       }
       if (!message && !hasImage) return;
 
+      isTransmitting = true;
+      const transmitBtn = document.getElementById('btn-transmit');
+      if (transmitBtn) {
+        transmitBtn.classList.add('opacity-50', 'pointer-events-none');
+        transmitBtn.innerHTML = `<span>SENDING</span><span class="material-symbols-outlined text-base animate-spin">sync</span>`;
+      }
+
       input.value = '';
+      window.autoResizeComposer(input);
+
       const currentImageData = attachedImageBase64;
       const currentImageMime = attachedImageMime;
       const currentImageName = attachedImageFilename;
       clearAttachedImage();
-
-      const transmitBtn = document.getElementById('btn-transmit');
-      if (transmitBtn) transmitBtn.classList.add('opacity-50', 'pointer-events-none');
 
       // 1. Render User Message
       const userCard = document.createElement('div');
@@ -751,13 +824,16 @@
               <img src="${currentImageData}" alt="Payload" class="max-h-40 rounded object-contain"/>
             </div>
           ` : ''}
-          <p class="text-sm md:text-base text-white">
+          <p class="text-sm md:text-base text-white whitespace-pre-wrap">
             ${message}
           </p>
         </div>
       `;
       container.appendChild(userCard);
-      window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+
+      // Reset reading position and auto-scroll to latest
+      isUserScrolledUp = false;
+      scrollToBottom('smooth');
 
       // State -> Thinking / Processing
       window.setAgentState('processing');
@@ -878,7 +954,11 @@
           </div>
         `;
         container.appendChild(respCard);
-        window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+
+        // Preserve reading position if user scrolled up to read older history; otherwise scroll to bottom
+        if (!isUserScrolledUp) {
+          scrollToBottom('smooth');
+        }
 
         // 3. Audio response via TTS if enabled
         if (voiceConfig.enabled) {
@@ -902,9 +982,15 @@
         `;
         container.appendChild(errCard);
         window.setAgentState('error', 'Execution error');
+        if (!isUserScrolledUp) scrollToBottom('smooth');
         setTimeout(() => window.setAgentState('idle'), 2500);
       } finally {
-        if (transmitBtn) transmitBtn.classList.remove('opacity-50', 'pointer-events-none');
+        isTransmitting = false;
+        if (transmitBtn) {
+          transmitBtn.classList.remove('opacity-50', 'pointer-events-none');
+          transmitBtn.innerHTML = `<span>SEND</span><span class="material-symbols-outlined text-base">send</span>`;
+        }
+        input.focus();
       }
     };
 
@@ -915,6 +1001,12 @@
       const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
       if (!SpeechRecognition) {
         speechRecognitionSupported = false;
+        const micBtn = document.getElementById('btn-microphone');
+        if (micBtn) {
+          micBtn.title = "Speech recognition unsupported in this browser (Text chat available)";
+          const micIcon = document.getElementById('mic-icon');
+          if (micIcon) micIcon.innerText = "mic_off";
+        }
         return;
       }
 
@@ -947,6 +1039,7 @@
           if (inputBuffer) {
             if (finalTranscript) {
               inputBuffer.value = finalTranscript.trim();
+              window.autoResizeComposer(inputBuffer);
             } else if (interimTranscript) {
               inputBuffer.placeholder = `Listening: "${interimTranscript.trim()}"...`;
             }
@@ -963,7 +1056,16 @@
         recognition.onerror = (event) => {
           isListening = false;
           if (wakeController) wakeController.resumeFromManualMic();
-          window.setAgentState('idle');
+          const inputBuffer = document.getElementById('agent-input-buffer');
+          if (inputBuffer) inputBuffer.placeholder = "Message JARVIS…";
+
+          if (event && event.error === 'not-allowed') {
+            window.setAgentState('error', 'Microphone Permission Denied');
+            const micBtn = document.getElementById('btn-microphone');
+            if (micBtn) micBtn.title = "Microphone access blocked (Text chat remains active)";
+          } else {
+            window.setAgentState('idle');
+          }
         };
 
         recognition.onend = () => {
@@ -971,7 +1073,7 @@
           if (wakeController) wakeController.resumeFromManualMic();
           const inputBuffer = document.getElementById('agent-input-buffer');
           if (inputBuffer && inputBuffer.placeholder.startsWith('Listening:')) {
-            inputBuffer.placeholder = "type your command... (e.g. Open Chrome)";
+            inputBuffer.placeholder = "Message JARVIS…";
           }
           window.setAgentState('idle');
         };
@@ -994,7 +1096,7 @@
         return;
       }
       if (!speechRecognitionSupported || !recognition) {
-        alert("Speech recognition is not supported in this browser. Please use Chrome or Edge.");
+        alert("Speech recognition is not supported in this browser. Please use Chrome or Edge. Text input remains fully supported.");
         return;
       }
 
@@ -1007,6 +1109,7 @@
         if (inputBuffer) {
           inputBuffer.value = '';
           inputBuffer.placeholder = 'Listening to your command...';
+          window.autoResizeComposer(inputBuffer);
         }
         recognition.start();
       } catch (err) {
@@ -1162,7 +1265,10 @@
         },
         onCommandReceived: (command) => {
           const input = document.getElementById('agent-input-buffer');
-          if (input) input.value = command;
+          if (input) {
+            input.value = command;
+            window.autoResizeComposer(input);
+          }
           handleTransmit();
         },
         onError: (err) => {
@@ -1278,7 +1384,26 @@
       checkLocalAgentStatus();
       setInterval(checkLocalAgentStatus, 15000);
 
-      // 4. Input field events
+      // 4. Scroll wrapper listener for preserving reading position
+      const scrollWrapper = getScrollWrapper();
+      if (scrollWrapper) {
+        scrollWrapper.addEventListener('scroll', () => {
+          const nearBottom = checkIfNearBottom();
+          isUserScrolledUp = !nearBottom;
+          const scrollBtn = document.getElementById('btn-scroll-latest');
+          if (scrollBtn) {
+            if (isUserScrolledUp) {
+              scrollBtn.classList.remove('hidden');
+              scrollBtn.classList.add('inline-flex');
+            } else {
+              scrollBtn.classList.add('hidden');
+              scrollBtn.classList.remove('inline-flex');
+            }
+          }
+        });
+      }
+
+      // 5. Input field events (Multiline Textarea with Enter send / Shift+Enter newline)
       const input = document.getElementById('agent-input-buffer');
       if (input) {
         input.addEventListener('keydown', (e) => {
@@ -1289,6 +1414,11 @@
             if (isSpeaking) stopSpeaking();
           }
         });
+
+        input.addEventListener('input', () => {
+          window.autoResizeComposer(input);
+        });
+
         input.focus();
       }
     });
@@ -1301,3 +1431,4 @@
   </script>
 </body>
 </html>
+

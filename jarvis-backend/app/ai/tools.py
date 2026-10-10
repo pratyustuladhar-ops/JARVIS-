@@ -845,7 +845,229 @@ class BrowserCloseTool(BaseAgentTool):
 
     def execute(self, db: Session, params: Dict[str, Any]) -> Any:
         from app.services.browser.automation_service import browser_automation_service
-        return browser_automation_service.close(session_id=params.get("session_id"))
+# ==================== MUSIC & SPOTIFY TOOLS ====================
+
+class SpotifyPlayTool(BaseAgentTool):
+    name = "spotify_play"
+    description = "Plays a music track, artist, album, playlist, or genre via Spotify Web API"
+    risk_level = "LOW_RISK"
+    input_schema = {
+        "type": "object",
+        "properties": {
+            "track": {"type": "string", "description": "Title of the song"},
+            "artist": {"type": "string", "description": "Artist or band name"},
+            "genre": {"type": "string", "description": "Genre or mood (e.g. rock, study)"},
+            "uri": {"type": "string", "description": "Spotify URI if known"},
+            "device_id": {"type": "string", "description": "Target Spotify device ID"}
+        }
+    }
+
+    def execute(self, db: Session, params: Dict[str, Any]) -> Any:
+        from app.services.spotify_service import spotify_service, SpotifyServiceError
+        if not spotify_service.is_configured:
+            return {
+                "status": "AUTHENTICATION_REQUIRED",
+                "message": "Spotify is not configured. Please add SPOTIFY_CLIENT_ID and SPOTIFY_CLIENT_SECRET or access token to .env.",
+                "verified": False
+            }
+
+        uri = params.get("uri")
+        track_query = params.get("track")
+        artist = params.get("artist")
+        genre = params.get("genre")
+        device_id = params.get("device_id")
+
+        try:
+            if uri:
+                return spotify_service.play(uri=uri, device_id=device_id)
+
+            if track_query:
+                selected_track, status, candidates = spotify_service.resolve_track(track_query, artist=artist)
+                if status == "AMBIGUOUS_MATCH":
+                    return {
+                        "status": "AMBIGUOUS_RESULT",
+                        "message": f"Multiple songs found matching '{track_query}'. Which one did you mean?",
+                        "candidates": [f"{c['name']} by {c['artist']}" for c in candidates[:3]],
+                        "verified": False
+                    }
+                elif status == "NO_MATCH" or not selected_track:
+                    return {
+                        "status": "TRACK_NOT_FOUND",
+                        "message": f"Could not find track '{track_query}'" + (f" by {artist}" if artist else "") + " on Spotify.",
+                        "verified": False
+                    }
+                else:
+                    res = spotify_service.play(uri=selected_track["uri"], device_id=device_id)
+                    res["resolved_track"] = selected_track["name"]
+                    res["resolved_artist"] = selected_track["artist"]
+                    res["match_type"] = status
+                    return res
+
+            if genre:
+                # Search for genre playlist or popular track
+                candidates = spotify_service.search_catalog(query=f"genre:{genre}" if ":" not in genre else genre, limit=1)
+                if candidates:
+                    t = candidates[0]
+                    res = spotify_service.play(uri=t["uri"], device_id=device_id)
+                    res["resolved_track"] = t["name"]
+                    res["resolved_artist"] = t["artist"]
+                    return res
+                else:
+                    return {
+                        "status": "TRACK_NOT_FOUND",
+                        "message": f"Could not find music for genre '{genre}' on Spotify.",
+                        "verified": False
+                    }
+
+            # Resume playback if no specific track or genre provided
+            return spotify_service.resume(device_id=device_id)
+        except SpotifyServiceError as sse:
+            return {"status": sse.code, "message": str(sse), "verified": False}
+        except Exception as e:
+            return {"status": "PROVIDER_ERROR", "message": f"Spotify playback error: {e}", "verified": False}
+
+
+class SpotifyPauseTool(BaseAgentTool):
+    name = "spotify_pause"
+    description = "Pauses current Spotify music playback"
+    risk_level = "LOW_RISK"
+    input_schema = {
+        "type": "object",
+        "properties": {
+            "device_id": {"type": "string"}
+        }
+    }
+
+    def execute(self, db: Session, params: Dict[str, Any]) -> Any:
+        from app.services.spotify_service import spotify_service
+        return spotify_service.pause(device_id=params.get("device_id"))
+
+
+class SpotifyResumeTool(BaseAgentTool):
+    name = "spotify_resume"
+    description = "Resumes paused Spotify music playback"
+    risk_level = "LOW_RISK"
+    input_schema = {
+        "type": "object",
+        "properties": {
+            "device_id": {"type": "string"}
+        }
+    }
+
+    def execute(self, db: Session, params: Dict[str, Any]) -> Any:
+        from app.services.spotify_service import spotify_service
+        return spotify_service.resume(device_id=params.get("device_id"))
+
+
+class SpotifyNextTool(BaseAgentTool):
+    name = "spotify_next"
+    description = "Skips to the next track on Spotify"
+    risk_level = "LOW_RISK"
+    input_schema = {
+        "type": "object",
+        "properties": {
+            "device_id": {"type": "string"}
+        }
+    }
+
+    def execute(self, db: Session, params: Dict[str, Any]) -> Any:
+        from app.services.spotify_service import spotify_service
+        return spotify_service.next_track(device_id=params.get("device_id"))
+
+
+class SpotifyPreviousTool(BaseAgentTool):
+    name = "spotify_previous"
+    description = "Returns to the previous track on Spotify"
+    risk_level = "LOW_RISK"
+    input_schema = {
+        "type": "object",
+        "properties": {
+            "device_id": {"type": "string"}
+        }
+    }
+
+    def execute(self, db: Session, params: Dict[str, Any]) -> Any:
+        from app.services.spotify_service import spotify_service
+        return spotify_service.previous_track(device_id=params.get("device_id"))
+
+
+class SpotifySearchTool(BaseAgentTool):
+    name = "spotify_search"
+    description = "Searches Spotify catalog for songs, artists, or albums"
+    risk_level = "LOW_RISK"
+    input_schema = {
+        "type": "object",
+        "properties": {
+            "query": {"type": "string", "description": "Search term"},
+            "artist": {"type": "string", "description": "Optional artist filter"},
+            "limit": {"type": "integer", "description": "Max results"}
+        },
+        "required": ["query"]
+    }
+
+    def execute(self, db: Session, params: Dict[str, Any]) -> Any:
+        from app.services.spotify_service import spotify_service, SpotifyServiceError
+        query = params.get("query", "").strip()
+        artist = params.get("artist")
+        limit = params.get("limit", 5)
+        try:
+            results = spotify_service.search_catalog(query=query, artist=artist, limit=limit)
+            return {
+                "status": "SEARCH_COMPLETED",
+                "count": len(results),
+                "tracks": results,
+                "verified": True
+            }
+        except SpotifyServiceError as sse:
+            return {"status": sse.code, "message": str(sse), "verified": False}
+        except Exception as e:
+            return {"status": "PROVIDER_ERROR", "message": f"Search failed: {e}", "verified": False}
+
+
+class SpotifyVolumeTool(BaseAgentTool):
+    name = "spotify_volume"
+    description = "Sets or adjusts Spotify playback volume percentage (0 - 100)"
+    risk_level = "LOW_RISK"
+    input_schema = {
+        "type": "object",
+        "properties": {
+            "volume_percent": {"type": "integer", "description": "Volume level from 0 to 100"},
+            "device_id": {"type": "string"}
+        },
+        "required": ["volume_percent"]
+    }
+
+    def execute(self, db: Session, params: Dict[str, Any]) -> Any:
+        from app.services.spotify_service import spotify_service
+        vol = params.get("volume_percent", 50)
+        return spotify_service.set_volume(volume_percent=vol, device_id=params.get("device_id"))
+
+
+class SpotifyStatusTool(BaseAgentTool):
+    name = "spotify_status"
+    description = "Retrieves current Spotify playback state and active track"
+    risk_level = "LOW_RISK"
+    input_schema = {
+        "type": "object",
+        "properties": {
+            "device_id": {"type": "string"}
+        }
+    }
+
+    def execute(self, db: Session, params: Dict[str, Any]) -> Any:
+        from app.services.spotify_service import spotify_service
+        state = spotify_service.get_playback_state()
+        if not state:
+            return {
+                "status": "NO_ACTIVE_PLAYBACK",
+                "message": "No active Spotify playback detected.",
+                "verified": False
+            }
+        return {
+            "status": "PLAYBACK_STATE",
+            "state": state,
+            "verified": True
+        }
 
 
 # ==================== TOOL REGISTRY ====================
@@ -893,6 +1115,15 @@ class AgentToolRegistry:
             BrowserGetTextTool(),
             BrowserWaitForStateTool(),
             BrowserCloseTool(),
+            # Music & Spotify Tools
+            SpotifyPlayTool(),
+            SpotifyPauseTool(),
+            SpotifyResumeTool(),
+            SpotifyNextTool(),
+            SpotifyPreviousTool(),
+            SpotifySearchTool(),
+            SpotifyVolumeTool(),
+            SpotifyStatusTool(),
         ]
         for t in tools:
             self.register(t)
@@ -925,6 +1156,31 @@ class AgentToolRegistry:
         "click": "browser_click_element",
         "press_key": "browser_press_key",
         "close_browser": "browser_close",
+        # Music & Spotify tool aliases
+        "music_play": "spotify_play",
+        "play_music": "spotify_play",
+        "play_song": "spotify_play",
+        "music_pause": "spotify_pause",
+        "pause_music": "spotify_pause",
+        "music_resume": "spotify_resume",
+        "resume_music": "spotify_resume",
+        "music_next": "spotify_next",
+        "skip_song": "spotify_next",
+        "skip_track": "spotify_next",
+        "next_song": "spotify_next",
+        "next_track": "spotify_next",
+        "music_previous": "spotify_previous",
+        "previous_song": "spotify_previous",
+        "previous_track": "spotify_previous",
+        "music_search": "spotify_search",
+        "search_music": "spotify_search",
+        "search_song": "spotify_search",
+        "music_volume": "spotify_volume",
+        "set_volume": "spotify_volume",
+        "music_status": "spotify_status",
+        "playback_state": "spotify_status",
+        "music_stop": "spotify_pause",
+        "spotify_stop": "spotify_pause",
     }
 
     def get_tool(self, name: str) -> Optional[BaseAgentTool]:

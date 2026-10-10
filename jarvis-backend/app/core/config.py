@@ -57,6 +57,15 @@ class Settings(BaseSettings):
     AUTO_RESUME_LISTENING: bool = True
     PORCUPINE_ACCESS_KEY: Union[str, None] = None
 
+    # Music & Spotify Integration
+    SPOTIFY_ENABLED: bool = True
+    SPOTIFY_CLIENT_ID: Union[str, None] = None
+    SPOTIFY_CLIENT_SECRET: Union[str, None] = None
+    SPOTIFY_REDIRECT_URI: str = "http://127.0.0.1:8000/api/v1/spotify/callback"
+    SPOTIFY_ACCESS_TOKEN: Union[str, None] = None
+    SPOTIFY_REFRESH_TOKEN: Union[str, None] = None
+    SPOTIFY_DEFAULT_DEVICE_ID: Union[str, None] = None
+
     # Network
     HOST: str = "127.0.0.1"
     PORT: int = 8000

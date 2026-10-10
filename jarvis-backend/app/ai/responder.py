@@ -113,6 +113,41 @@ class ResponseGenerator:
         if tool == "local_get_system_info":
             return "system specifications retrieved"
 
+        # Music & Spotify Tools Step Descriptions
+        if tool == "spotify_play":
+            t = params.get("track") or (output.get("resolved_track") if isinstance(output, dict) else None)
+            a = params.get("artist") or (output.get("resolved_artist") if isinstance(output, dict) else None)
+            g = params.get("genre")
+            if t and a:
+                return f"playing '{t}' by {a} on Spotify"
+            elif t:
+                return f"playing '{t}' on Spotify"
+            elif g:
+                return f"playing {g} music on Spotify"
+            elif a:
+                return f"playing {a} on Spotify"
+            return "playback started on Spotify"
+
+        if tool == "spotify_pause":
+            return "Spotify paused"
+
+        if tool == "spotify_resume":
+            return "Spotify resumed"
+
+        if tool == "spotify_next":
+            t = output.get("track") if isinstance(output, dict) else None
+            return f"skipped to '{t}'" if t else "skipped to next track"
+
+        if tool == "spotify_previous":
+            t = output.get("track") if isinstance(output, dict) else None
+            return f"returned to '{t}'" if t else "returned to previous track"
+
+        if tool == "spotify_volume":
+            return f"volume set to {params.get('volume_percent', 50)}%"
+
+        if tool == "spotify_search":
+            return "Spotify catalog searched"
+
         return f"{tool} completed"
 
     def generate(
@@ -132,7 +167,55 @@ class ResponseGenerator:
                 return "Navigation blocked: The requested destination is not permitted by JARVIS security policies (private, internal, or unsupported URL)."
             return f"I understood your request, but could not proceed: {plan.validation_error}"
 
-        # 2. Specialized Single-Turn Browser Information Query
+        # 2. Dedicated Music & Spotify Operations
+        if intent.startswith("MUSIC_") or any(r.tool_name.startswith("spotify_") for r in execution_results):
+            for res in execution_results:
+                out = res.output if isinstance(res.output, dict) else {}
+                status_code = out.get("status")
+                msg = out.get("message")
+
+                if status_code == "AMBIGUOUS_RESULT":
+                    candidates = out.get("candidates", [])
+                    cand_text = "\n".join([f"• {c}" for c in candidates])
+                    return f"{msg}\n{cand_text}" if candidates else msg
+
+                if status_code in ["AUTHENTICATION_REQUIRED", "NOT_CONFIGURED", "NO_ACTIVE_DEVICE", "PLAYBACK_UNAVAILABLE", "TRACK_NOT_FOUND", "PROVIDER_ERROR"]:
+                    return msg or "Spotify could not complete the request."
+
+                if res.tool_name == "spotify_play" and res.status == "SUCCESS":
+                    t = out.get("resolved_track") or out.get("track") or plan.steps[0].parameters.get("track")
+                    a = out.get("resolved_artist") or out.get("artist") or plan.steps[0].parameters.get("artist")
+                    if t and a:
+                        return f"Now playing '{t}' by {a} on Spotify."
+                    elif t:
+                        return f"Now playing '{t}' on Spotify."
+                    elif out.get("resolved_track"):
+                        return f"Now playing '{out['resolved_track']}' on Spotify."
+                    return msg or "Playback started on Spotify."
+
+                if res.tool_name == "spotify_pause" and res.status == "SUCCESS":
+                    return "Spotify playback paused."
+
+                if res.tool_name == "spotify_resume" and res.status == "SUCCESS":
+                    return "Resuming Spotify playback."
+
+                if res.tool_name == "spotify_next" and res.status == "SUCCESS":
+                    return msg or "Skipped to the next track on Spotify."
+
+                if res.tool_name == "spotify_previous" and res.status == "SUCCESS":
+                    return msg or "Returned to the previous track on Spotify."
+
+                if res.tool_name == "spotify_volume" and res.status == "SUCCESS":
+                    return msg or f"Spotify volume set to {plan.steps[0].parameters.get('volume_percent', 50)}%."
+
+                if res.tool_name == "spotify_search" and res.status == "SUCCESS":
+                    tracks = out.get("tracks", [])
+                    if not tracks:
+                        return f"No tracks found matching your query on Spotify."
+                    lines = [f"• \"{t['name']}\" by {t['artist']}" for t in tracks[:4]]
+                    return f"Found {len(tracks)} results on Spotify:\n" + "\n".join(lines)
+
+        # 3. Specialized Single-Turn Browser Information Query
         if intent == "BROWSER_PAGE_INFO":
             for res in execution_results:
                 if res.status == "SUCCESS" and res.tool_name == "browser_get_page_info" and isinstance(res.output, dict):

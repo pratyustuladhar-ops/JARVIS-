@@ -30,7 +30,7 @@ class MultiStepDecomposer:
     """
 
     EXPLICIT_CONNECTORS_REGEX = re.compile(
-        r"(?:,\s*)?(?:\band\s+then\b|\bthen\b|\bafter\s+that\b|\bfollowed\s+by\b|\bonce\s+that\s+is\s+done\b|\bnext\b)\s+",
+        r"(?:,\s*)?(?:\band\s+then\b|\bthen\b|\bafter\s+that\b|\bfollowed\s+by\b|\bonce\s+that\s+is\s+done\b|,\s*next\b|\band\s+next\b)\s+",
         re.I
     )
 
@@ -59,12 +59,13 @@ class MultiStepDecomposer:
             "delete ", "remove ", "cancel ", "discard ",
             "remember ", "save memory", "recall ", "what do you remember",
             "system status", "run diagnostics", "what time is it", "tell me the time", "current time",
-            "powershell ", "cmd ", "bash ", "shell ", "execute "
+            "powershell ", "cmd ", "bash ", "shell ", "execute ",
+            "play ", "put on ", "pause", "resume", "skip", "unpause"
         ]
         if any(c.startswith(p) for p in action_prefixes):
             return True
 
-        if c in ["system status", "diagnostics", "check health", "current time", "what time is it"]:
+        if c in ["system status", "diagnostics", "check health", "current time", "what time is it", "pause", "pause it", "pause music", "pause the music", "resume", "resume playback", "skip", "skip song", "next track"]:
             return True
 
         # Allowlisted single targets
@@ -85,9 +86,9 @@ class MultiStepDecomposer:
             raw,
             flags=re.I
         ).strip()
-        # Keep unified browser search commands intact (e.g. "Open YouTube and search for...", "Open YouTube, search for...")
+        # Keep unified browser search commands intact (e.g. "Open YouTube and search for...", "Open Chrome and search for...")
         if re.search(r"(?:,\s*|\band\s+|\bthen\s+)search\b", cleaned, re.I) and any(
-            site in cleaned.lower() for site in ["youtube", "google", "wikipedia", "github"]
+            site in cleaned.lower() for site in ["youtube", "google", "wikipedia", "github", "chrome", "edge", "browser"]
         ):
             return [cleaned]
 

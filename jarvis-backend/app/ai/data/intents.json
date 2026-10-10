@@ -151,5 +151,55 @@
   {"text": "open notepad and calculator", "intent": "MULTI_STEP_COMMAND"},
   {"text": "open chrome then open youtube then open spotify", "intent": "MULTI_STEP_COMMAND"},
   {"text": "open vs code then open my project folder", "intent": "MULTI_STEP_COMMAND"},
-  {"text": "create a task to study dbms and open vs code", "intent": "MULTI_STEP_COMMAND"}
+  {"text": "create a task to study dbms and open vs code", "intent": "MULTI_STEP_COMMAND"},
+
+  {"text": "play wake me up when september ends by green day", "intent": "MUSIC_PLAY"},
+  {"text": "play september ends by green day", "intent": "MUSIC_PLAY"},
+  {"text": "can you play wake me up when september ends", "intent": "MUSIC_PLAY"},
+  {"text": "put on some green day", "intent": "MUSIC_PLAY"},
+  {"text": "could you put on that september song from green day", "intent": "MUSIC_PLAY"},
+  {"text": "play boulevard of broken dreams", "intent": "MUSIC_PLAY"},
+  {"text": "listen to green day", "intent": "MUSIC_PLAY"},
+  {"text": "play some rock music", "intent": "MUSIC_PLAY"},
+  {"text": "play their other popular song", "intent": "MUSIC_PLAY"},
+  {"text": "spin some jazz music", "intent": "MUSIC_PLAY"},
+  {"text": "put on some music", "intent": "MUSIC_PLAY"},
+
+  {"text": "search for boulevard of broken dreams", "intent": "MUSIC_SEARCH"},
+  {"text": "find boulevard of broken dreams by green day", "intent": "MUSIC_SEARCH"},
+  {"text": "search spotify for green day", "intent": "MUSIC_SEARCH"},
+  {"text": "look up wake me up when september ends on spotify", "intent": "MUSIC_SEARCH"},
+  {"text": "search for songs by green day", "intent": "MUSIC_SEARCH"},
+
+  {"text": "pause the music", "intent": "MUSIC_PAUSE"},
+  {"text": "pause it", "intent": "MUSIC_PAUSE"},
+  {"text": "pause spotify", "intent": "MUSIC_PAUSE"},
+  {"text": "pause playback", "intent": "MUSIC_PAUSE"},
+  {"text": "hold on the music", "intent": "MUSIC_PAUSE"},
+
+  {"text": "resume what i was listening to", "intent": "MUSIC_RESUME"},
+  {"text": "resume the music", "intent": "MUSIC_RESUME"},
+  {"text": "continue playing", "intent": "MUSIC_RESUME"},
+  {"text": "resume playback", "intent": "MUSIC_RESUME"},
+  {"text": "unpause", "intent": "MUSIC_RESUME"},
+
+  {"text": "skip this song", "intent": "MUSIC_NEXT"},
+  {"text": "skip this track", "intent": "MUSIC_NEXT"},
+  {"text": "skip this one", "intent": "MUSIC_NEXT"},
+  {"text": "play the next track", "intent": "MUSIC_NEXT"},
+  {"text": "next song", "intent": "MUSIC_NEXT"},
+
+  {"text": "play the previous song", "intent": "MUSIC_PREVIOUS"},
+  {"text": "previous track", "intent": "MUSIC_PREVIOUS"},
+  {"text": "go back to previous song", "intent": "MUSIC_PREVIOUS"},
+
+  {"text": "set volume to 80 percent", "intent": "MUSIC_VOLUME"},
+  {"text": "turn the volume up to 70", "intent": "MUSIC_VOLUME"},
+  {"text": "set spotify volume to 50", "intent": "MUSIC_VOLUME"},
+
+  {"text": "stop the music", "intent": "MUSIC_STOP"},
+  {"text": "stop playback", "intent": "MUSIC_STOP"},
+
+  {"text": "create a task to study dbms tomorrow", "intent": "CREATE_TASK"},
+  {"text": "open chrome and search for machine learning", "intent": "BROWSER_SEARCH"}
 ]

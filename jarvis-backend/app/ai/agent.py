@@ -105,6 +105,46 @@ class JARVISAgent:
         )
         logger.info(f"[STAGE 2: CONTEXT] Retrieved {len(context.relevant_tasks)} tasks, {len(context.relevant_projects)} projs, {len(context.relevant_memories)} mems")
 
+        # Resolve context references if present
+        if intent_res.context_reference == "previous_artist" and not intent_res.entities.get("artist"):
+            if context.relevant_memories:
+                for m in context.relevant_memories:
+                    content = m.get("content", "").lower()
+                    for band in ["green day", "queen", "the beatles", "linkin park", "coldplay", "nirvana"]:
+                        if band in content:
+                            intent_res.entities["artist"] = band.title()
+                            intent_res.slots["artist"] = band.title()
+                            intent_res.requires_clarification = False
+                            break
+
+        # Clarification handling when request is ambiguous
+        if intent_res.requires_clarification:
+            clarif_text = intent_res.clarification_question or "Could you please clarify your request?"
+            assistant_msg = Message(
+                conversation_id=conv.id,
+                role="assistant",
+                content=clarif_text,
+                intent=intent_res.intent
+            )
+            db.add(assistant_msg)
+            db.commit()
+            return {
+                "response": clarif_text,
+                "intent": intent_res.intent,
+                "confidence": intent_res.confidence,
+                "plan": [],
+                "actions": [],
+                "verification": [],
+                "verified": True,
+                "conversation_id": conv.id,
+                "agent_state": "RESPONDING",
+                "requires_clarification": True,
+                "success": True,
+                "completed_steps": 0,
+                "total_steps": 0,
+                "steps": []
+            }
+
         # 4. Stage: Planning & Plan Validation
         plan: ExecutionPlan = agent_planner.create_plan(intent_res, context)
         logger.info(f"[STAGE 3: PLAN] Generated plan {plan.plan_id} with {len(plan.steps)} steps. Status: {plan.validation_status}")

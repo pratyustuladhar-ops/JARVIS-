@@ -360,6 +360,76 @@ class AgentPlanner:
                 risk_level="HIGH_RISK"
             )
 
+        # Music & Spotify Intents
+        elif intent == "MUSIC_PLAY":
+            params = {}
+            if "track" in entities:
+                params["track"] = entities["track"]
+            if "artist" in entities:
+                params["artist"] = entities["artist"]
+            if "genre" in entities:
+                params["genre"] = entities["genre"]
+            if "uri" in entities:
+                params["uri"] = entities["uri"]
+            if "device_id" in entities:
+                params["device_id"] = entities["device_id"]
+            return PlanStep(
+                step_number=step_number,
+                tool_name="spotify_play",
+                parameters=params,
+                risk_level="LOW_RISK"
+            )
+
+        elif intent in ["MUSIC_PAUSE", "MUSIC_STOP"]:
+            return PlanStep(
+                step_number=step_number,
+                tool_name="spotify_pause",
+                parameters={"device_id": entities.get("device_id")},
+                risk_level="LOW_RISK"
+            )
+
+        elif intent == "MUSIC_RESUME":
+            return PlanStep(
+                step_number=step_number,
+                tool_name="spotify_resume",
+                parameters={"device_id": entities.get("device_id")},
+                risk_level="LOW_RISK"
+            )
+
+        elif intent == "MUSIC_NEXT":
+            return PlanStep(
+                step_number=step_number,
+                tool_name="spotify_next",
+                parameters={"device_id": entities.get("device_id")},
+                risk_level="LOW_RISK"
+            )
+
+        elif intent == "MUSIC_PREVIOUS":
+            return PlanStep(
+                step_number=step_number,
+                tool_name="spotify_previous",
+                parameters={"device_id": entities.get("device_id")},
+                risk_level="LOW_RISK"
+            )
+
+        elif intent == "MUSIC_SEARCH":
+            q = entities.get("query") or entities.get("track") or goal
+            return PlanStep(
+                step_number=step_number,
+                tool_name="spotify_search",
+                parameters={"query": q, "artist": entities.get("artist"), "limit": 5},
+                risk_level="LOW_RISK"
+            )
+
+        elif intent == "MUSIC_VOLUME":
+            vol = entities.get("volume_percent", 50)
+            return PlanStep(
+                step_number=step_number,
+                tool_name="spotify_volume",
+                parameters={"volume_percent": vol, "device_id": entities.get("device_id")},
+                risk_level="LOW_RISK"
+            )
+
         # Fallback single step
         return PlanStep(
             step_number=step_number,
