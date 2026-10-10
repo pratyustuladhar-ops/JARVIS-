@@ -5,6 +5,7 @@ from pydantic import BaseModel, Field
 from app.ai.intent import IntentDetectionResult
 from app.ai.context import AgentContext
 from app.ai.tools import agent_tool_registry
+from app.core.config import settings
 
 logger = logging.getLogger("jarvis.ai.planner")
 
@@ -139,7 +140,8 @@ class AgentPlanner:
         entities: Dict[str, Any],
         goal: str,
         step_number: int,
-        context: Optional[AgentContext] = None
+        context: Optional[AgentContext] = None,
+        overall_goal: Optional[str] = None
     ) -> PlanStep:
         """Constructs an individual safe PlanStep based on resolved intent and entities."""
         if intent == "CREATE_TASK":
@@ -360,75 +362,154 @@ class AgentPlanner:
                 risk_level="HIGH_RISK"
             )
 
-        # Music & Spotify Intents
-        elif intent == "MUSIC_PLAY":
-            params = {}
-            if "track" in entities:
-                params["track"] = entities["track"]
-            if "artist" in entities:
-                params["artist"] = entities["artist"]
-            if "genre" in entities:
-                params["genre"] = entities["genre"]
-            if "uri" in entities:
-                params["uri"] = entities["uri"]
-            if "device_id" in entities:
-                params["device_id"] = entities["device_id"]
-            return PlanStep(
-                step_number=step_number,
-                tool_name="spotify_play",
-                parameters=params,
-                risk_level="LOW_RISK"
-            )
+        # Music Intents: Route by settings.MUSIC_PROVIDER (default "youtube")
+        elif intent.startswith("MUSIC_"):
+            # Determine target provider: explicit command mention or settings.MUSIC_PROVIDER
+            explicit_service = (entities.get("music_service") or "").lower()
+            combined_text = f"{overall_goal or ''} {goal}".lower()
+            if "spotify" in combined_text and "youtube" not in combined_text:
+                active_provider = "spotify"
+            elif "youtube" in combined_text and "spotify" not in combined_text:
+                active_provider = "youtube"
+            elif explicit_service in ["spotify", "youtube"]:
+                active_provider = explicit_service
+            else:
+                active_provider = getattr(settings, "MUSIC_PROVIDER", "youtube").lower()
 
-        elif intent in ["MUSIC_PAUSE", "MUSIC_STOP"]:
-            return PlanStep(
-                step_number=step_number,
-                tool_name="spotify_pause",
-                parameters={"device_id": entities.get("device_id")},
-                risk_level="LOW_RISK"
-            )
+            if active_provider == "spotify":
+                if intent == "MUSIC_PLAY":
+                    params = {}
+                    if "track" in entities:
+                        params["track"] = entities["track"]
+                    if "artist" in entities:
+                        params["artist"] = entities["artist"]
+                    if "genre" in entities:
+                        params["genre"] = entities["genre"]
+                    if "uri" in entities:
+                        params["uri"] = entities["uri"]
+                    if "device_id" in entities:
+                        params["device_id"] = entities["device_id"]
+                    return PlanStep(
+                        step_number=step_number,
+                        tool_name="spotify_play",
+                        parameters=params,
+                        risk_level="LOW_RISK"
+                    )
+                elif intent in ["MUSIC_PAUSE", "MUSIC_STOP"]:
+                    return PlanStep(
+                        step_number=step_number,
+                        tool_name="spotify_pause",
+                        parameters={"device_id": entities.get("device_id")},
+                        risk_level="LOW_RISK"
+                    )
+                elif intent == "MUSIC_RESUME":
+                    return PlanStep(
+                        step_number=step_number,
+                        tool_name="spotify_resume",
+                        parameters={"device_id": entities.get("device_id")},
+                        risk_level="LOW_RISK"
+                    )
+                elif intent == "MUSIC_NEXT":
+                    return PlanStep(
+                        step_number=step_number,
+                        tool_name="spotify_next",
+                        parameters={"device_id": entities.get("device_id")},
+                        risk_level="LOW_RISK"
+                    )
+                elif intent == "MUSIC_PREVIOUS":
+                    return PlanStep(
+                        step_number=step_number,
+                        tool_name="spotify_previous",
+                        parameters={"device_id": entities.get("device_id")},
+                        risk_level="LOW_RISK"
+                    )
+                elif intent == "MUSIC_SEARCH":
+                    q = entities.get("query") or entities.get("track") or goal
+                    return PlanStep(
+                        step_number=step_number,
+                        tool_name="spotify_search",
+                        parameters={"query": q, "artist": entities.get("artist"), "limit": 5},
+                        risk_level="LOW_RISK"
+                    )
+                elif intent == "MUSIC_VOLUME":
+                    vol = entities.get("volume_percent", 50)
+                    return PlanStep(
+                        step_number=step_number,
+                        tool_name="spotify_volume",
+                        parameters={"volume_percent": vol, "device_id": entities.get("device_id")},
+                        risk_level="LOW_RISK"
+                    )
 
-        elif intent == "MUSIC_RESUME":
-            return PlanStep(
-                step_number=step_number,
-                tool_name="spotify_resume",
-                parameters={"device_id": entities.get("device_id")},
-                risk_level="LOW_RISK"
-            )
-
-        elif intent == "MUSIC_NEXT":
-            return PlanStep(
-                step_number=step_number,
-                tool_name="spotify_next",
-                parameters={"device_id": entities.get("device_id")},
-                risk_level="LOW_RISK"
-            )
-
-        elif intent == "MUSIC_PREVIOUS":
-            return PlanStep(
-                step_number=step_number,
-                tool_name="spotify_previous",
-                parameters={"device_id": entities.get("device_id")},
-                risk_level="LOW_RISK"
-            )
-
-        elif intent == "MUSIC_SEARCH":
-            q = entities.get("query") or entities.get("track") or goal
-            return PlanStep(
-                step_number=step_number,
-                tool_name="spotify_search",
-                parameters={"query": q, "artist": entities.get("artist"), "limit": 5},
-                risk_level="LOW_RISK"
-            )
-
-        elif intent == "MUSIC_VOLUME":
-            vol = entities.get("volume_percent", 50)
-            return PlanStep(
-                step_number=step_number,
-                tool_name="spotify_volume",
-                parameters={"volume_percent": vol, "device_id": entities.get("device_id")},
-                risk_level="LOW_RISK"
-            )
+            # Default: YouTube Music Provider
+            if intent == "MUSIC_PLAY":
+                yt_params = {}
+                if "track" in entities:
+                    yt_params["track"] = entities["track"]
+                if "artist" in entities:
+                    yt_params["artist"] = entities["artist"]
+                if "genre" in entities:
+                    yt_params["genre"] = entities["genre"]
+                if "url" in entities:
+                    yt_params["url"] = entities["url"]
+                if "video_id" in entities:
+                    yt_params["video_id"] = entities["video_id"]
+                return PlanStep(
+                    step_number=step_number,
+                    tool_name="youtube_play",
+                    parameters=yt_params,
+                    risk_level="LOW_RISK"
+                )
+            elif intent == "MUSIC_PAUSE":
+                return PlanStep(
+                    step_number=step_number,
+                    tool_name="youtube_pause",
+                    parameters={},
+                    risk_level="LOW_RISK"
+                )
+            elif intent == "MUSIC_STOP":
+                return PlanStep(
+                    step_number=step_number,
+                    tool_name="youtube_stop",
+                    parameters={},
+                    risk_level="LOW_RISK"
+                )
+            elif intent == "MUSIC_RESUME":
+                return PlanStep(
+                    step_number=step_number,
+                    tool_name="youtube_resume",
+                    parameters={},
+                    risk_level="LOW_RISK"
+                )
+            elif intent == "MUSIC_NEXT":
+                return PlanStep(
+                    step_number=step_number,
+                    tool_name="youtube_next",
+                    parameters={},
+                    risk_level="LOW_RISK"
+                )
+            elif intent == "MUSIC_PREVIOUS":
+                return PlanStep(
+                    step_number=step_number,
+                    tool_name="youtube_previous",
+                    parameters={},
+                    risk_level="LOW_RISK"
+                )
+            elif intent == "MUSIC_SEARCH":
+                q = entities.get("query") or entities.get("track") or goal
+                return PlanStep(
+                    step_number=step_number,
+                    tool_name="youtube_search_music",
+                    parameters={"query": q, "artist": entities.get("artist"), "limit": 5},
+                    risk_level="LOW_RISK"
+                )
+            elif intent == "MUSIC_VOLUME":
+                vol = entities.get("volume_percent", 50)
+                return PlanStep(
+                    step_number=step_number,
+                    tool_name="spotify_volume",
+                    parameters={"volume_percent": vol, "device_id": entities.get("device_id")},
+                    risk_level="LOW_RISK"
+                )
 
         # Fallback single step
         return PlanStep(
@@ -500,7 +581,8 @@ class AgentPlanner:
                         entities=sub_res.entities,
                         goal=sub_cmd,
                         step_number=step_num,
-                        context=context
+                        context=context,
+                        overall_goal=goal
                     )
                 step.depends_on = dep
                 steps.append(step)

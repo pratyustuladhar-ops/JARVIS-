@@ -57,6 +57,9 @@ class Settings(BaseSettings):
     AUTO_RESUME_LISTENING: bool = True
     PORCUPINE_ACCESS_KEY: Union[str, None] = None
 
+    # Music Provider Configuration (youtube by default, or spotify)
+    MUSIC_PROVIDER: str = "youtube"
+
     # Music & Spotify Integration
     SPOTIFY_ENABLED: bool = True
     SPOTIFY_CLIENT_ID: Union[str, None] = None

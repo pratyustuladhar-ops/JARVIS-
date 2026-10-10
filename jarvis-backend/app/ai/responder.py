@@ -113,6 +113,37 @@ class ResponseGenerator:
         if tool == "local_get_system_info":
             return "system specifications retrieved"
 
+        # YouTube Music Tools Step Descriptions
+        if tool == "youtube_play":
+            t = params.get("track") or (output.get("resolved_track") if isinstance(output, dict) else None)
+            a = params.get("artist") or (output.get("resolved_artist") if isinstance(output, dict) else None)
+            if t and a:
+                return f"playing '{t}' by {a} on YouTube"
+            elif t:
+                return f"playing '{t}' on YouTube"
+            elif a:
+                return f"playing music by {a} on YouTube"
+            return "playback started on YouTube"
+
+        if tool == "youtube_pause":
+            return "YouTube paused"
+
+        if tool == "youtube_resume":
+            return "YouTube resumed"
+
+        if tool == "youtube_stop":
+            return "YouTube playback stopped"
+
+        if tool == "youtube_next":
+            return "skipped to next track on YouTube"
+
+        if tool == "youtube_previous":
+            return "returned to previous track on YouTube"
+
+        if tool == "youtube_search_music":
+            q = params.get("query", "music")
+            return f"searched YouTube for '{q}'"
+
         # Music & Spotify Tools Step Descriptions
         if tool == "spotify_play":
             t = params.get("track") or (output.get("resolved_track") if isinstance(output, dict) else None)
@@ -167,14 +198,68 @@ class ResponseGenerator:
                 return "Navigation blocked: The requested destination is not permitted by JARVIS security policies (private, internal, or unsupported URL)."
             return f"I understood your request, but could not proceed: {plan.validation_error}"
 
-        # 2. Dedicated Music & Spotify Operations
-        if intent.startswith("MUSIC_") or any(r.tool_name.startswith("spotify_") for r in execution_results):
+        # 2. Dedicated Music (YouTube & Spotify) Operations
+        if intent.startswith("MUSIC_") or any(r.tool_name.startswith("spotify_") or r.tool_name.startswith("youtube_") for r in execution_results):
             for res in execution_results:
                 out = res.output if isinstance(res.output, dict) else {}
                 status_code = out.get("status")
                 msg = out.get("message")
 
-                if status_code == "AMBIGUOUS_RESULT":
+                # YouTube Music Responses
+                if res.tool_name == "youtube_play":
+                    if res.status == "SUCCESS" and status_code in ["PLAYBACK_CONFIRMED", "SUCCESS", "PLAYING"]:
+                        t = out.get("resolved_track") or out.get("title") or (plan.steps[0].parameters.get("track") if plan.steps else None)
+                        a = out.get("resolved_artist") or out.get("channel") or (plan.steps[0].parameters.get("artist") if plan.steps else None)
+                        if t and a:
+                            return f"Now playing '{t}' by {a} on YouTube."
+                        elif t:
+                            return f"Now playing '{t}' on YouTube."
+                        return msg or "Playback started on YouTube."
+                    elif status_code == "AMBIGUOUS_RESULT":
+                        candidates = out.get("candidates", [])
+                        cand_text = "\n".join([f"• {c}" for c in candidates])
+                        return f"{msg}\n{cand_text}" if candidates else msg
+                    elif status_code in ["TRACK_NOT_FOUND", "PLAYBACK_NOT_VERIFIED", "BROWSER_UNAVAILABLE"]:
+                        return msg or f"YouTube playback could not be verified: {res.error}"
+                    elif res.status != "SUCCESS":
+                        return msg or res.error or "Failed to play requested music on YouTube."
+
+                if res.tool_name == "youtube_pause":
+                    if res.status == "SUCCESS":
+                        return msg or "YouTube playback paused."
+                    return msg or res.error or "Failed to pause YouTube playback."
+
+                if res.tool_name == "youtube_resume":
+                    if res.status == "SUCCESS":
+                        return msg or "Resuming YouTube playback."
+                    return msg or res.error or "Failed to resume YouTube playback."
+
+                if res.tool_name == "youtube_stop":
+                    if res.status == "SUCCESS":
+                        return msg or "YouTube playback stopped."
+                    return msg or res.error or "Failed to stop YouTube playback."
+
+                if res.tool_name == "youtube_next":
+                    if res.status == "SUCCESS":
+                        return msg or "Skipped to next track on YouTube."
+                    return msg or res.error or "Failed to skip YouTube track."
+
+                if res.tool_name == "youtube_previous":
+                    if res.status == "SUCCESS":
+                        return msg or "Returned to previous track on YouTube."
+                    return msg or res.error or "Failed to return to previous YouTube track."
+
+                if res.tool_name == "youtube_search_music":
+                    if res.status == "SUCCESS":
+                        results = out.get("tracks", []) or out.get("results", []) or out.get("candidates", [])
+                        if not results:
+                            return "No tracks found matching your query on YouTube."
+                        lines = [f"• \"{r.get('title', '')}\" by {r.get('channel', '')}" if isinstance(r, dict) else f"• {r}" for r in results[:4]]
+                        return f"Found {len(results)} results on YouTube:\n" + "\n".join(lines)
+                    return msg or res.error or "YouTube search failed."
+
+                # Spotify Responses
+                if status_code == "AMBIGUOUS_RESULT" and res.tool_name.startswith("spotify_"):
                     candidates = out.get("candidates", [])
                     cand_text = "\n".join([f"• {c}" for c in candidates])
                     return f"{msg}\n{cand_text}" if candidates else msg
@@ -183,8 +268,8 @@ class ResponseGenerator:
                     return msg or "Spotify could not complete the request."
 
                 if res.tool_name == "spotify_play" and res.status == "SUCCESS":
-                    t = out.get("resolved_track") or out.get("track") or plan.steps[0].parameters.get("track")
-                    a = out.get("resolved_artist") or out.get("artist") or plan.steps[0].parameters.get("artist")
+                    t = out.get("resolved_track") or out.get("track") or (plan.steps[0].parameters.get("track") if plan.steps else None)
+                    a = out.get("resolved_artist") or out.get("artist") or (plan.steps[0].parameters.get("artist") if plan.steps else None)
                     if t and a:
                         return f"Now playing '{t}' by {a} on Spotify."
                     elif t:

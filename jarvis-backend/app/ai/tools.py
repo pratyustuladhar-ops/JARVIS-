@@ -9,6 +9,7 @@ from app.services.memory_service import memory_service
 from app.schemas.task import TaskCreate, TaskUpdate
 from app.schemas.project import ProjectCreate, ProjectUpdate
 from app.schemas.memory import MemoryCreate
+from app.core.config import settings
 
 logger = logging.getLogger("jarvis.ai.tools")
 
@@ -1070,6 +1071,130 @@ class SpotifyStatusTool(BaseAgentTool):
         }
 
 
+# ==================== YOUTUBE MUSIC TOOLS (DEFAULT PROVIDER) ====================
+
+class YouTubePlayTool(BaseAgentTool):
+    name = "youtube_play"
+    description = "Searches for and plays requested music video on YouTube with verified browser playback"
+    risk_level = "LOW_RISK"
+    input_schema = {
+        "type": "object",
+        "properties": {
+            "track": {"type": "string", "description": "Track title or song name"},
+            "artist": {"type": "string", "description": "Artist or band name"},
+            "genre": {"type": "string", "description": "Genre or mood"},
+            "url": {"type": "string", "description": "Direct YouTube video URL"},
+            "video_id": {"type": "string", "description": "YouTube video ID"}
+        }
+    }
+
+    def execute(self, db: Session, params: Dict[str, Any]) -> Any:
+        from app.services.youtube_service import youtube_service
+        return youtube_service.play(
+            track=params.get("track"),
+            artist=params.get("artist"),
+            genre=params.get("genre"),
+            url=params.get("url"),
+            video_id=params.get("video_id")
+        )
+
+
+class YouTubePauseTool(BaseAgentTool):
+    name = "youtube_pause"
+    description = "Pauses active YouTube music playback in the browser"
+    risk_level = "LOW_RISK"
+    input_schema = {"type": "object", "properties": {}}
+
+    def execute(self, db: Session, params: Dict[str, Any]) -> Any:
+        from app.services.youtube_service import youtube_service
+        return youtube_service.pause()
+
+
+class YouTubeResumeTool(BaseAgentTool):
+    name = "youtube_resume"
+    description = "Resumes paused YouTube music playback in the browser"
+    risk_level = "LOW_RISK"
+    input_schema = {"type": "object", "properties": {}}
+
+    def execute(self, db: Session, params: Dict[str, Any]) -> Any:
+        from app.services.youtube_service import youtube_service
+        return youtube_service.resume()
+
+
+class YouTubeStopTool(BaseAgentTool):
+    name = "youtube_stop"
+    description = "Stops active YouTube playback in the browser"
+    risk_level = "LOW_RISK"
+    input_schema = {"type": "object", "properties": {}}
+
+    def execute(self, db: Session, params: Dict[str, Any]) -> Any:
+        from app.services.youtube_service import youtube_service
+        return youtube_service.stop()
+
+
+class YouTubeNextTool(BaseAgentTool):
+    name = "youtube_next"
+    description = "Skips to the next video/track on YouTube"
+    risk_level = "LOW_RISK"
+    input_schema = {"type": "object", "properties": {}}
+
+    def execute(self, db: Session, params: Dict[str, Any]) -> Any:
+        from app.services.youtube_service import youtube_service
+        return youtube_service.next_track()
+
+
+class YouTubePreviousTool(BaseAgentTool):
+    name = "youtube_previous"
+    description = "Returns to previous track or restarts active song on YouTube"
+    risk_level = "LOW_RISK"
+    input_schema = {"type": "object", "properties": {}}
+
+    def execute(self, db: Session, params: Dict[str, Any]) -> Any:
+        from app.services.youtube_service import youtube_service
+        return youtube_service.previous_track()
+
+
+class YouTubeSearchMusicTool(BaseAgentTool):
+    name = "youtube_search_music"
+    description = "Searches YouTube catalog for songs, music videos, or artists"
+    risk_level = "LOW_RISK"
+    input_schema = {
+        "type": "object",
+        "properties": {
+            "query": {"type": "string", "description": "Search term"},
+            "artist": {"type": "string", "description": "Artist filter"},
+            "limit": {"type": "integer", "description": "Max results"}
+        },
+        "required": ["query"]
+    }
+
+    def execute(self, db: Session, params: Dict[str, Any]) -> Any:
+        from app.services.youtube_service import youtube_service
+        query = params.get("query", "").strip()
+        artist = params.get("artist")
+        limit = params.get("limit", 5)
+        candidates = youtube_service.search_music(query=query, artist=artist, limit=limit)
+        return {
+            "status": "SEARCH_COMPLETED",
+            "service": "youtube",
+            "count": len(candidates),
+            "tracks": candidates,
+            "results": candidates,
+            "verified": True
+        }
+
+
+class YouTubeStatusTool(BaseAgentTool):
+    name = "youtube_status"
+    description = "Retrieves active YouTube playback state and current video"
+    risk_level = "LOW_RISK"
+    input_schema = {"type": "object", "properties": {}}
+
+    def execute(self, db: Session, params: Dict[str, Any]) -> Any:
+        from app.services.youtube_service import youtube_service
+        return youtube_service.get_playback_state()
+
+
 # ==================== TOOL REGISTRY ====================
 
 class AgentToolRegistry:
@@ -1124,6 +1249,15 @@ class AgentToolRegistry:
             SpotifySearchTool(),
             SpotifyVolumeTool(),
             SpotifyStatusTool(),
+            # Music & YouTube Tools (Default Provider)
+            YouTubePlayTool(),
+            YouTubePauseTool(),
+            YouTubeResumeTool(),
+            YouTubeStopTool(),
+            YouTubeNextTool(),
+            YouTubePreviousTool(),
+            YouTubeSearchMusicTool(),
+            YouTubeStatusTool(),
         ]
         for t in tools:
             self.register(t)
@@ -1156,30 +1290,35 @@ class AgentToolRegistry:
         "click": "browser_click_element",
         "press_key": "browser_press_key",
         "close_browser": "browser_close",
-        # Music & Spotify tool aliases
-        "music_play": "spotify_play",
-        "play_music": "spotify_play",
-        "play_song": "spotify_play",
-        "music_pause": "spotify_pause",
-        "pause_music": "spotify_pause",
-        "music_resume": "spotify_resume",
-        "resume_music": "spotify_resume",
-        "music_next": "spotify_next",
-        "skip_song": "spotify_next",
-        "skip_track": "spotify_next",
-        "next_song": "spotify_next",
-        "next_track": "spotify_next",
-        "music_previous": "spotify_previous",
-        "previous_song": "spotify_previous",
-        "previous_track": "spotify_previous",
-        "music_search": "spotify_search",
-        "search_music": "spotify_search",
-        "search_song": "spotify_search",
+        # YouTube tool aliases
+        "youtube_search": "youtube_search_music",
+        "youtube_play_music": "youtube_play",
+        "youtube_music_play": "youtube_play",
+        "play_youtube": "youtube_play",
+        # Music general aliases (resolve dynamically based on configured provider)
+        "music_play": "youtube_play",
+        "play_music": "youtube_play",
+        "play_song": "youtube_play",
+        "music_pause": "youtube_pause",
+        "pause_music": "youtube_pause",
+        "music_resume": "youtube_resume",
+        "resume_music": "youtube_resume",
+        "music_next": "youtube_next",
+        "skip_song": "youtube_next",
+        "skip_track": "youtube_next",
+        "next_song": "youtube_next",
+        "next_track": "youtube_next",
+        "music_previous": "youtube_previous",
+        "previous_song": "youtube_previous",
+        "previous_track": "youtube_previous",
+        "music_search": "youtube_search_music",
+        "search_music": "youtube_search_music",
+        "search_song": "youtube_search_music",
+        "music_stop": "youtube_stop",
+        "music_status": "youtube_status",
+        "playback_state": "youtube_status",
         "music_volume": "spotify_volume",
         "set_volume": "spotify_volume",
-        "music_status": "spotify_status",
-        "playback_state": "spotify_status",
-        "music_stop": "spotify_pause",
         "spotify_stop": "spotify_pause",
     }
 
@@ -1190,6 +1329,36 @@ class AgentToolRegistry:
         if norm in self.FORBIDDEN_TOOLS:
             logger.warning(f"Blocked request for dangerous tool execution: '{name}'")
             return None
+
+        # Dynamic provider routing for generic music aliases
+        active_provider = getattr(settings, "MUSIC_PROVIDER", "youtube").lower()
+        if active_provider == "spotify":
+            spotify_overrides = {
+                "music_play": "spotify_play",
+                "play_music": "spotify_play",
+                "play_song": "spotify_play",
+                "music_pause": "spotify_pause",
+                "pause_music": "spotify_pause",
+                "music_resume": "spotify_resume",
+                "resume_music": "spotify_resume",
+                "music_next": "spotify_next",
+                "skip_song": "spotify_next",
+                "skip_track": "spotify_next",
+                "next_song": "spotify_next",
+                "next_track": "spotify_next",
+                "music_previous": "spotify_previous",
+                "previous_song": "spotify_previous",
+                "previous_track": "spotify_previous",
+                "music_search": "spotify_search",
+                "search_music": "spotify_search",
+                "search_song": "spotify_search",
+                "music_stop": "spotify_pause",
+                "music_status": "spotify_status",
+                "playback_state": "spotify_status",
+            }
+            if norm in spotify_overrides:
+                norm = spotify_overrides[norm]
+
         if norm in self.ALIAS_MAP:
             norm = self.ALIAS_MAP[norm]
         if norm in self._tools:

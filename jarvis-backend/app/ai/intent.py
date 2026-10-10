@@ -101,16 +101,17 @@ class IntentDetector:
             (re.compile(r"^(?:jarvis,?\s*)?(?:powershell|cmd|bash)\s+(.+)$", re.I), "BLOCKED_COMMAND", 0.99),
 
             # Step 9.2 Browser Automation: YouTube / Google / Web Search (Priority over general navigation)
+            (re.compile(r"^(?:jarvis,?\s*)?search\s+youtube\s+for\s+(.+?\b(?:music|song|track|album|soundtrack)\b.*)$", re.I), "MUSIC_SEARCH", 0.995),
             (re.compile(r"^(?:jarvis,?\s*)?(?:open\s+(?:the\s+)?(?:website\s+)?|go\s+to\s+)?(youtube|google|wikipedia|github|chrome|edge|browser)\s*(?:,\s*|\s+and\s+|\s+then\s+|\s+)search(?:\s+for)?\s+(.+)$", re.I), "BROWSER_SEARCH", 0.99),
             (re.compile(r"^(?:jarvis,?\s*)?search\s+(youtube|google|wikipedia|github)\s+for\s+(.+)$", re.I), "BROWSER_SEARCH", 0.99),
             (re.compile(r"^(?:jarvis,?\s*)?search\s+for\s+(.+)\s+on\s+(youtube|google|wikipedia|github|chrome|web)$", re.I), "BROWSER_SEARCH", 0.99),
             (re.compile(r"^(?:jarvis,?\s*)?(?:search\s+the\s+web\s+for|search\s+web\s+for|search\s+google\s+for|google)\s+(.+)$", re.I), "BROWSER_SEARCH", 0.98),
 
-            # Music & Spotify: Dedicated Controls & Variations (Priority over generic commands)
+            # Music & Streaming: Dedicated Controls & Variations (Priority over generic commands)
             (re.compile(r"^(?:jarvis,?\s*)?(?:set|turn|change)\s+(?:the\s+)?(?:spotify\s+)?volume\s+(?:to\s+)?(\d+)\s*%?[\s?!.]*$", re.I), "MUSIC_VOLUME", 0.99),
             (re.compile(r"^(?:jarvis,?\s*)?(?:turn\s+(?:the\s+)?(?:music|volume)\s+(?:up|down)(?:\s+to\s+(\d+)\s*%?)?)[\s?!.]*$", re.I), "MUSIC_VOLUME", 0.98),
             (re.compile(r"^(?:jarvis,?\s*)?(?:pause(?:\s+(?:the\s+)?(?:music|playback|song|track|spotify|it))?|hold\s+on\s+the\s+music)[\s?!.]*$", re.I), "MUSIC_PAUSE", 0.99),
-            (re.compile(r"^(?:jarvis,?\s*)?(?:resume(?:\s+(?:the\s+)?(?:music|playback|song|track|spotify|what\s+i\s+was\s+listening\s+to|it))?|continue\s+playing|unpause)[\s?!.]*$", re.I), "MUSIC_RESUME", 0.99),
+            (re.compile(r"^(?:jarvis,?\s*)?(?:resume(?:\s+(?:the\s+)?(?:music|playback|playing|song|track|spotify|what\s+i\s+was\s+listening\s+to|it))?|continue\s+playing|unpause)[\s?!.]*$", re.I), "MUSIC_RESUME", 0.99),
             (re.compile(r"^(?:jarvis,?\s*)?(?:skip(?:\s+(?:this\s+)?(?:song|track|one))?|play\s+(?:the\s+)?next\s+(?:track|song)|next\s+(?:song|track)|skip\s+to\s+next)[\s?!.]*$", re.I), "MUSIC_NEXT", 0.99),
             (re.compile(r"^(?:jarvis,?\s*)?(?:play\s+(?:the\s+)?previous\s+(?:track|song)|previous\s+(?:song|track)|go\s+back\s+(?:to\s+)?(?:the\s+)?previous\s+(?:song|track)|play\s+(?:the\s+)?last\s+track)[\s?!.]*$", re.I), "MUSIC_PREVIOUS", 0.99),
             (re.compile(r"^(?:jarvis,?\s*)?(?:stop\s+(?:the\s+)?(?:music|playback|song|track|spotify)|stop\s+playing)[\s?!.]*$", re.I), "MUSIC_STOP", 0.99),
@@ -443,10 +444,14 @@ class IntentDetector:
         if intent == "BROWSER_CLOSE":
             entities["action"] = "close"
 
-        # Music & Spotify Intents
+        # Music & Streaming Intents
         if intent == "MUSIC_PLAY":
             entities["action"] = "play"
-            entities["music_service"] = "spotify"
+            if "spotify" in cleaned.lower() and "youtube" not in cleaned.lower():
+                entities["music_service"] = "spotify"
+            elif "youtube" in cleaned.lower() and "spotify" not in cleaned.lower():
+                entities["music_service"] = "youtube"
+
             m_by = re.search(r"(?:play|put\s+on|listen\s+to|spin)\s+(?:some\s+|that\s+)?(.+?)\s+(?:by|from)\s+(.+)$", cleaned, re.I)
             m_genre = re.search(r"(?:play|put\s+on|listen\s+to|spin)\s+(?:some\s+)?([a-zA-Z\s]+?)\s+music[\s?!.]*$", cleaned, re.I)
             m_pronoun = re.search(r"(?:play|put\s+on)\s+(?:their|his|her)\s+(?:other\s+)?(?:popular\s+)?(?:song|track)", cleaned, re.I)
@@ -476,16 +481,25 @@ class IntentDetector:
 
         elif intent == "MUSIC_SEARCH":
             entities["action"] = "search"
-            entities["music_service"] = "spotify"
-            m_by = re.search(r"(?:search\s+for|find|look\s+up)\s+(.+?)\s+by\s+(.+?)(?:\s+on\s+spotify)?[\s?!.]*$", cleaned, re.I)
+            if "spotify" in cleaned.lower() and "youtube" not in cleaned.lower():
+                entities["music_service"] = "spotify"
+            elif "youtube" in cleaned.lower() and "spotify" not in cleaned.lower():
+                entities["music_service"] = "youtube"
+            m_yt = re.search(r"(?:search\s+youtube\s+for|search\s+for)\s+(.+?)(?:\s+on\s+youtube)?[\s?!.]*$", cleaned, re.I)
+            m_by = re.search(r"(?:search\s+for|find|look\s+up)\s+(.+?)\s+by\s+(.+?)(?:\s+on\s+(?:spotify|youtube))?[\s?!.]*$", cleaned, re.I)
             if m_by:
                 t = m_by.group(1).strip().strip("\"'")
                 a = m_by.group(2).strip().strip("\"'.,?!")
+                t = re.sub(r"^(?:the\s+)?(?:official\s+)?(?:music\s+)?video\s+(?:for|of)\s+", "", t, flags=re.I).strip()
                 entities["track"] = t
                 entities["artist"] = a
                 entities["query"] = f"{t} {a}"
+            elif "youtube" in cleaned.lower() and m_yt:
+                q = m_yt.group(1).strip().strip("\"'.,?!")
+                entities["query"] = q
+                entities["track"] = q
             else:
-                m_q = re.search(r"(?:search\s+spotify\s+for|search\s+for|find|look\s+up)\s+(?:song\s+|track\s+|music\s+)?(.+?)(?:\s+on\s+spotify)?[\s?!.]*$", cleaned, re.I)
+                m_q = re.search(r"(?:search\s+(?:spotify|youtube)\s+for|search\s+for|find|look\s+up)\s+(?:song\s+|track\s+|music\s+)?(.+?)(?:\s+on\s+(?:spotify|youtube))?[\s?!.]*$", cleaned, re.I)
                 q = m_q.group(1).strip().strip("\"'.,?!") if m_q else cleaned
                 entities["query"] = q
                 entities["track"] = q

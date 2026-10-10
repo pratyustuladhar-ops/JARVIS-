@@ -114,7 +114,8 @@ def test_07_adversarial_malformed_input_does_not_bypass_validation(db_session):
 
 def test_08_spotify_unconfigured_honest_error(db_session):
     """When Spotify credentials are not configured, agent gives clear honest configuration instructions."""
-    with patch.object(spotify_service, "is_configured", False):
+    with patch.object(settings, "MUSIC_PROVIDER", "spotify"), \
+         patch.object(spotify_service, "is_configured", False):
         res = jarvis_agent.process(db=db_session, message="Play Wake Me Up When September Ends by Green Day")
         assert res["verified"] is False
         assert "spotify is not configured" in res["response"].lower() or "credentials" in res["response"].lower()
@@ -159,7 +160,8 @@ def test_10_spotify_ambiguous_results_handling(db_session):
         {"id": "2", "name": "September Song 2", "artist": "Band B", "album": "B", "uri": "spotify:track:2", "popularity": 50}
     ]
 
-    with patch.object(spotify_service, "is_configured", True), \
+    with patch.object(settings, "MUSIC_PROVIDER", "spotify"), \
+         patch.object(spotify_service, "is_configured", True), \
          patch.object(spotify_service, "search_catalog", return_value=mock_candidates):
 
         res = jarvis_agent.process(db=db_session, message="Play September Song by Band A")
@@ -176,7 +178,8 @@ def test_11_spotify_no_active_device_error(db_session):
         "album": "American Idiot",
         "uri": "spotify:track:trk_01"
     }
-    with patch.object(spotify_service, "is_configured", True), \
+    with patch.object(settings, "MUSIC_PROVIDER", "spotify"), \
+         patch.object(spotify_service, "is_configured", True), \
          patch.object(spotify_service, "resolve_track", return_value=(mock_cand, "EXACT_MATCH", [mock_cand])), \
          patch.object(spotify_service, "get_devices", return_value=[]), \
          patch.object(spotify_service, "play", return_value={"status": "NO_ACTIVE_DEVICE", "message": "No active Spotify playback device found. Please open Spotify first.", "verified": False}):
@@ -204,7 +207,8 @@ def test_12_spotify_play_confirmed_verification(db_session):
         "uri": "spotify:track:trk_01"
     }
 
-    with patch.object(spotify_service, "is_configured", True), \
+    with patch.object(settings, "MUSIC_PROVIDER", "spotify"), \
+         patch.object(spotify_service, "is_configured", True), \
          patch.object(spotify_service, "resolve_track", return_value=(mock_cand, "EXACT_MATCH", [mock_cand])), \
          patch.object(spotify_service, "play", return_value=mock_play_res):
 
@@ -216,7 +220,8 @@ def test_12_spotify_play_confirmed_verification(db_session):
 
 def test_13_spotify_pause_resume_next_verification(db_session):
     """Verify pause, resume, and next operations report verified outcomes."""
-    with patch.object(spotify_service, "is_configured", True), \
+    with patch.object(settings, "MUSIC_PROVIDER", "spotify"), \
+         patch.object(spotify_service, "is_configured", True), \
          patch.object(spotify_service, "pause", return_value={"status": "PLAYBACK_PAUSED", "message": "Spotify playback paused.", "verified": True}), \
          patch.object(spotify_service, "resume", return_value={"status": "PLAYBACK_CONFIRMED", "message": "Resuming Spotify playback.", "verified": True}), \
          patch.object(spotify_service, "next_track", return_value={"status": "TRACK_SKIPPED", "message": "Skipped to next track.", "verified": True, "track": "Holiday"}):

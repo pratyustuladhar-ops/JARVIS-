@@ -305,6 +305,22 @@ class VerificationEngine:
                 return VerificationResult("FAILED", tool_name, None, msg)
             return VerificationResult("VERIFIED", tool_name, None, output.get("message", "Spotify operation confirmed."))
 
+        # Music & YouTube Tools Verification
+        if tool_name == "youtube_play":
+            if not isinstance(output, dict) or not output.get("verified"):
+                msg = output.get("message") if isinstance(output, dict) else "YouTube playback could not be verified."
+                return VerificationResult("FAILED", tool_name, None, msg)
+            t = output.get("track") or "track"
+            a = output.get("artist") or ""
+            artist_clause = f" by '{a}'" if a else ""
+            return VerificationResult("VERIFIED", tool_name, None, f"YouTube playback confirmed: '{t}'{artist_clause}.")
+
+        if tool_name in ["youtube_pause", "youtube_resume", "youtube_next", "youtube_previous", "youtube_stop", "youtube_search_music", "youtube_status"]:
+            if not isinstance(output, dict) or not output.get("verified"):
+                msg = output.get("message") if isinstance(output, dict) else "YouTube operation failed."
+                return VerificationResult("FAILED", tool_name, None, msg)
+            return VerificationResult("VERIFIED", tool_name, None, output.get("message", "YouTube operation confirmed."))
+
         # Read-only operations (list, search, status)
         return VerificationResult(
             status="VERIFIED",
