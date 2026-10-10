@@ -17,6 +17,7 @@ from app.services.browser.automation_service import (
     BrowserAutomationError,
     BrowserUnavailableError,
     BrowserSessionExpiredError,
+    NoActivePageError,
     ElementNotFoundError,
     AmbiguousTargetError,
     BrowserOperationTimeoutError
@@ -37,6 +38,7 @@ __all__ = [
     "BrowserAutomationError",
     "BrowserUnavailableError",
     "BrowserSessionExpiredError",
+    "NoActivePageError",
     "ElementNotFoundError",
     "AmbiguousTargetError",
     "BrowserOperationTimeoutError"

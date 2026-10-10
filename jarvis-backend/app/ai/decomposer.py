@@ -85,8 +85,8 @@ class MultiStepDecomposer:
             raw,
             flags=re.I
         ).strip()
-        # Keep unified browser search commands intact (e.g. "Open YouTube and search for...")
-        if re.search(r"\b(?:and\s+search|then\s+search)\b", cleaned, re.I) and any(
+        # Keep unified browser search commands intact (e.g. "Open YouTube and search for...", "Open YouTube, search for...")
+        if re.search(r"(?:,\s*|\band\s+|\bthen\s+)search\b", cleaned, re.I) and any(
             site in cleaned.lower() for site in ["youtube", "google", "wikipedia", "github"]
         ):
             return [cleaned]

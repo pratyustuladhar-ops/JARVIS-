@@ -291,6 +291,15 @@ class AgentPlanner:
                 risk_level="LOW_RISK"
             )
 
+        elif intent == "BROWSER_CLICK_ELEMENT":
+            target = entities.get("target") or entities.get("selector") or goal
+            return PlanStep(
+                step_number=step_number,
+                tool_name="browser_click_element",
+                parameters={"selector": target, "name": target},
+                risk_level="MEDIUM_RISK"
+            )
+
         elif intent == "OPEN_URL":
             url_target = entities.get("url") or goal
             return PlanStep(
@@ -505,6 +514,15 @@ class AgentPlanner:
                 tool_name="browser_close",
                 parameters={},
                 risk_level="LOW_RISK"
+            ))
+
+        elif intent == "BROWSER_CLICK_ELEMENT":
+            target = entities.get("target") or entities.get("selector") or goal
+            steps.append(PlanStep(
+                step_number=1,
+                tool_name="browser_click_element",
+                parameters={"selector": target, "name": target},
+                risk_level="MEDIUM_RISK"
             ))
 
         elif intent == "OPEN_URL":

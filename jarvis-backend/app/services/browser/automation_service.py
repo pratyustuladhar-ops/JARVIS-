@@ -42,19 +42,52 @@ class BrowserOperationTimeoutError(BrowserAutomationError):
     pass
 
 
+class NoActivePageError(BrowserAutomationError):
+    """No active browser session or webpage is open."""
+    pass
+
+
 class BrowserAutomationService:
     """
     High-level, verified browser automation service:
     Executes controlled Playwright operations inside isolated JARVIS sessions.
     """
 
-    def _get_active_session(self, session_id: Optional[str] = None) -> BrowserSession:
+    @staticmethod
+    async def _dismiss_consent_if_present(page):
+        """Dismisses common GDPR/cookie consent dialogs on Google, YouTube, etc."""
+        try:
+            consent_selectors = [
+                'button:has-text("Accept all")',
+                'button:has-text("Reject all")',
+                'button:has-text("I agree")',
+                'button:has-text("Stay signed out")',
+                'ytd-button-renderer:has-text("Accept all") button',
+                'ytd-button-renderer:has-text("Reject all") button',
+                '[aria-label="Accept all"]',
+                '[aria-label="Reject all"]',
+                '#L2AGLb',
+                '#W0wltc',
+            ]
+            for sel in consent_selectors:
+                loc = page.locator(sel)
+                if await loc.count() > 0 and await loc.first.is_visible():
+                    await loc.first.click(timeout=1500)
+                    await page.wait_for_timeout(300)
+                    break
+        except Exception:
+            pass
+
+    def _get_active_session(self, session_id: Optional[str] = None, must_exist: bool = False) -> BrowserSession:
         sess = browser_session_manager.get_session(session_id)
         if not sess:
-            # Auto-create or resume active session
+            if must_exist:
+                raise NoActivePageError("No active browser session or webpage is currently open.")
             sess = browser_session_manager.get_or_create_session(session_id)
-        if not sess or sess.is_closed:
-            raise BrowserSessionExpiredError("Active browser session is closed or unavailable.")
+        if not sess or not sess.is_valid():
+            if must_exist:
+                raise NoActivePageError("The active browser session or webpage has been closed.")
+            sess = browser_session_manager.get_or_create_session(session_id)
         return sess
 
     def open_session(
@@ -100,6 +133,9 @@ class BrowserAutomationService:
             final_url = page.url
             URLSecurityValidator.validate(final_url)
 
+            # Dismiss cookie consent dialog if presented
+            await self._dismiss_consent_if_present(page)
+
             title = await page.title()
             status_code = response.status if response else 200
             return final_url, title, status_code
@@ -124,10 +160,12 @@ class BrowserAutomationService:
             raise BrowserAutomationError(f"Navigation failed: {err_msg}")
 
     def get_page_info(self, session_id: Optional[str] = None) -> Dict[str, Any]:
-        sess = self._get_active_session(session_id)
+        sess = self._get_active_session(session_id, must_exist=True)
 
         async def _get_info():
             page = sess.page
+            if page is None or (hasattr(page, "is_closed") and page.is_closed()):
+                raise NoActivePageError("The active webpage has been closed.")
             title = await page.title()
             url = page.url
             ready_state = await page.evaluate("() => document.readyState")
@@ -142,6 +180,8 @@ class BrowserAutomationService:
                 "ready_state": ready_state,
                 "verified": True
             }
+        except (NoActivePageError, BrowserAutomationError):
+            raise
         except Exception as e:
             raise BrowserAutomationError(f"Failed to read page information: {e}")
 
@@ -152,10 +192,13 @@ class BrowserAutomationService:
                 return page.get_by_role(role, name=re.compile(re.escape(name), re.I))
             return page.get_by_role(role)
         if selector:
-            return page.locator(selector)
+            try:
+                return page.locator(selector)
+            except Exception:
+                return page.get_by_text(selector, exact=False)
         if name:
-            # Try label or placeholder
-            return page.get_by_placeholder(name)
+            # Try placeholder or label
+            return page.get_by_placeholder(name).or_(page.get_by_label(name)).or_(page.get_by_text(name))
         if text:
             return page.get_by_text(text)
         raise ElementNotFoundError("No locator criteria (selector, role, name, text) was provided.")
@@ -212,11 +255,14 @@ class BrowserAutomationService:
         clear_first: bool = True,
         timeout_ms: int = 10000
     ) -> Dict[str, Any]:
-        sess = self._get_active_session(session_id)
+        sess = self._get_active_session(session_id, must_exist=False)
         desc = selector or role or name or "input field"
 
         async def _fill():
             page = sess.page
+            if page is None or (hasattr(page, "is_closed") and page.is_closed()):
+                raise NoActivePageError("The active webpage has been closed.")
+            await self._dismiss_consent_if_present(page)
             # Smart selector resolution for common search fields if not specified
             if not selector and not role and not name:
                 # Try standard search query inputs (YouTube, Google, general search)
@@ -262,7 +308,7 @@ class BrowserAutomationService:
                 "text_length": len(text),
                 "element_tag": tag
             }
-        except (ElementNotFoundError, AmbiguousTargetError):
+        except (ElementNotFoundError, AmbiguousTargetError, NoActivePageError):
             raise
         except Exception as e:
             err_msg = str(e)
@@ -279,15 +325,18 @@ class BrowserAutomationService:
         session_id: Optional[str] = None,
         timeout_ms: int = 10000
     ) -> Dict[str, Any]:
-        sess = self._get_active_session(session_id)
+        sess = self._get_active_session(session_id, must_exist=True)
         desc = selector or role or name or text or "element"
 
         async def _click():
             page = sess.page
+            if page is None or (hasattr(page, "is_closed") and page.is_closed()):
+                raise NoActivePageError("The active webpage has been closed.")
+            await self._dismiss_consent_if_present(page)
             loc = self._resolve_locator(page, selector, role, name, text)
             count = await loc.count()
             if count == 0:
-                raise ElementNotFoundError(f"Click target matching '{desc}' was not found.")
+                raise ElementNotFoundError(f"Click target matching '{desc}' was not found on page.")
             if count > 1 and not selector:
                 raise AmbiguousTargetError(f"Multiple targets ({count}) matched '{desc}'. Ambiguous action rejected.")
 
@@ -303,7 +352,7 @@ class BrowserAutomationService:
                 "target": desc,
                 "new_url": new_url
             }
-        except (ElementNotFoundError, AmbiguousTargetError):
+        except (ElementNotFoundError, AmbiguousTargetError, NoActivePageError):
             raise
         except Exception as e:
             err_msg = str(e)
@@ -318,10 +367,12 @@ class BrowserAutomationService:
         session_id: Optional[str] = None,
         timeout_ms: int = 10000
     ) -> Dict[str, Any]:
-        sess = self._get_active_session(session_id)
+        sess = self._get_active_session(session_id, must_exist=True)
 
         async def _press():
             page = sess.page
+            if page is None or (hasattr(page, "is_closed") and page.is_closed()):
+                raise NoActivePageError("The active webpage has been closed.")
             if selector:
                 loc = page.locator(selector)
                 await loc.first.press(key, timeout=timeout_ms)
@@ -335,6 +386,8 @@ class BrowserAutomationService:
                 "key": key,
                 "target": selector or "active_page"
             }
+        except (NoActivePageError, BrowserAutomationError):
+            raise
         except Exception as e:
             raise BrowserAutomationError(f"Failed pressing key '{key}': {e}")
 
@@ -345,10 +398,12 @@ class BrowserAutomationService:
         session_id: Optional[str] = None,
         timeout_ms: int = 10000
     ) -> Dict[str, Any]:
-        sess = self._get_active_session(session_id)
+        sess = self._get_active_session(session_id, must_exist=True)
 
         async def _read():
             page = sess.page
+            if page is None or (hasattr(page, "is_closed") and page.is_closed()):
+                raise NoActivePageError("The active webpage has been closed.")
             if selector:
                 loc = page.locator(selector)
                 txt = await loc.first.inner_text(timeout=timeout_ms)
@@ -364,6 +419,8 @@ class BrowserAutomationService:
                 "char_count": len(clean_text),
                 "truncated": len(raw_text.strip()) > max_chars
             }
+        except (NoActivePageError, BrowserAutomationError):
+            raise
         except Exception as e:
             raise BrowserAutomationError(f"Failed retrieving text: {e}")
 
@@ -374,14 +431,22 @@ class BrowserAutomationService:
         session_id: Optional[str] = None,
         timeout_ms: int = 15000
     ) -> Dict[str, Any]:
-        sess = self._get_active_session(session_id)
+        sess = self._get_active_session(session_id, must_exist=True)
 
         async def _wait():
             page = sess.page
+            if page is None or (hasattr(page, "is_closed") and page.is_closed()):
+                raise NoActivePageError("The active webpage has been closed.")
             if selector:
-                # Split comma-separated selectors (e.g. results container on youtube/google)
                 loc = page.locator(selector)
-                await loc.first.wait_for(state="visible", timeout=timeout_ms)
+                try:
+                    await loc.first.wait_for(state="visible", timeout=timeout_ms)
+                except Exception:
+                    # Also try domcontentloaded and count check
+                    await page.wait_for_load_state("domcontentloaded", timeout=timeout_ms)
+                    if await loc.count() > 0:
+                        return selector
+                    raise
                 return selector
             else:
                 st = state if state in ["networkidle", "domcontentloaded", "load"] else "domcontentloaded"
@@ -395,6 +460,8 @@ class BrowserAutomationService:
                 "satisfied": True,
                 "found_selector": selector
             }
+        except (NoActivePageError, BrowserOperationTimeoutError, BrowserAutomationError):
+            raise
         except Exception as e:
             err_msg = str(e)
             if "Timeout" in err_msg:

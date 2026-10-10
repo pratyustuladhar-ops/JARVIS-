@@ -376,3 +376,106 @@ def test_23_real_browser_smoke_test():
         assert close_res["closed"] is True
     except Exception as e:
         pytest.skip(f"Real browser smoke test skipped due to environment constraint: {e}")
+
+
+# ==================== 5. INVESTIGATION & REPAIR TESTS ====================
+
+def test_24_reject_javascript_scheme_commands(db_session):
+    """Test 24: Commands attempting to navigate to javascript: or javascript(...) payloads are rejected at plan validation."""
+    for cmd in ["Navigate to javascript(1)", "Navigate to javascript:alert(1)"]:
+        res = jarvis_agent.process(db=db_session, message=cmd)
+        assert res["verified"] is False
+        assert res["intent"] == "BROWSER_NAVIGATE"
+        assert "Navigation blocked" in res["response"]
+        assert len(res["actions"]) == 0
+
+
+def test_25_block_internal_loopback_in_automated_browser(db_session):
+    """Test 25: Navigation to loopback (127.0.0.1 / localhost) in automated browser is rejected before execution."""
+    res = jarvis_agent.process(db=db_session, message="Open http://127.0.0.1:8000/docs in the automated browser")
+    assert res["verified"] is False
+    assert res["intent"] == "BROWSER_NAVIGATE"
+    assert "Navigation blocked" in res["response"]
+    assert len(res["actions"]) == 0
+
+
+def test_26_page_title_active_vs_missing(db_session):
+    """Test 26: Reading webpage title reports error when no session is active, and returns real title when active."""
+    # 1. No active session exists
+    with patch.object(browser_session_manager, "get_session", return_value=None):
+        res_none = jarvis_agent.process(db=db_session, message="What is the title of the current webpage?")
+        assert res_none["verified"] is False
+        assert "There is no active controlled browser webpage currently open." in res_none["response"]
+
+    # 2. Active session with loaded page
+    mock_info = {"title": "YouTube", "url": "https://www.youtube.com", "ready_state": "complete"}
+    with patch.object(browser_automation_service, "get_page_info", return_value=mock_info):
+        res_active = jarvis_agent.process(db=db_session, message="What is the title of the current webpage?")
+        assert res_active["verified"] is True
+        assert 'The title of the active webpage is: "YouTube".' in res_active["response"]
+
+
+def test_27_multi_step_workflow_java_tutorials(db_session):
+    """Test 27: Multi-step browser search 'Open YouTube, search for Java tutorials, and verify the results' cleans query and plans 5 steps."""
+    mock_nav = {"session_id": "sess_1", "url": "https://www.youtube.com", "final_url": "https://www.youtube.com", "title": "YouTube", "status_code": 200, "navigation_status": "SUCCESS"}
+    mock_fill = {"filled": True, "target": "input", "text_length": 14, "element_tag": "input"}
+    mock_press = {"pressed": True, "key": "Enter", "target": "page"}
+    mock_wait = {"waited_for": "results", "satisfied": True, "found_selector": "ytd-video-renderer"}
+    mock_info = {"title": "Java tutorials - YouTube", "url": "https://www.youtube.com/results?search_query=Java+tutorials", "ready_state": "complete"}
+
+    with patch.object(browser_automation_service, "navigate", return_value=mock_nav), \
+         patch.object(browser_automation_service, "fill_input", return_value=mock_fill), \
+         patch.object(browser_automation_service, "press_key", return_value=mock_press), \
+         patch.object(browser_automation_service, "wait_for_state", return_value=mock_wait), \
+         patch.object(browser_automation_service, "get_page_info", return_value=mock_info):
+
+        res = jarvis_agent.process(
+            db=db_session,
+            message="Open YouTube, search for Java tutorials, and verify the results"
+        )
+        assert res["verified"] is True
+        assert res["intent"] == "BROWSER_SEARCH"
+        assert len(res["plan"]) == 5
+        # Ensure query was cleaned of trailing verification instruction
+        assert "searched for 'Java tutorials'" in res["response"]
+        # Ensure plan parameters for fill_input contain clean query
+        fill_step = [s for s in res["plan"] if s.get("tool_name") == "browser_fill_input"][0]
+        assert "verify the results" not in fill_step.get("parameters", {}).get("text", "")
+
+
+def test_28_nonexistent_element_handling(db_session):
+    """Test 28: Clicking a nonexistent element returns structured ElementNotFoundError without arbitrary JS fallback."""
+    with patch.object(browser_automation_service, "click_element", side_effect=ElementNotFoundError("Target element not found")):
+        res = jarvis_agent.process(db=db_session, message="Click an element named DefinitelyNotARealButton")
+        assert res["verified"] is False
+        assert res["intent"] == "BROWSER_CLICK_ELEMENT"
+        assert res["steps"][0]["status"] == "FAILED"
+        assert "not found" in res["response"].lower()
+
+
+def test_29_session_manager_recovers_from_closed_page():
+    """Test 29: Session manager detects closed page and cleanly creates fresh healthy session."""
+    mock_page = MagicMock()
+    mock_page.is_closed.return_value = True
+
+    mock_sess = MagicMock()
+    mock_sess.session_id = "sess_stale"
+    mock_sess.page = mock_page
+    mock_sess.is_closed = False
+    mock_sess.is_valid.return_value = False
+
+    browser_session_manager._sessions["sess_stale"] = mock_sess
+    browser_session_manager._active_session_id = "sess_stale"
+
+    assert browser_session_manager.get_session("sess_stale") is None
+    assert "sess_stale" not in browser_session_manager._sessions
+
+
+def test_30_browser_unavailable_deterministic(db_session):
+    """Test 30: When browser engine cannot launch, agent returns structured failure without crashing."""
+    with patch.object(browser_automation_service, "navigate", side_effect=BrowserUnavailableError("Edge binary not found")):
+        res = jarvis_agent.process(db=db_session, message="Open YouTube and search for Green Day")
+        assert res["verified"] is False
+        assert res["actions"][0]["status"] == "FAILED"
+        assert "couldn't navigate" in res["response"]
+        assert res["agent_state"] == "ERROR"

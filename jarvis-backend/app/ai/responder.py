@@ -72,6 +72,10 @@ class ResponseGenerator:
         if tool == "browser_close":
             return "closed browser session"
 
+        if tool == "browser_click_element":
+            t = params.get("selector") or params.get("name") or "element"
+            return f"clicked element '{t}'"
+
         if tool == "task_create":
             title = params.get("title", "Task")
             return f"Task '{title}' created"
@@ -124,7 +128,7 @@ class ResponseGenerator:
         if plan.validation_status == "INVALID":
             if intent == "BLOCKED_COMMAND" or any(w in user_message.lower() for w in ["powershell", "cmd", "bash", "shell"]):
                 return "I can't execute arbitrary system commands. Only pre-approved Windows tools from the allowlist are permitted."
-            if "Navigation blocked" in str(plan.validation_error) or "blocked" in str(plan.validation_error).lower():
+            if "Navigation blocked" in str(plan.validation_error) or "blocked" in str(plan.validation_error).lower() or "unsupported" in str(plan.validation_error).lower():
                 return "Navigation blocked: The requested destination is not permitted by JARVIS security policies (private, internal, or unsupported URL)."
             return f"I understood your request, but could not proceed: {plan.validation_error}"
 
@@ -137,8 +141,26 @@ class ResponseGenerator:
                         return f'The title of the active webpage is: "{title}".'
             for res in execution_results:
                 if res.status != "SUCCESS":
+                    err_str = str(res.error)
+                    if "no active" in err_str.lower() or "closed" in err_str.lower():
+                        return "There is no active controlled browser webpage currently open."
                     return f"Failed retrieving page information: {res.error}"
-            return "No active webpage title could be retrieved."
+            return "There is no active controlled browser webpage currently open."
+
+        if intent == "BROWSER_CLICK_ELEMENT":
+            for res in execution_results:
+                if res.status == "SUCCESS":
+                    target = (res.output.get("target") if isinstance(res.output, dict) else "element") or "element"
+                    return f"Done. Clicked {target}."
+                elif res.status == "FAILED":
+                    err_str = str(res.error)
+                    target = (plan.steps[0].parameters.get("selector") if plan.steps else "element") or "element"
+                    if "not found" in err_str.lower():
+                        return f"Click target '{target}' was not found on the active webpage."
+                    if "no active" in err_str.lower() or "closed" in err_str.lower():
+                        return "There is no active controlled browser webpage currently open."
+                    return f"Failed clicking element: {res.error}"
+            return "Element click operation could not be completed."
 
         if intent == "BROWSER_CLOSE":
             return "Done. The controlled browser session has been closed cleanly."

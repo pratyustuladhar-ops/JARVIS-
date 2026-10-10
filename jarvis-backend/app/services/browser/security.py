@@ -70,6 +70,17 @@ class URLSecurityValidator:
         if any(ord(c) < 32 or ord(c) == 127 for c in raw_url):
             raise InvalidURLError("URL contains invalid control characters.")
 
+        # Check explicitly for unsupported / dangerous schemes before parsing
+        lower_raw = raw_url.lower()
+        if lower_raw.startswith("javascript:") or lower_raw.startswith("javascript(") or "javascript:" in lower_raw:
+            raise UnsupportedSchemeError("Unsupported URL scheme 'javascript'. Only HTTP and HTTPS are permitted.")
+        if lower_raw.startswith("data:"):
+            raise UnsupportedSchemeError("Unsupported URL scheme 'data'. Only HTTP and HTTPS are permitted.")
+        if lower_raw.startswith("file:"):
+            raise UnsupportedSchemeError("Unsupported URL scheme 'file'. Only HTTP and HTTPS are permitted.")
+        if lower_raw.startswith("vbscript:") or lower_raw.startswith("blob:"):
+            raise UnsupportedSchemeError("Unsupported URL scheme. Only HTTP and HTTPS are permitted.")
+
         # Check scheme before full parsing
         scheme_match = re.match(r"^([a-zA-Z0-9\+\.\-]+):", raw_url)
         if not scheme_match:
@@ -150,6 +161,10 @@ class URLSecurityValidator:
 
     @classmethod
     def _check_ip_safety(cls, ip: ipaddress.IPv4Address | ipaddress.IPv6Address, hostname: str) -> None:
+        # Check IPv4-mapped IPv6 address (e.g. ::ffff:127.0.0.1)
+        if hasattr(ip, "ipv4_mapped") and ip.ipv4_mapped:
+            cls._check_ip_safety(ip.ipv4_mapped, hostname)
+
         if ip.is_loopback:
             raise BlockedDestinationError(
                 f"Destination '{hostname}' resolves to loopback address ({ip}), which is blocked."

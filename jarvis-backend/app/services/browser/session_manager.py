@@ -39,6 +39,25 @@ class BrowserSession:
     def touch(self):
         self.last_active_at = time.time()
 
+    def is_valid(self) -> bool:
+        """Checks if session and its underlying page/context are active and non-closed."""
+        if self.is_closed:
+            return False
+        try:
+            if self.page is None:
+                return False
+            if hasattr(self.page, "is_closed") and self.page.is_closed():
+                # Inspect context for any other open page
+                if self.context and hasattr(self.context, "pages"):
+                    surviving = [p for p in self.context.pages if not p.is_closed()]
+                    if surviving:
+                        self.page = surviving[0]
+                        return True
+                return False
+            return True
+        except Exception:
+            return False
+
 
 class BrowserWorkerLoop:
     """
@@ -134,9 +153,12 @@ class BrowserSessionManager:
             target_id = session_id or self._active_session_id
             if target_id and target_id in self._sessions:
                 sess = self._sessions[target_id]
-                if not sess.is_closed:
+                if sess.is_valid():
                     sess.touch()
                     return sess
+                else:
+                    logger.info(f"Discarding closed/stale browser session '{target_id}'.")
+                    self._close_session_locked(target_id)
             return None
 
     def get_or_create_session(
@@ -150,9 +172,12 @@ class BrowserSessionManager:
             target_id = session_id or self._active_session_id
             if target_id and target_id in self._sessions:
                 sess = self._sessions[target_id]
-                if not sess.is_closed:
+                if sess.is_valid():
                     sess.touch()
                     return sess
+                else:
+                    logger.info(f"Discarding closed/stale browser session '{target_id}' before recreation.")
+                    self._close_session_locked(target_id)
 
             # 2. Cleanup idle sessions if at max limit
             self._cleanup_idle_sessions()
@@ -202,11 +227,14 @@ class BrowserSessionManager:
             except Exception as e:
                 # Fallback to standard launch if persistent context fails
                 logger.warning(f"Persistent context launch failed: {e}. Trying standard launch.")
-                if channel:
-                    browser = await p.chromium.launch(channel=channel, headless=headless, args=launch_args)
-                else:
-                    browser = await p.chromium.launch(headless=headless, args=launch_args)
-                context = await browser.new_context(viewport={"width": 1280, "height": 800})
+                try:
+                    if channel:
+                        browser = await p.chromium.launch(channel=channel, headless=headless, args=launch_args)
+                    else:
+                        browser = await p.chromium.launch(headless=headless, args=launch_args)
+                    context = await browser.new_context(viewport={"width": 1280, "height": 800})
+                except Exception as e2:
+                    raise RuntimeError(f"BROWSER_UNAVAILABLE: Browser service could not launch: {e2}")
 
             # Setup route interception for SSRF / redirect protection
             async def _intercept_route(route):
