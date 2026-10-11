@@ -38,3 +38,8 @@ jarvis_browser_profiles/
 Thumbs.db
 Desktop.ini
 .DS_Store
+
+# Desktop build output & local configs
+release-builds/
+.desktop-settings.json
+

@@ -146,6 +146,12 @@
           <span class="material-symbols-outlined text-lg">settings</span>
           <span>Settings</span>
         </a>
+
+        <!-- Desktop Settings (Accessible in Desktop Mode) -->
+        <a id="nav-desktop-settings" class="hidden items-center gap-3 px-3 py-2 text-on-surface-variant hover:text-on-surface hover:bg-surface-container rounded transition-all duration-150 text-sm" href="settings.html?tab=desktop">
+          <span class="material-symbols-outlined text-lg text-primary">desktop_windows</span>
+          <span>Desktop Mode</span>
+        </a>
       </nav>
 
       <!-- Advanced Tools (Preserved Backend Subsystems) -->
@@ -246,6 +252,12 @@
       <button onclick="clearChatHistory()" class="p-1.5 text-on-surface-variant hover:text-on-surface transition-colors rounded hover:bg-surface-container" title="Clear Conversation Feed">
         <span class="material-symbols-outlined text-base">delete_sweep</span>
       </button>
+
+      <!-- Desktop Tray Minimize Button (Desktop Mode) -->
+      <button id="btn-desktop-minimize" onclick="minimizeToTrayAction()" class="hidden px-2.5 py-1 text-xs font-mono rounded border border-primary/40 text-primary bg-primary/10 hover:bg-primary/20 transition-all items-center gap-1.5" title="Minimize JARVIS to System Tray">
+        <span class="material-symbols-outlined text-sm">arrow_downward</span>
+        <span class="hidden sm:inline">TRAY</span>
+      </button>
     </div>
   </header>
 
@@ -253,6 +265,17 @@
   <!-- MAIN ASSISTANT CANVAS (FULL VIEWPORT FLEX COLUMN)    -->
   <!-- ==================================================== -->
   <main class="md:ml-60 pt-14 h-[100dvh] flex flex-col overflow-hidden relative">
+
+    <!-- Real-time Backend Connection Alert Banner -->
+    <div id="backend-connection-banner" class="hidden mx-4 md:mx-8 mt-2 p-2.5 rounded-lg border border-amber-500/40 bg-amber-950/30 text-amber-300 text-xs font-mono flex items-center justify-between z-20 shadow-lg">
+      <div class="flex items-center gap-2">
+        <span class="material-symbols-outlined text-base animate-spin text-amber-400">sync</span>
+        <span id="backend-connection-message">Probing JARVIS Backend Core (http://127.0.0.1:8000)...</span>
+      </div>
+      <button onclick="retryBackendConnection()" class="px-2 py-1 rounded bg-amber-500/20 hover:bg-amber-500/30 text-amber-200 border border-amber-500/40 transition-colors text-[10px]">
+        RETRY NOW
+      </button>
+    </div>
 
     <!-- ==================================================== -->
     <!-- SECTION 1: TOP HUD - 3D HOLOGRAPHIC CORE & STATUS    -->
@@ -1367,6 +1390,90 @@
       }
     }
 
+    // Desktop integration & connection status handling
+    window.minimizeToTrayAction = function() {
+      if (window.jarvisDesktop && window.jarvisDesktop.minimizeToTray) {
+        window.jarvisDesktop.minimizeToTray();
+      }
+    };
+
+    window.retryBackendConnection = async function() {
+      const msg = document.getElementById('backend-connection-message');
+      if (msg) msg.textContent = 'Probing JARVIS Backend Core...';
+      try {
+        const res = await fetch('http://127.0.0.1:8000/health');
+        if (res.ok) {
+          updateBackendStatusUI(true);
+        } else {
+          updateBackendStatusUI(false);
+        }
+      } catch {
+        updateBackendStatusUI(false);
+      }
+    };
+
+    function updateBackendStatusUI(isOnline) {
+      const badge = document.getElementById('backend-status-badge');
+      const banner = document.getElementById('backend-connection-banner');
+      if (badge) {
+        if (isOnline) {
+          badge.className = "inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] bg-emerald-500/10 text-emerald-400 border border-emerald-500/30";
+          badge.innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span> CONNECTED`;
+        } else {
+          badge.className = "inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] bg-red-500/10 text-red-400 border border-red-500/30";
+          badge.innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-red-400"></span> OFFLINE`;
+        }
+      }
+      if (banner) {
+        if (isOnline) {
+          banner.classList.add('hidden');
+        } else {
+          banner.classList.remove('hidden');
+          const msg = document.getElementById('backend-connection-message');
+          if (msg) msg.textContent = 'JARVIS Backend Core is offline. Verify uvicorn on port 8000.';
+        }
+      }
+    }
+
+    function initDesktopFeatures() {
+      if (window.jarvisDesktop && window.jarvisDesktop.isDesktop) {
+        const minBtn = document.getElementById('btn-desktop-minimize');
+        if (minBtn) {
+          minBtn.classList.remove('hidden');
+          minBtn.classList.add('flex');
+        }
+        const deskNav = document.getElementById('nav-desktop-settings');
+        if (deskNav) {
+          deskNav.classList.remove('hidden');
+          deskNav.classList.add('flex');
+        }
+
+        window.jarvisDesktop.getServiceStatus().then((status) => {
+          if (status) {
+            updateBackendStatusUI(status.backend === 'online');
+          }
+        });
+
+        window.jarvisDesktop.onServiceStatusChanged((status) => {
+          if (status) {
+            updateBackendStatusUI(status.backend === 'online');
+            const localAgentBadge = document.getElementById('local-agent-status-badge');
+            if (localAgentBadge) {
+              if (status.localAgent === 'online') {
+                localAgentBadge.className = "inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] bg-primary/10 text-primary border border-primary/30";
+                localAgentBadge.innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-primary animate-pulse"></span> ONLINE`;
+              } else {
+                localAgentBadge.className = "inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] bg-outline/10 text-outline border border-outline/30";
+                localAgentBadge.innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-outline/40"></span> OFFLINE`;
+              }
+            }
+          }
+        });
+      } else {
+        retryBackendConnection();
+      }
+    }
+
     // DOM Ready Setup
     document.addEventListener('DOMContentLoaded', () => {
       // 1. Initialize 3D Holographic Core
@@ -1380,9 +1487,10 @@
       initWakeWord();
       updateVoiceModeUI();
 
-      // 3. Status polling
+      // 3. Status polling and desktop feature initialization
       checkLocalAgentStatus();
       setInterval(checkLocalAgentStatus, 15000);
+      initDesktopFeatures();
 
       // 4. Scroll wrapper listener for preserving reading position
       const scrollWrapper = getScrollWrapper();

@@ -206,17 +206,44 @@ Visit the application in your browser:
 
 ---
 
+## Step 12 — Windows Desktop Application & Background Mode
+
+JARVIS includes a dedicated Windows desktop application with full system-tray integration, global hotkey summoning, and managed background operation.
+
+### Key Capabilities
+- **Direct Assistant Window**: Launches straight into the futuristic dark `#06080C` Assistant HUD (`assistant.html`) with 3D Holographic Core, voice controls, and multiline composer.
+- **Windows System Tray**: Native system tray icon (`desktop/assets/icon.ico`) with real-time health badges, show/hide toggle, settings access, web control panel launcher, and clean quit.
+- **Background Mode**: Closing the window with `[X]` minimizes to the tray when enabled, showing a Windows balloon notification.
+- **Global Keyboard Shortcut**: Toggle JARVIS visibility from anywhere in Windows via configurable shortcut (default `Ctrl+Shift+J` / `CommandOrControl+Shift+J`).
+- **Subsystem Lifecycle Manager**: Auto-detects and optionally spawns the FastAPI backend (port 8000) and Local Agent (port 8001), tracks child process PIDs, and terminates only JARVIS-spawned processes on exit.
+- **Desktop Settings Panel**: Dedicated category 12 in `settings.html?tab=desktop` for configuring startup on Windows login, start minimized, minimize to tray, global hotkeys, and notifications.
+- **Isolated Security**: Preload script with `contextBridge` isolation, sandboxing, and secure URL interception opening external links safely in the default system browser.
+
+### Development Commands
+```powershell
+# Run the desktop application in development mode
+npm run electron:dev
+
+# Run the standard desktop application
+npm run electron:start
+
+# Build the production web bundle and package the Windows desktop executable
+npm run desktop:build
+```
+The packaged standalone Windows application is generated at:
+`release-builds\JARVIS-win32-x64\JARVIS.exe`
+
+---
+
 ## Automated Test Suite
 
-Run the full pytest suite (139 tests covering Steps 1–9.2 & 10):
+Run the full pytest suite (173 backend tests covering Steps 1–12):
 ```powershell
 cd jarvis-backend
-python -m pytest tests/test_browser_automation.py -v
-python -m pytest -v
+python -m pytest -q
 ```
 
-All 139 tests pass with 100% success rate.
-Frontend tests (20 tests covering UI routing & wake word state machine):
+Run the frontend & desktop test suite (43 automated tests covering routing, UI, wake word, desktop architecture, and settings store):
 ```powershell
 npm test
 ```
