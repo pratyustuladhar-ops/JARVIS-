@@ -115,8 +115,8 @@ class ResponseGenerator:
 
         # YouTube Music Tools Step Descriptions
         if tool == "youtube_play":
-            t = params.get("track") or (output.get("resolved_track") if isinstance(output, dict) else None)
-            a = params.get("artist") or (output.get("resolved_artist") if isinstance(output, dict) else None)
+            t = (output.get("resolved_track") or output.get("track") or output.get("title") if isinstance(output, dict) else None) or params.get("track")
+            a = (output.get("resolved_artist") or output.get("artist") or output.get("channel") if isinstance(output, dict) else None) or params.get("artist")
             if t and a:
                 return f"playing '{t}' by {a} on YouTube"
             elif t:
@@ -208,8 +208,8 @@ class ResponseGenerator:
                 # YouTube Music Responses
                 if res.tool_name == "youtube_play":
                     if res.status == "SUCCESS" and status_code in ["PLAYBACK_CONFIRMED", "SUCCESS", "PLAYING"]:
-                        t = out.get("resolved_track") or out.get("title") or (plan.steps[0].parameters.get("track") if plan.steps else None)
-                        a = out.get("resolved_artist") or out.get("channel") or (plan.steps[0].parameters.get("artist") if plan.steps else None)
+                        t = out.get("resolved_track") or out.get("track") or out.get("title") or (plan.steps[0].parameters.get("track") if plan.steps else None)
+                        a = out.get("resolved_artist") or out.get("artist") or out.get("channel") or (plan.steps[0].parameters.get("artist") if plan.steps else None)
                         if t and a:
                             return f"Now playing '{t}' by {a} on YouTube."
                         elif t:
@@ -219,10 +219,17 @@ class ResponseGenerator:
                         candidates = out.get("candidates", [])
                         cand_text = "\n".join([f"• {c}" for c in candidates])
                         return f"{msg}\n{cand_text}" if candidates else msg
-                    elif status_code in ["TRACK_NOT_FOUND", "PLAYBACK_NOT_VERIFIED", "BROWSER_UNAVAILABLE"]:
-                        return msg or f"YouTube playback could not be verified: {res.error}"
+                    elif status_code in [
+                        "TRACK_NOT_FOUND", "PLAYBACK_NOT_VERIFIED", "PLAYBACK_UNVERIFIED",
+                        "BROWSER_UNAVAILABLE", "SESSION_CLOSED", "SECURITY_BLOCKED",
+                        "NETWORK_ERROR", "EXTRACTION_ERROR", "PROVIDER_ERROR", "PLAYER_NOT_FOUND",
+                        "NO_ACTIVE_PLAYBACK"
+                    ]:
+                        return msg or f"YouTube playback could not be verified: {res.error or status_code}"
                     elif res.status != "SUCCESS":
                         return msg or res.error or "Failed to play requested music on YouTube."
+                    elif msg:
+                        return msg
 
                 if res.tool_name == "youtube_pause":
                     if res.status == "SUCCESS":

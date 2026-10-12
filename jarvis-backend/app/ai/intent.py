@@ -119,11 +119,11 @@ class IntentDetector:
             (re.compile(r"^(?:jarvis,?\s*)?(?:search\s+for|find)\s+(.+?)\s+by\s+(.+)$", re.I), "MUSIC_SEARCH", 0.98),
             (re.compile(r"^(?:jarvis,?\s*)?(?:search\s+for|find)\s+(?:song|track|music):?\s*(.+)$", re.I), "MUSIC_SEARCH", 0.98),
             (re.compile(r"^(?:jarvis,?\s*)?(?:search\s+for|find)\s+(?!the\s+web\b|web\b|google\b|youtube\b|wikipedia\b|github\b|all\b)(.+)$", re.I), "MUSIC_SEARCH", 0.96),
-            (re.compile(r"^(?:jarvis,?\s*)?(?:play|put\s+on|listen\s+to|spin)\s+(?:some\s+|that\s+)?(.+?)\s+(?:by|from)\s+(.+)$", re.I), "MUSIC_PLAY", 0.99),
-            (re.compile(r"^(?:jarvis,?\s*)?(?:play|put\s+on|listen\s+to|spin)\s+(?:some\s+)?([a-zA-Z\s]+?)\s+music[\s?!.]*$", re.I), "MUSIC_PLAY", 0.98),
-            (re.compile(r"^(?:jarvis,?\s*)?(?:play|put\s+on|listen\s+to|spin)\s+(?:some\s+)?(green day|queen|the beatles|linkin park|coldplay|eminem|taylor swift|ed sheeran|nirvana|metallica|ac/dc|pink floyd|radiohead|daft punk|drake)[\s?!.]*$", re.I), "MUSIC_PLAY", 0.98),
-            (re.compile(r"^(?:jarvis,?\s*)?(?:play|put\s+on|listen\s+to|spin)\s+(?:their\s+)?(?:other\s+)?(?:popular\s+)?(?:song|track)[\s?!.]*$", re.I), "MUSIC_PLAY", 0.98),
-            (re.compile(r"^(?:jarvis,?\s*)?(?:play|put\s+on|listen\s+to|spin)\s+(.+)$", re.I), "MUSIC_PLAY", 0.95),
+            (re.compile(r"^(?:jarvis,?\s*)?(?:open\s+youtube\s+(?:and|then|to)\s+)?(?:play|put\s+on|listen\s+to|spin)\s+(?:some\s+|that\s+)?(.+?)\s+(?:by|from)\s+(.+)$", re.I), "MUSIC_PLAY", 0.99),
+            (re.compile(r"^(?:jarvis,?\s*)?(?:open\s+youtube\s+(?:and|then|to)\s+)?(?:play|put\s+on|listen\s+to|spin)\s+(?:some\s+)?([a-zA-Z\s]+?)\s+music[\s?!.]*$", re.I), "MUSIC_PLAY", 0.98),
+            (re.compile(r"^(?:jarvis,?\s*)?(?:open\s+youtube\s+(?:and|then|to)\s+)?(?:play|put\s+on|listen\s+to|spin)\s+(?:some\s+)?(green day|queen|the beatles|linkin park|coldplay|eminem|taylor swift|ed sheeran|nirvana|metallica|ac/dc|pink floyd|radiohead|daft punk|drake)[\s?!.]*$", re.I), "MUSIC_PLAY", 0.98),
+            (re.compile(r"^(?:jarvis,?\s*)?(?:open\s+youtube\s+(?:and|then|to)\s+)?(?:play|put\s+on|listen\s+to|spin)\s+(?:their\s+)?(?:other\s+)?(?:popular\s+)?(?:song|track)[\s?!.]*$", re.I), "MUSIC_PLAY", 0.98),
+            (re.compile(r"^(?:jarvis,?\s*)?(?:open\s+youtube\s+(?:and|then|to)\s+)?(?:play|put\s+on|listen\s+to|spin)\s+(.+)$", re.I), "MUSIC_PLAY", 0.95),
 
             # Step 9.2 Browser Automation: Page Info & Title
             (re.compile(r"^(?:jarvis,?\s*)?(?:what(?:'s|\s+is)\s+(?:the\s+)?(?:current\s+|active\s+)?(?:title|page\s+title|webpage\s+title)(?:\s+of\s+(?:this|the|the\s+current|the\s+active)?\s*(?:webpage|page|website|tab))?|what\s+is\s+(?:this|the\s+current|the)\s+webpage\s+title|what\s+page\s+is\s+open|what\s+webpage\s+is\s+open|get\s+(?:current\s+)?page\s+info|get\s+current\s+webpage\s+title|read\s+(?:the\s+)?(?:current\s+)?(?:page\s+)?title)[\s?!.]*$", re.I), "BROWSER_PAGE_INFO", 0.99),
@@ -463,6 +463,8 @@ class IntentDetector:
                 t = m_by.group(1).strip().strip("\"'")
                 a = m_by.group(2).strip().strip("\"'.,?!")
                 t = re.sub(r"^(?:that|the)\s+", "", t, flags=re.I).strip()
+                t = re.sub(r"\s+on\s+(?:youtube|spotify)\b.*$", "", t, flags=re.I).strip()
+                a = re.sub(r"\s+on\s+(?:youtube|spotify)\b.*$", "", a, flags=re.I).strip()
                 entities["track"] = t
                 entities["artist"] = a
             elif m_genre:
@@ -471,6 +473,7 @@ class IntentDetector:
             else:
                 m_direct = re.search(r"(?:play|put\s+on|listen\s+to|spin)\s+(?:some\s+)?(.+)$", cleaned, re.I)
                 target = m_direct.group(1).strip().strip("\"'.,?!") if m_direct else cleaned
+                target = re.sub(r"\s+on\s+(?:youtube|spotify)\b.*$", "", target, flags=re.I).strip()
                 known_artists = ["green day", "queen", "the beatles", "linkin park", "coldplay", "nirvana", "metallica", "ac/dc", "pink floyd", "radiohead", "daft punk", "drake", "eminem", "taylor swift", "ed sheeran"]
                 if target.lower() in known_artists:
                     entities["artist"] = target

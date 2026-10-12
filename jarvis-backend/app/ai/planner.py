@@ -588,6 +588,26 @@ class AgentPlanner:
                 steps.append(step)
                 executed_tools.append(step.tool_name or step.tool)
 
+            # Prune redundant opening of YouTube before dedicated youtube_play tool
+            if any((s.tool_name or s.tool) == "youtube_play" for s in steps):
+                filtered_steps = []
+                for s in steps:
+                    t_name = s.tool_name or s.tool
+                    params = s.parameters or s.arguments or {}
+                    url_param = str(params.get("url", "")).lower()
+                    is_redundant_yt_open = (
+                        t_name in ["local_open_url", "browser_navigate"]
+                        and ("youtube.com" in url_param or url_param == "youtube")
+                    )
+                    if not is_redundant_yt_open:
+                        filtered_steps.append(s)
+                if filtered_steps:
+                    for idx, s in enumerate(filtered_steps):
+                        s.step_number = idx + 1
+                        s.step_id = idx + 1
+                        s.depends_on = [idx] if idx > 0 else []
+                    steps = filtered_steps
+
         # Step 9.2: Intelligent Browser Automation Workflows
         elif intent == "BROWSER_SEARCH":
             site = entities.get("site", "youtube").lower()

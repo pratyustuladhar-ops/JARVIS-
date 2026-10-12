@@ -93,6 +93,10 @@ class MultiStepDecomposer:
         ):
             return [cleaned]
 
+        # Keep unified YouTube music play commands intact (e.g. "Open YouTube and play...", "Open YouTube then play...")
+        if re.search(r"(?:,\s*|\band\s+|\bthen\s+|\s+to\s+)(?:play|put\s+on|listen\s+to|spin)\b", cleaned, re.I) and "youtube" in cleaned.lower():
+            return [cleaned]
+
         # Pattern 0: "first <cmd1> then <cmd2>"
         first_then_match = re.match(
             r"^first\s+(.+?)\s+(?:,\s*)?(?:then|after\s+that|next|followed\s+by)\s+(.+)$",

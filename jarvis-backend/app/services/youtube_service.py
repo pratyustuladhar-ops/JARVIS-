@@ -47,15 +47,30 @@ class YouTubeMusicService:
     def _build_search_query(self, query: Optional[str] = None, artist: Optional[str] = None, genre: Optional[str] = None) -> str:
         """Constructs an optimized YouTube search query string."""
         parts = []
-        q = (query or "").strip()
-        a = (artist or "").strip()
-        g = (genre or "").strip()
+        q = (query or "").strip().strip("\"'")
+        a = (artist or "").strip().strip("\"'")
+        g = (genre or "").strip().strip("\"'")
+
+        # Clean trailing 'on youtube'
+        q = re.sub(r"\s+on\s+youtube\b.*$", "", q, flags=re.I).strip()
+        if a:
+            a = re.sub(r"\s+on\s+youtube\b.*$", "", a, flags=re.I).strip()
+
+        # If artist is not provided separately, check if embedded in query via ' by '
+        if not a and " by " in q:
+            q_parts = re.split(r"\s+by\s+", q, maxsplit=1, flags=re.I)
+            if len(q_parts) == 2:
+                q, a = q_parts[0].strip(), q_parts[1].strip()
 
         # Clean extraneous words like 'music video for'
         clean_q = re.sub(r"^(?:the\s+)?(?:official\s+)?(?:music\s+)?video\s+(?:for|of)\s+", "", q, flags=re.I).strip()
         clean_q = re.sub(r"^(?:that\s+)?(?:september\s+song)\b", "Wake Me Up When September Ends", clean_q, flags=re.I)
-        if clean_q.lower() == "september ends":
+        if clean_q.lower() in ["september ends", "when september ends"]:
             clean_q = "Wake Me Up When September Ends"
+
+        # If canonical title is Wake Me Up When September Ends without artist, Green Day is the canonical artist
+        if clean_q.lower() == "wake me up when september ends" and not a:
+            a = "Green Day"
 
         if clean_q and a:
             if a.lower() not in clean_q.lower():
@@ -83,70 +98,109 @@ class YouTubeMusicService:
     ) -> List[Dict[str, Any]]:
         """
         Navigates to YouTube search results and extracts candidate video metadata.
+        Distinguishes browser, network, and extraction errors from empty results.
         """
         search_query = self._build_search_query(query=query, artist=artist)
         encoded_term = urllib.parse.quote_plus(search_query)
         target_url = f"{self.YOUTUBE_SEARCH_URL}{encoded_term}"
         validated_url = URLSecurityValidator.validate(target_url)
 
-        async def _do_search():
-            sess = browser_automation_service._get_active_session(session_id)
-            page = sess.page
-            if not page or (hasattr(page, "is_closed") and page.is_closed()):
-                raise NoActivePageError("Active browser session is closed.")
+        # Acquire session outside worker thread to prevent thread deadlock
+        sess = browser_automation_service._get_active_session(session_id)
+        page = sess.page
+        if not page or (hasattr(page, "is_closed") and page.is_closed()):
+            raise NoActivePageError("Active browser session is closed.")
 
-            await page.goto(validated_url, timeout=timeout_ms, wait_until="domcontentloaded")
+        async def _do_search():
+            try:
+                await page.goto(validated_url, timeout=timeout_ms, wait_until="domcontentloaded")
+            except Exception as net_err:
+                raise YouTubeMusicServiceError(
+                    f"YouTube search navigation failed: {net_err}",
+                    code="NETWORK_ERROR",
+                    details={"url": validated_url, "error": str(net_err)}
+                )
+
             await browser_automation_service._dismiss_consent_if_present(page)
 
             # Wait for search results container or video items
             try:
-                await page.locator("ytd-video-renderer, a#video-title").first.wait_for(state="attached", timeout=8000)
+                await page.locator(
+                    "ytd-video-renderer, ytd-rich-item-renderer, yt-lockup-view-model, a#video-title"
+                ).first.wait_for(state="attached", timeout=8000)
             except Exception:
                 pass
 
-            # Extract visible video candidates from the DOM
-            raw_candidates = await page.evaluate("""
-                () => {
-                    const results = [];
-                    const nodes = document.querySelectorAll('ytd-video-renderer, ytd-rich-item-renderer');
-                    for (const node of nodes) {
-                        const a = node.querySelector('a#video-title, #video-title');
-                        if (!a) continue;
-                        const title = (a.innerText || a.getAttribute('title') || '').trim();
-                        const href = a.getAttribute('href') || '';
-                        if (!title || !href.includes('/watch?v=')) continue;
+            # Extract visible video candidates from the DOM with resilient selectors
+            try:
+                raw_candidates = await page.evaluate(r"""
+                    () => {
+                        const results = [];
+                        const nodes = document.querySelectorAll(
+                            'ytd-video-renderer, ytd-rich-item-renderer, ytd-compact-video-renderer, yt-lockup-view-model'
+                        );
+                        for (const node of nodes) {
+                            const a = node.querySelector(
+                                'a#video-title, #video-title, h3 a, a.yt-lockup-metadata-view-model-wiz__title, a[id="video-title"]'
+                            );
+                            const thumbLink = node.querySelector('a#thumbnail, a[href*="/watch?v="]');
 
-                        const chNode = node.querySelector('#channel-info #channel-name a, #byline a, ytd-channel-name a');
-                        const channel = chNode ? (chNode.innerText || '').trim() : '';
+                            let title = '';
+                            if (a) {
+                                title = (a.innerText || a.getAttribute('title') || a.getAttribute('aria-label') || a.textContent || '').trim();
+                            } else if (thumbLink) {
+                                title = (thumbLink.getAttribute('title') || thumbLink.getAttribute('aria-label') || '').trim();
+                            }
 
-                        const badgeNode = node.querySelector('[aria-label*="Official"], [aria-label*="Verified"], .badge-style-type-verified, .badge-style-type-verified-artist');
-                        const isOfficial = !!badgeNode || /official\\s+(?:music\\s+)?video|official\\s+audio/i.test(title);
+                            const href = (a && a.getAttribute('href')) || (thumbLink && thumbLink.getAttribute('href')) || '';
+                            const vMatch = href.match(/(?:[?&]v=|\/embed\/|\/shorts\/|\/v\/|youtu\\.be\/)([a-zA-Z0-9_-]{11})/);
+                            if (!title || !vMatch) continue;
+                            const videoId = vMatch[1];
 
-                        const vMatch = href.match(/[?&]v=([^&]+)/);
-                        const videoId = vMatch ? vMatch[1] : '';
+                            const chNode = node.querySelector(
+                                '#channel-info #channel-name a, #byline a, ytd-channel-name a, #text.ytd-channel-name a, .ytd-channel-name yt-formatted-string'
+                            );
+                            const channel = chNode ? (chNode.innerText || chNode.textContent || '').trim() : '';
 
-                        results.push({
-                            title: title,
-                            video_id: videoId,
-                            url: href.startsWith('http') ? href : `https://www.youtube.com${href}`,
-                            channel: channel,
-                            is_official: isOfficial
-                        });
-                        if (results.length >= 10) break;
+                            const badgeNode = node.querySelector(
+                                '[aria-label*="Official"], [aria-label*="Verified"], .badge-style-type-verified, .badge-style-type-verified-artist, ytd-badge-supported-renderer'
+                            );
+                            const isOfficial = !!badgeNode 
+                                || /official\\s+(?:music\\s+)?video|official\\s+audio|\\[official\\]|\\(official\\)/i.test(title)
+                                || /(?:VEVO|\\bTopic)$/i.test(channel);
+
+                            results.push({
+                                title: title,
+                                video_id: videoId,
+                                url: `https://www.youtube.com/watch?v=${videoId}`,
+                                channel: channel,
+                                is_official: isOfficial
+                            });
+                            if (results.length >= 10) break;
+                        }
+                        return results;
                     }
-                    return results;
-                }
-            """)
-            return raw_candidates
+                """)
+                return raw_candidates
+            except Exception as eval_err:
+                raise YouTubeMusicServiceError(
+                    f"YouTube search extraction failed: {eval_err}",
+                    code="EXTRACTION_ERROR",
+                    details={"error": str(eval_err)}
+                )
 
         try:
             candidates = browser_worker.run_coro(_do_search(), timeout=(timeout_ms / 1000.0) + 4.0)
             return candidates[:limit]
-        except (BrowserSecurityError, NoActivePageError):
+        except (BrowserSecurityError, NoActivePageError, BrowserUnavailableError, YouTubeMusicServiceError):
             raise
         except Exception as e:
             logger.warning(f"YouTube search extraction encountered error: {e}")
-            return []
+            raise YouTubeMusicServiceError(
+                f"YouTube search error: {e}",
+                code="EXTRACTION_ERROR",
+                details={"error": str(e)}
+            )
 
     def _score_candidate(self, cand: Dict[str, Any], track_query: str, artist: Optional[str] = None) -> float:
         """
@@ -158,6 +212,12 @@ class YouTubeMusicService:
         channel_low = cand.get("channel", "").lower()
         t_norm = (track_query or "").lower().strip()
         a_norm = (artist or "").lower().strip()
+
+        # If track_query contains " by ", separate implied artist
+        if " by " in t_norm and not a_norm:
+            parts = re.split(r"\s+by\s+", t_norm, maxsplit=1)
+            if len(parts) == 2:
+                t_norm, a_norm = parts[0].strip(), parts[1].strip()
 
         # 1. Artist Matching
         if a_norm:
@@ -177,8 +237,8 @@ class YouTubeMusicService:
                     matched = sum(1 for w in t_words if w in title_low)
                     score += (matched / len(t_words)) * 35.0
 
-        # 3. Known approximate mappings (e.g. 'September Ends' -> 'Wake Me Up When September Ends')
-        if "september ends" in t_norm and "wake me up when september ends" in title_low:
+        # 3. Known approximate mappings
+        if ("september ends" in t_norm or "when september ends" in t_norm) and "wake me up when september ends" in title_low:
             score += 45.0
         if "boulevard of broken dreams" in t_norm and "boulevard of broken dreams" in title_low:
             score += 45.0
@@ -210,6 +270,7 @@ class YouTubeMusicService:
         Resolves track query against YouTube search results.
         Returns: (status, selected_candidate, candidate_list)
         Statuses: EXACT_MATCH, APPROXIMATE_MATCH, AMBIGUOUS_MATCH, NO_MATCH
+        Propagates browser, session, and network errors.
         """
         candidates = self.search_music(query=track_query, artist=artist, limit=8, session_id=session_id)
         if not candidates:
@@ -258,61 +319,87 @@ class YouTubeMusicService:
         selected_cand: Optional[Dict[str, Any]] = None
         match_status: str = "EXACT_MATCH"
 
-        # 1. Resolve Target URL
-        if url:
-            target_url = url
-            target_title = track or "YouTube Video"
-            target_artist = artist or ""
-            vid_id = video_id or ""
-            is_off = False
-        elif video_id:
-            target_url = f"https://www.youtube.com/watch?v={video_id}"
-            target_title = track or f"YouTube Video ({video_id})"
-            target_artist = artist or ""
-            vid_id = video_id
-            is_off = False
-        elif track or artist or genre:
-            q = track or (f"{genre} music" if genre else f"{artist} songs")
-            match_status, selected_cand, candidates = self.resolve_track(
-                track_query=q,
-                artist=artist,
-                session_id=session_id
-            )
+        try:
+            # 1. Resolve Target URL
+            if url:
+                target_url = url
+                target_title = track or "YouTube Video"
+                target_artist = artist or ""
+                vid_id = video_id or ""
+                is_off = False
+            elif video_id:
+                target_url = f"https://www.youtube.com/watch?v={video_id}"
+                target_title = track or f"YouTube Video ({video_id})"
+                target_artist = artist or ""
+                vid_id = video_id
+                is_off = False
+            elif track or artist or genre:
+                raw_track = (track or "").strip().strip("\"'")
+                raw_track = re.sub(r"\s+on\s+youtube\b.*$", "", raw_track, flags=re.I).strip()
+                if " by " in raw_track and not artist:
+                    parts = re.split(r"\s+by\s+", raw_track, maxsplit=1, flags=re.I)
+                    if len(parts) == 2:
+                        raw_track, artist = parts[0].strip(), parts[1].strip()
 
-            if match_status == "AMBIGUOUS_MATCH":
-                return {
-                    "status": "AMBIGUOUS_RESULT",
-                    "service": "youtube",
-                    "message": f"Multiple YouTube videos matched '{q}'. Which one did you mean?",
-                    "candidates": [f"{c['title']} ({c.get('channel', 'YouTube')})" for c in candidates[:3]],
-                    "verified": False
-                }
-            elif match_status == "NO_MATCH" or not selected_cand:
-                return {
-                    "status": "TRACK_NOT_FOUND",
-                    "service": "youtube",
-                    "message": f"Could not find '{q}'" + (f" by {artist}" if artist else "") + " on YouTube.",
-                    "verified": False
-                }
+                q = raw_track or (f"{genre} music" if genre else f"{artist} songs")
+                match_status, selected_cand, candidates = self.resolve_track(
+                    track_query=q,
+                    artist=artist,
+                    session_id=session_id
+                )
 
-            target_url = selected_cand["url"]
-            target_title = selected_cand["title"]
-            target_artist = selected_cand.get("channel") or artist or ""
-            vid_id = selected_cand.get("video_id", "")
-            is_off = selected_cand.get("is_official", False)
-        else:
-            # No song specified: Resume current session
-            return self.resume(session_id=session_id)
+                if match_status == "AMBIGUOUS_MATCH":
+                    return {
+                        "status": "AMBIGUOUS_RESULT",
+                        "service": "youtube",
+                        "message": f"Multiple YouTube videos matched '{q}'. Which one did you mean?",
+                        "candidates": [f"{c['title']} ({c.get('channel', 'YouTube')})" for c in candidates[:3]],
+                        "verified": False
+                    }
+                elif match_status == "NO_MATCH" or not selected_cand:
+                    return {
+                        "status": "TRACK_NOT_FOUND",
+                        "service": "youtube",
+                        "message": f"Could not find '{q}'" + (f" by {artist}" if artist else "") + " on YouTube.",
+                        "verified": False
+                    }
+
+                target_url = selected_cand["url"]
+                target_title = selected_cand["title"]
+                target_artist = selected_cand.get("channel") or artist or ""
+                vid_id = selected_cand.get("video_id", "")
+                is_off = selected_cand.get("is_official", False)
+            else:
+                # No song specified: Resume current session
+                return self.resume(session_id=session_id)
+        except BrowserUnavailableError as bue:
+            return {"status": "BROWSER_UNAVAILABLE", "service": "youtube", "message": f"Browser unavailable: {bue}", "verified": False}
+        except NoActivePageError as nape:
+            return {"status": "SESSION_CLOSED", "service": "youtube", "message": f"Browser session closed: {nape}", "verified": False}
+        except BrowserSecurityError as bse:
+            return {"status": "SECURITY_BLOCKED", "service": "youtube", "message": f"Navigation blocked: {bse}", "verified": False}
+        except YouTubeMusicServiceError as yme:
+            return {"status": yme.code, "service": "youtube", "message": str(yme), "verified": False, "details": yme.details}
+        except Exception as e:
+            return {"status": "PROVIDER_ERROR", "service": "youtube", "message": f"YouTube track resolution failed: {e}", "verified": False}
 
         validated_url = URLSecurityValidator.validate(target_url)
 
-        # 2. Browser Automation Playback Execution & Verification
-        async def _do_play():
+        # Acquire session outside worker thread to prevent thread deadlock
+        try:
             sess = browser_automation_service._get_active_session(session_id)
             page = sess.page
             if not page or (hasattr(page, "is_closed") and page.is_closed()):
                 raise NoActivePageError("Active browser session is closed.")
+        except BrowserUnavailableError as bue:
+            return {"status": "BROWSER_UNAVAILABLE", "service": "youtube", "message": f"Browser unavailable: {bue}", "verified": False}
+        except NoActivePageError as nape:
+            return {"status": "SESSION_CLOSED", "service": "youtube", "message": f"Browser session closed: {nape}", "verified": False}
+        except Exception as e:
+            return {"status": "PROVIDER_ERROR", "service": "youtube", "message": f"Failed acquiring browser session: {e}", "verified": False}
 
+        # 2. Browser Automation Playback Execution & Verification
+        async def _do_play():
             await page.goto(validated_url, timeout=timeout_ms, wait_until="domcontentloaded")
             await browser_automation_service._dismiss_consent_if_present(page)
 
@@ -401,7 +488,11 @@ class YouTubeMusicService:
                     "status": "PLAYBACK_CONFIRMED",
                     "service": "youtube",
                     "track": actual_title,
+                    "title": actual_title,
+                    "resolved_track": actual_title,
                     "artist": actual_channel,
+                    "channel": actual_channel,
+                    "resolved_artist": actual_channel,
                     "url": validated_url,
                     "video_id": vid_id,
                     "match_type": match_status,
@@ -415,8 +506,13 @@ class YouTubeMusicService:
                     "status": "PLAYBACK_UNVERIFIED",
                     "service": "youtube",
                     "track": actual_title,
+                    "title": actual_title,
+                    "resolved_track": actual_title,
                     "artist": actual_channel,
+                    "channel": actual_channel,
+                    "resolved_artist": actual_channel,
                     "url": validated_url,
+                    "video_id": vid_id,
                     "verified": False,
                     "message": f"Opened YouTube video at {validated_url}, but playback could not be verified."
                 }
@@ -427,17 +523,29 @@ class YouTubeMusicService:
             return {"status": "PLAYER_NOT_FOUND", "service": "youtube", "message": f"YouTube player not found: {enfe}", "verified": False}
         except BrowserSecurityError as bse:
             return {"status": "SECURITY_BLOCKED", "service": "youtube", "message": f"Navigation blocked: {bse}", "verified": False}
+        except NoActivePageError as nape:
+            return {"status": "SESSION_CLOSED", "service": "youtube", "message": f"Browser session closed: {nape}", "verified": False}
         except Exception as e:
             return {"status": "PROVIDER_ERROR", "service": "youtube", "message": f"YouTube playback failed: {e}", "verified": False}
 
     def pause(self, session_id: Optional[str] = None, timeout_ms: int = 8000) -> Dict[str, Any]:
         """Pauses currently active YouTube playback."""
-        async def _do_pause():
+        try:
             sess = browser_automation_service._get_active_session(session_id, must_exist=True)
             page = sess.page
             if not page or (hasattr(page, "is_closed") and page.is_closed()):
                 raise NoActivePageError("The active browser session has been closed.")
+        except (NoActivePageError, BrowserAutomationError):
+            return {
+                "status": "NO_ACTIVE_PLAYBACK",
+                "service": "youtube",
+                "verified": False,
+                "message": "No active YouTube playback is currently open."
+            }
+        except Exception as e:
+            return {"status": "PROVIDER_ERROR", "service": "youtube", "message": f"Failed pausing YouTube: {e}", "verified": False}
 
+        async def _do_pause():
             res = await page.evaluate("""
                 () => {
                     const v = document.querySelector('video.html5-main-video') || document.querySelector('video');
@@ -477,12 +585,22 @@ class YouTubeMusicService:
 
     def resume(self, session_id: Optional[str] = None, timeout_ms: int = 8000) -> Dict[str, Any]:
         """Resumes paused YouTube playback."""
-        async def _do_resume():
+        try:
             sess = browser_automation_service._get_active_session(session_id, must_exist=True)
             page = sess.page
             if not page or (hasattr(page, "is_closed") and page.is_closed()):
                 raise NoActivePageError("The active browser session has been closed.")
+        except (NoActivePageError, BrowserAutomationError):
+            return {
+                "status": "NO_ACTIVE_PLAYBACK",
+                "service": "youtube",
+                "verified": False,
+                "message": "No active YouTube video is currently open."
+            }
+        except Exception as e:
+            return {"status": "PROVIDER_ERROR", "service": "youtube", "message": f"Failed resuming YouTube: {e}", "verified": False}
 
+        async def _do_resume():
             res = await page.evaluate("""
                 () => {
                     const v = document.querySelector('video.html5-main-video') || document.querySelector('video');
@@ -541,12 +659,22 @@ class YouTubeMusicService:
 
     def next_track(self, session_id: Optional[str] = None, timeout_ms: int = 10000) -> Dict[str, Any]:
         """Skips to the next video on YouTube."""
-        async def _do_next():
+        try:
             sess = browser_automation_service._get_active_session(session_id, must_exist=True)
             page = sess.page
             if not page or (hasattr(page, "is_closed") and page.is_closed()):
                 raise NoActivePageError("The active browser session has been closed.")
+        except (NoActivePageError, BrowserAutomationError):
+            return {
+                "status": "NO_ACTIVE_PLAYBACK",
+                "service": "youtube",
+                "verified": False,
+                "message": "No active YouTube playback to skip."
+            }
+        except Exception as e:
+            return {"status": "PROVIDER_ERROR", "service": "youtube", "message": f"Failed skipping track: {e}", "verified": False}
 
+        async def _do_next():
             next_btn = page.locator("a.ytp-next-button, .ytp-next-button")
             if await next_btn.count() > 0 and await next_btn.first.is_visible():
                 await next_btn.first.click()
@@ -580,12 +708,22 @@ class YouTubeMusicService:
 
     def previous_track(self, session_id: Optional[str] = None, timeout_ms: int = 8000) -> Dict[str, Any]:
         """Returns to previous track or restarts current track from beginning."""
-        async def _do_prev():
+        try:
             sess = browser_automation_service._get_active_session(session_id, must_exist=True)
             page = sess.page
             if not page or (hasattr(page, "is_closed") and page.is_closed()):
                 raise NoActivePageError("The active browser session has been closed.")
+        except (NoActivePageError, BrowserAutomationError):
+            return {
+                "status": "NO_ACTIVE_PLAYBACK",
+                "service": "youtube",
+                "verified": False,
+                "message": "No active YouTube playback detected."
+            }
+        except Exception as e:
+            return {"status": "PROVIDER_ERROR", "service": "youtube", "message": f"Failed returning to previous track: {e}", "verified": False}
 
+        async def _do_prev():
             # Seek video to 0:00 (restart track)
             await page.evaluate("""
                 () => {

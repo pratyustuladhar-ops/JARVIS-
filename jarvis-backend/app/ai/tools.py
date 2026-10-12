@@ -1090,13 +1090,18 @@ class YouTubePlayTool(BaseAgentTool):
 
     def execute(self, db: Session, params: Dict[str, Any]) -> Any:
         from app.services.youtube_service import youtube_service
-        return youtube_service.play(
-            track=params.get("track"),
-            artist=params.get("artist"),
-            genre=params.get("genre"),
-            url=params.get("url"),
-            video_id=params.get("video_id")
-        )
+        kwargs = {
+            "track": params.get("track"),
+            "artist": params.get("artist"),
+            "genre": params.get("genre"),
+            "url": params.get("url"),
+            "video_id": params.get("video_id")
+        }
+        if "session_id" in params:
+            kwargs["session_id"] = params["session_id"]
+        if "timeout_ms" in params:
+            kwargs["timeout_ms"] = params["timeout_ms"]
+        return youtube_service.play(**kwargs)
 
 
 class YouTubePauseTool(BaseAgentTool):

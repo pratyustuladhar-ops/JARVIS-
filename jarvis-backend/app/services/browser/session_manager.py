@@ -79,6 +79,8 @@ class BrowserWorkerLoop:
         self.loop.run_forever()
 
     def run_coro(self, coro, timeout: float = 30.0):
+        if threading.current_thread() == self.thread:
+            raise RuntimeError("Deadlock prevention: run_coro cannot be called from within the browser worker loop thread.")
         future = asyncio.run_coroutine_threadsafe(coro, self.loop)
         return future.result(timeout=timeout)
 
