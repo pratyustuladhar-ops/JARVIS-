@@ -318,6 +318,21 @@
     <!-- SECTION 2: INDEPENDENT CONVERSATION SCROLL AREA      -->
     <!-- ==================================================== -->
     <div id="conversation-scroll-wrapper" class="flex-1 overflow-y-auto px-4 md:px-8 py-6 custom-scrollbar relative flex flex-col">
+      <!-- ==================================================== -->
+      <!-- 3D ATOMIC REACTOR CENTERPIECE (55-65% VISUAL EMPHASIS)-->
+      <!-- ==================================================== -->
+      <div id="atomic-reactor-hero" class="w-full max-w-4xl mx-auto flex flex-col items-center justify-center pt-1 pb-4 shrink-0 relative select-none">
+        <!-- Volumetric Ambient Energy Aura -->
+        <div class="absolute inset-0 flex items-center justify-center pointer-events-none overflow-hidden">
+          <div class="w-[320px] h-[320px] md:w-[460px] md:h-[460px] rounded-full bg-[radial-gradient(circle,rgba(39,211,255,0.12)_0%,rgba(139,92,246,0.06)_45%,transparent_70%)] blur-2xl pointer-events-none"></div>
+        </div>
+
+        <!-- 3D Three.js Atomic Core Canvas -->
+        <div class="relative w-full h-[320px] sm:h-[380px] md:h-[440px] max-h-[60vh] flex items-center justify-center">
+          <canvas id="atomic-core-3d-canvas" class="w-full h-full block cursor-grab active:cursor-grabbing" title="JARVIS 3D Atomic Reactor Core"></canvas>
+        </div>
+      </div>
+
       <!-- Chat Messages Container -->
       <div id="chat-messages-container" class="max-w-4xl mx-auto w-full space-y-4 pb-6">
         
@@ -489,10 +504,11 @@
 
   </main>
 
-  <!-- ES Module script importing API client, JarvisCore, and WakeWordController -->
+  <!-- ES Module script importing API client, JarvisCore, AtomicCore3D, and WakeWordController -->
   <script type="module">
     import { jarvisApi } from './src/services/api.js';
     import { JarvisCoreCanvas } from './src/components/jarvis-core.js';
+    import { AtomicCore3D } from './src/components/atomic-core-3d.js';
     import { WakeWordController, WakeWordState } from './src/services/voice-controller.js';
 
     // Global references
@@ -506,8 +522,11 @@
     const speechSynthesisSupported = ('speechSynthesis' in window);
     let speechRecognitionSupported = false;
 
-    // 3D Holographic Core Canvas instance
+    // 3D Holographic Core Canvas instance (Compact Top HUD)
     let jarvisCore = null;
+
+    // 3D Atomic Reactor Centerpiece instance (Main Conversation Hero)
+    let atomicCore3D = null;
 
     // Wake Word Controller instance
     let wakeController = null;
@@ -610,12 +629,20 @@
 
     // Toggle Reduced Motion
     window.toggleReducedMotion = function() {
-      if (!jarvisCore) return;
-      const current = jarvisCore.options.reducedMotion;
-      jarvisCore.setReducedMotion(!current);
+      let isReduced = false;
+      if (jarvisCore) {
+        const current = jarvisCore.options.reducedMotion;
+        jarvisCore.setReducedMotion(!current);
+        isReduced = !current;
+      }
+      if (atomicCore3D) {
+        const currentMotion = atomicCore3D.options.reducedMotion;
+        atomicCore3D.setReducedMotion(!currentMotion);
+        isReduced = !currentMotion;
+      }
       const icon = document.getElementById('icon-reduced-motion');
       if (icon) {
-        icon.className = !current ? "material-symbols-outlined text-base text-secondary" : "material-symbols-outlined text-base text-on-surface-variant";
+        icon.className = isReduced ? "material-symbols-outlined text-base text-secondary" : "material-symbols-outlined text-base text-on-surface-variant";
       }
     };
 
@@ -634,6 +661,9 @@
 
       if (jarvisCore) {
         jarvisCore.setState(s);
+      }
+      if (atomicCore3D) {
+        atomicCore3D.setState(s);
       }
 
       if (!statusText || !statusDot) return;
@@ -1476,10 +1506,15 @@
 
     // DOM Ready Setup
     document.addEventListener('DOMContentLoaded', () => {
-      // 1. Initialize 3D Holographic Core
+      // 1. Initialize 3D Holographic Core & 3D Atomic Reactor Centerpiece
       const canvasEl = document.getElementById('jarvis-core-canvas');
       if (canvasEl) {
         jarvisCore = new JarvisCoreCanvas(canvasEl);
+      }
+
+      const atomicCanvasEl = document.getElementById('atomic-core-3d-canvas');
+      if (atomicCanvasEl) {
+        atomicCore3D = new AtomicCore3D(atomicCanvasEl);
       }
 
       // 2. Initialize Voice & Wake-Word Subsystems
@@ -1534,6 +1569,7 @@
     // Clean up resources on unload
     window.addEventListener('beforeunload', () => {
       if (jarvisCore) jarvisCore.destroy();
+      if (atomicCore3D) atomicCore3D.dispose();
       if (wakeController) wakeController.disable();
     });
   </script>
