@@ -27,10 +27,31 @@ TOOL_RISK_MAP = {
     "capture_screen": LOW_RISK,
 }
 
+TOOL_ALIASES = {
+    "local_open_application": "open_application",
+    "local_open_url": "open_url",
+    "local_get_system_info": "get_system_info",
+    "local_get_current_time": "get_current_time",
+    "local_list_directory": "list_allowed_directory",
+    "local_list_allowed_directory": "list_allowed_directory",
+    "local_open_file": "open_file",
+    "local_open_folder": "open_folder",
+    "local_capture_screen": "capture_screen",
+}
+
+
+def normalize_tool_name(tool_name: str) -> str:
+    """Normalizes tool names between backend registry and local allowlist."""
+    if not tool_name:
+        return ""
+    low = tool_name.strip().lower()
+    return TOOL_ALIASES.get(low, low)
+
 
 def is_tool_allowed(tool_name: str) -> bool:
     """Checks if a tool is registered in the safe risk map."""
-    return tool_name in TOOL_RISK_MAP
+    norm = normalize_tool_name(tool_name)
+    return norm in TOOL_RISK_MAP
 
 
 def validate_screen_capture(parameters: Optional[dict] = None) -> Tuple[bool, Optional[str]]:

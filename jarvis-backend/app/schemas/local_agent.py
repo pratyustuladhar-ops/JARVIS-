@@ -69,6 +69,9 @@ class LocalAgentStatusResponse(BaseModel):
     last_heartbeat: Optional[datetime] = None
     available_tools: List[str] = []
     total_devices: int = 0
+    connection_error: Optional[str] = None
+    heartbeat_timeout_seconds: Optional[int] = 35
+    seconds_since_last_heartbeat: Optional[float] = None
 
 
 class LocalToolExecutionRequest(BaseModel):

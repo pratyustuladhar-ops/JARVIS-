@@ -25,39 +25,66 @@ class BackendConnection:
     """
     Manages authenticated connection and heartbeats between the Windows Local Agent
     and the JARVIS backend.
+    Enforces reconnection on backend restarts, background reconnection retries on startup,
+    URL fallbacks, and diagnostics reporting.
     """
 
     def __init__(self, backend_url: str = BACKEND_URL, auth_token: Optional[str] = None):
         self.backend_url = backend_url.rstrip("/")
-        self.auth_token = auth_token or get_agent_token()
+        self.auth_token = (auth_token or get_agent_token()).strip()
         self.device_name = DEVICE_NAME
         self.is_registered = False
+        self.available_tools: list = []
+        self.last_connection_error: Optional[str] = None
+        self._reconnect_thread: Optional[threading.Thread] = None
+        self._reconnect_running = False
+        self._lock = threading.Lock()
         self.heartbeat_manager = HeartbeatManager(
             backend_url=self.backend_url,
             device_name=self.device_name,
             interval=HEARTBEAT_INTERVAL_SECONDS,
-            auth_token=self.auth_token
+            auth_token=self.auth_token,
+            on_reconnect_needed=self.re_register
         )
 
+    def _get_target_urls(self, path: str) -> list:
+        urls = [f"{self.backend_url}{path}"]
+        if "localhost" in self.backend_url:
+            urls.append(f"{self.backend_url.replace('localhost', '127.0.0.1')}{path}")
+        return urls
+
     def _post(self, path: str, payload: Dict[str, Any]) -> Optional[Dict[str, Any]]:
-        url = f"{self.backend_url}{path}"
+        target_urls = self._get_target_urls(path)
         data = json.dumps(payload).encode("utf-8")
-        req = urllib.request.Request(
-            url,
-            data=data,
-            headers=get_auth_headers(self.auth_token),
-            method="POST"
-        )
-        try:
-            with urllib.request.urlopen(req, timeout=5) as resp:
-                if 200 <= resp.status < 300:
-                    return json.loads(resp.read().decode("utf-8"))
-        except Exception as e:
-            logger.warning(f"Connection error reaching {path}: {e}")
-            return None
+        headers = get_auth_headers(self.auth_token)
+
+        last_error = None
+        for url in target_urls:
+            req = urllib.request.Request(
+                url,
+                data=data,
+                headers=headers,
+                method="POST"
+            )
+            try:
+                with urllib.request.urlopen(req, timeout=5) as resp:
+                    if 200 <= resp.status < 300:
+                        self.last_connection_error = None
+                        return json.loads(resp.read().decode("utf-8"))
+            except urllib.error.HTTPError as he:
+                last_error = f"HTTP {he.code}: {he.reason}"
+                logger.warning(f"Backend HTTP error reaching {url}: {last_error}")
+                break
+            except Exception as e:
+                last_error = str(e)
+                logger.debug(f"Connection error reaching {url}: {e}")
+
+        self.last_connection_error = last_error
+        return None
 
     def register(self, available_tools: list) -> bool:
         """Registers the local agent device with the FastAPI backend."""
+        self.available_tools = available_tools
         sys_info = get_system_info()
         payload = {
             "device_name": self.device_name,
@@ -71,9 +98,47 @@ class BackendConnection:
         res = self._post("/local-agent/register", payload)
         if res:
             self.is_registered = True
+            self.last_connection_error = None
             logger.info(f"Registered device '{self.device_name}' with backend.")
             return True
+
+        self.is_registered = False
         return False
+
+    def re_register(self) -> bool:
+        """Re-registers the device with backend following a backend restart or 401 response."""
+        if not self.available_tools:
+            return False
+        logger.info(f"Initiating re-registration for '{self.device_name}' with backend...")
+        success = self.register(self.available_tools)
+        if success:
+            logger.info(f"Re-registration successful for '{self.device_name}'.")
+        else:
+            logger.warning(f"Re-registration failed for '{self.device_name}': {self.last_connection_error}")
+        return success
+
+    def start_background_reconnect(self, available_tools: list) -> None:
+        """Starts a background reconnection task when initial startup registration fails."""
+        with self._lock:
+            if self._reconnect_running:
+                return
+            self._reconnect_running = True
+
+            def _reconnect_worker():
+                logger.info(f"Background reconnection loop started for {self.device_name}...")
+                while self._reconnect_running and not self.is_registered:
+                    time.sleep(3)
+                    if not self._reconnect_running:
+                        break
+                    success = self.register(available_tools)
+                    if success:
+                        logger.info(f"Background reconnection successful. Synchronized with backend.")
+                        self.start_heartbeat_loop()
+                        break
+                self._reconnect_running = False
+
+            self._reconnect_thread = threading.Thread(target=_reconnect_worker, daemon=True, name="JarvisReconnectThread")
+            self._reconnect_thread.start()
 
     def send_heartbeat(self) -> bool:
         """Sends a periodic heartbeat pulse to the backend."""
@@ -85,4 +150,17 @@ class BackendConnection:
 
     def stop(self) -> None:
         """Stops the heartbeat loop and marks agent offline."""
+        self._reconnect_running = False
+        self.is_registered = False
         self.heartbeat_manager.stop()
+
+    def get_diagnostics(self) -> Dict[str, Any]:
+        """Provides full connection and heartbeat telemetry for agent diagnostics."""
+        hb_diag = self.heartbeat_manager.get_diagnostics()
+        return {
+            "device_name": self.device_name,
+            "backend_url": self.backend_url,
+            "is_registered": self.is_registered,
+            "last_connection_error": self.last_connection_error,
+            "heartbeat": hb_diag
+        }

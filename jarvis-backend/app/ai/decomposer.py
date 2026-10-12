@@ -46,7 +46,7 @@ class MultiStepDecomposer:
     @staticmethod
     def _is_executable_clause(clause: str) -> bool:
         """Determines if a clause looks like a distinct executable command."""
-        c = clause.strip().lower()
+        c = clause.strip().lower().rstrip(".?!,:;")
         if not c:
             return False
 
@@ -86,6 +86,7 @@ class MultiStepDecomposer:
             raw,
             flags=re.I
         ).strip()
+        cleaned = re.sub(r"[!?,.]+$", "", cleaned).strip()
         # Keep unified browser search commands intact (e.g. "Open YouTube and search for...", "Open Chrome and search for...")
         if re.search(r"(?:,\s*|\band\s+|\bthen\s+)search\b", cleaned, re.I) and any(
             site in cleaned.lower() for site in ["youtube", "google", "wikipedia", "github", "chrome", "edge", "browser"]
@@ -102,8 +103,9 @@ class MultiStepDecomposer:
             c1 = first_then_match.group(1).strip()
             c2 = first_then_match.group(2).strip()
             # Recursively decompose c2 in case there are subsequent steps
+            sub_c1 = self.decompose(c1)
             sub_c2 = self.decompose(c2)
-            steps = [c1] + (sub_c2 if sub_c2 else [c2])
+            steps = (sub_c1 if sub_c1 else [c1]) + (sub_c2 if sub_c2 else [c2])
             return [s for s in steps if s]
 
         # Pattern 1: Explicit connectors ("then", "and then", "after that", "followed by", "next", "once that is done")
@@ -116,8 +118,9 @@ class MultiStepDecomposer:
                     if idx > 0 and self._is_known_app_or_url(p) and not p.lower().startswith(("open", "launch", "start")):
                         expanded.append(f"open {p}")
                     else:
-                        expanded.append(p)
-                return expanded
+                        sub = self.decompose(p) if (", " in p or " and " in p.lower() or ";" in p) else [p]
+                        expanded.extend(sub)
+                return [s for s in expanded if s]
 
         # Pattern 2: Semicolon separated commands ("cmd1; cmd2")
         if ";" in cleaned:

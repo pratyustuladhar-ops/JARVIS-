@@ -27,7 +27,7 @@ def get_agent_token() -> str:
         except Exception as e:
             logger.warning(f"Could not read local credential store: {e}")
 
-    return AUTH_TOKEN
+    return AUTH_TOKEN.strip()
 
 
 def store_agent_token(token: str) -> bool:
@@ -55,7 +55,7 @@ def verify_agent_token(provided_token: Optional[str]) -> bool:
 
 def get_auth_headers(token: Optional[str] = None) -> dict:
     """Returns the authorization headers for contacting the JARVIS backend."""
-    active_token = token or get_agent_token()
+    active_token = (token or get_agent_token()).strip()
     return {
         "Content-Type": "application/json",
         "X-Local-Agent-Token": active_token

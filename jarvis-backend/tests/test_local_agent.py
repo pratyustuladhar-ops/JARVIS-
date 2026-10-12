@@ -524,4 +524,178 @@ def test_strict_backend_verifier_rejection():
     assert "already running" in res4.detail.lower()
 
 
+def test_registration_rejects_invalid_token(clean_db):
+    """Ensure POST /api/v1/local-agent/register rejects invalid auth token with HTTP 401."""
+    reg_fail = client.post("/api/v1/local-agent/register", json={
+        "device_name": "JARVIS-INVALID-TOKEN",
+        "platform": "Windows",
+        "version": "1.0.0",
+        "auth_token": "definitely_wrong_token_xyz",
+        "port": 8001,
+        "available_tools": ["open_application"]
+    })
+    assert reg_fail.status_code == 401
+    assert "invalid authentication token" in reg_fail.json().get("detail", "").lower()
+
+
+def test_bridge_probing_and_status_recovery_after_stale_heartbeat(clean_db):
+    """Ensure get_status(probe_bridge=True) recovers stale heartbeat via loopback status probe."""
+    import json
+    from unittest.mock import patch, MagicMock
+    from app.services.local_agent_service import local_agent_service
+
+    # 1. Register device with stale heartbeat
+    dev = LocalAgentDevice(
+        device_name="JARVIS-STALE-DEV",
+        status="ONLINE",
+        platform="Windows",
+        version="1.0.0",
+        auth_token_hash="jarvis_windows_local_agent_secret_2026",
+        port=8001,
+        available_tools=json.dumps(["open_application"]),
+        last_heartbeat=datetime.utcnow() - timedelta(seconds=60)
+    )
+    clean_db.add(dev)
+    clean_db.commit()
+
+    # 2. probe_bridge=False -> reports OFFLINE due to expired heartbeat
+    stale_stat = local_agent_service.get_status(clean_db, probe_bridge=False)
+    assert stale_stat.is_online is False
+    assert "expired" in (stale_stat.connection_error or "").lower()
+
+    # 3. probe_bridge=True with responding bridge on port 8001 -> recovers to ONLINE
+    mock_resp = MagicMock()
+    mock_resp.status = 200
+    mock_resp.read.return_value = json.dumps({"status": "ONLINE", "device_name": "JARVIS-STALE-DEV"}).encode("utf-8")
+    mock_resp.__enter__.return_value = mock_resp
+    mock_resp.__exit__.return_value = None
+
+    with patch("urllib.request.urlopen", return_value=mock_resp):
+        recovered_stat = local_agent_service.get_status(clean_db, probe_bridge=True)
+        assert recovered_stat.is_online is True
+        assert recovered_stat.status == "ONLINE"
+        assert recovered_stat.connection_error is None
+
+        # Verify device in DB was updated
+        clean_db.expire_all()
+        re_queried = clean_db.query(LocalAgentDevice).filter(LocalAgentDevice.device_name == "JARVIS-STALE-DEV").first()
+        assert re_queried.status == "ONLINE"
+        assert (datetime.utcnow() - re_queried.last_heartbeat).total_seconds() < 5
+
+
+def test_backend_tool_translation_to_local_agent(clean_db):
+    """Verify backend prefixed tool name (local_open_application) is translated and accepted by agent."""
+    import json
+    from unittest.mock import patch, MagicMock
+    from app.services.local_agent_service import local_agent_service, BACKEND_TO_LOCAL_TOOL_MAP
+    from local_agent.permissions import normalize_tool_name
+
+    assert BACKEND_TO_LOCAL_TOOL_MAP["local_open_application"] == "open_application"
+    assert normalize_tool_name("local_open_application") == "open_application"
+    assert normalize_tool_name("local_open_url") == "open_url"
+
+    # Register device and set fresh heartbeat
+    dev = LocalAgentDevice(
+        device_name="JARVIS-TOOL-MAP-DEV",
+        status="ONLINE",
+        platform="Windows",
+        version="1.0.0",
+        auth_token_hash="jarvis_windows_local_agent_secret_2026",
+        port=8001,
+        available_tools=json.dumps(["open_application"]),
+        last_heartbeat=datetime.utcnow()
+    )
+    clean_db.add(dev)
+    clean_db.commit()
+
+    captured_payloads = []
+
+    def mock_urlopen(req, timeout=10):
+        captured_payloads.append(json.loads(req.data.decode("utf-8")))
+        mock_resp = MagicMock()
+        mock_resp.status = 200
+        mock_resp.read.return_value = json.dumps({
+            "status": "SUCCESS",
+            "tool": "open_application",
+            "verified": True,
+            "output": {"status": "success", "application": "notepad", "pid": 4321, "verified": True},
+            "detail": "Notepad launched successfully."
+        }).encode("utf-8")
+        mock_resp.__enter__.return_value = mock_resp
+        mock_resp.__exit__.return_value = None
+        return mock_resp
+
+    with patch("urllib.request.urlopen", side_effect=mock_urlopen):
+        res = local_agent_service.execute_tool(clean_db, "local_open_application", {"application": "notepad"})
+        assert res.status == "SUCCESS"
+        assert res.verified is True
+        assert res.tool == "local_open_application"
+        # Tool dispatched over wire must be "open_application"
+        assert len(captured_payloads) == 1
+        assert captured_payloads[0]["tool"] == "open_application"
+
+
+def test_heartbeat_401_triggers_reregistration_and_recovery():
+    """Verify HeartbeatManager catches HTTP 401, triggers on_reconnect_needed, and retries successfully."""
+    import urllib.error
+    from unittest.mock import MagicMock, patch
+    from local_agent.heartbeat import HeartbeatManager
+
+    reconnect_called = False
+
+    def mock_reconnect():
+        nonlocal reconnect_called
+        reconnect_called = True
+        return True
+
+    hb = HeartbeatManager(
+        device_name="JARVIS-401-TEST",
+        interval=10,
+        auth_token="jarvis_windows_local_agent_secret_2026",
+        on_reconnect_needed=mock_reconnect
+    )
+
+    call_count = 0
+
+    def mock_urlopen(req, timeout=5):
+        nonlocal call_count
+        call_count += 1
+        if call_count == 1:
+            # First attempt: backend restarted, returns HTTP 401
+            raise urllib.error.HTTPError(
+                url="http://127.0.0.1:8000/api/v1/local-agent/heartbeat",
+                code=401,
+                msg="Unauthorized",
+                hdrs={},
+                fp=None
+            )
+        else:
+            # Second attempt (after re-registration): returns HTTP 200
+            resp = MagicMock()
+            resp.status = 200
+            resp.__enter__.return_value = resp
+            resp.__exit__.return_value = None
+            return resp
+
+    with patch("urllib.request.urlopen", side_effect=mock_urlopen):
+        success = hb.send_pulse("ONLINE")
+        assert success is True
+        assert reconnect_called is True
+        assert hb.last_beat_success is True
+        assert hb.consecutive_failures == 0
+
+
+def test_token_env_variable_alias_consistency():
+    """Verify backend and local_agent config alias resolution for JARVIS_LOCAL_AGENT_TOKEN."""
+    from app.core.config import Settings
+
+    # Settings accepts both LOCAL_AGENT_TOKEN and JARVIS_LOCAL_AGENT_TOKEN
+    s1 = Settings(LOCAL_AGENT_TOKEN="test_token_alpha")
+    assert s1.LOCAL_AGENT_TOKEN == "test_token_alpha"
+
+    s2 = Settings(JARVIS_LOCAL_AGENT_TOKEN="test_token_beta")
+    assert s2.LOCAL_AGENT_TOKEN == "test_token_beta"
+
+
+
 

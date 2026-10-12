@@ -477,3 +477,36 @@ def test_22_plan_step_without_tool_rejected_by_validator():
     assert is_valid is False
     assert "no executable tool assigned" in error
 
+
+def test_23_compound_command_with_connectors_and_conjunctions():
+    """Test 23: 'Open Chrome and YouTube, then open Spotify' decomposes and plans with dependencies."""
+    utterance = "Open Chrome and YouTube, then open Spotify"
+    sub_cmds = multi_step_decomposer.decompose(utterance)
+    assert len(sub_cmds) == 3
+    assert any("chrome" in c.lower() for c in sub_cmds)
+    assert any("youtube" in c.lower() for c in sub_cmds)
+    assert any("spotify" in c.lower() for c in sub_cmds)
+
+    intent_res = intent_detector.detect(utterance)
+    assert intent_res.intent == "MULTI_STEP_COMMAND"
+    assert len(intent_res.entities["sub_commands"]) == 3
+
+    ctx = AgentContext(user_message=utterance, intent="MULTI_STEP_COMMAND")
+    plan = agent_planner.create_plan(intent_res, ctx)
+
+    assert plan.validation_status == "VALID"
+    assert len(plan.steps) == 3
+    # Step 1: Chrome
+    assert plan.steps[0].tool_name == "local_open_application"
+    assert plan.steps[0].parameters.get("application") == "chrome"
+    assert plan.steps[0].depends_on == []
+    # Step 2: YouTube
+    assert plan.steps[1].tool_name == "local_open_url"
+    assert "youtube" in plan.steps[1].parameters.get("url", "").lower()
+    assert plan.steps[1].depends_on == [1]
+    # Step 3: Spotify
+    assert plan.steps[2].tool_name == "local_open_application"
+    assert plan.steps[2].parameters.get("application") == "spotify"
+    assert plan.steps[2].depends_on == [2]
+
+

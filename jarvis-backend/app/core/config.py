@@ -1,6 +1,6 @@
 import json
 from typing import List, Union
-from pydantic import field_validator
+from pydantic import field_validator, Field, AliasChoices
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -68,6 +68,17 @@ class Settings(BaseSettings):
     SPOTIFY_ACCESS_TOKEN: Union[str, None] = None
     SPOTIFY_REFRESH_TOKEN: Union[str, None] = None
     SPOTIFY_DEFAULT_DEVICE_ID: Union[str, None] = None
+
+    # Windows Local Agent Settings
+    LOCAL_AGENT_TOKEN: str = Field(
+        default="jarvis_windows_local_agent_secret_2026",
+        validation_alias=AliasChoices("LOCAL_AGENT_TOKEN", "JARVIS_LOCAL_AGENT_TOKEN")
+    )
+    LOCAL_AGENT_PORT: int = Field(
+        default=8001,
+        validation_alias=AliasChoices("LOCAL_AGENT_PORT", "JARVIS_LOCAL_AGENT_PORT")
+    )
+    LOCAL_AGENT_HEARTBEAT_TIMEOUT_SECONDS: int = 35
 
     # Network
     HOST: str = "127.0.0.1"

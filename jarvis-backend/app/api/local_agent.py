@@ -38,8 +38,14 @@ def register_local_agent(
     Registers a local Windows agent device with JARVIS Core.
     Sets status to ONLINE upon successful registration.
     """
-    device = local_agent_service.register_device(db, req)
-    return device
+    try:
+        device = local_agent_service.register_device(db, req)
+        return device
+    except ValueError as ve:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail=str(ve)
+        )
 
 
 @router.post("/heartbeat", summary="Record Agent Heartbeat Pulse")

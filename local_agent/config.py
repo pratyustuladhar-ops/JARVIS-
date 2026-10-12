@@ -2,16 +2,16 @@ import os
 from typing import Dict, Set
 
 # Backend connection settings
-BACKEND_URL: str = os.getenv("JARVIS_BACKEND_URL", "http://localhost:8000/api/v1")
+BACKEND_URL: str = os.getenv("JARVIS_BACKEND_URL", "http://127.0.0.1:8000/api/v1")
 DEVICE_NAME: str = os.getenv("JARVIS_DEVICE_NAME", "JARVIS-WINDOWS-01")
 PLATFORM: str = "Windows"
 AGENT_VERSION: str = "1.0.0"
-AUTH_TOKEN: str = os.getenv("JARVIS_LOCAL_AGENT_TOKEN", "jarvis_windows_local_agent_secret_2026")
+AUTH_TOKEN: str = (os.getenv("JARVIS_LOCAL_AGENT_TOKEN") or os.getenv("LOCAL_AGENT_TOKEN") or "jarvis_windows_local_agent_secret_2026").strip()
 HEARTBEAT_INTERVAL_SECONDS: int = 10
 
 # Local execution bridge server
 LOCAL_SERVER_HOST: str = "127.0.0.1"
-LOCAL_SERVER_PORT: int = 8001
+LOCAL_SERVER_PORT: int = int(os.getenv("JARVIS_LOCAL_AGENT_PORT") or os.getenv("LOCAL_AGENT_PORT") or 8001)
 
 # Strict Application Allowlist (maps safe aliases to Windows executables)
 # Arbitrary executable paths or shell commands are strictly forbidden.

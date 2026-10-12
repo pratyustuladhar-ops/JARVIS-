@@ -18,7 +18,7 @@ from local_agent.config import (
     LOCAL_SERVER_PORT,
     AUTH_TOKEN
 )
-from local_agent.permissions import verify_auth_token, PermissionDeniedError
+from local_agent.permissions import verify_auth_token, PermissionDeniedError, normalize_tool_name
 from local_agent.tools import (
     get_current_time,
     get_system_info,
@@ -93,89 +93,106 @@ class WindowsLocalAgent:
     ) -> Dict[str, Any]:
         """
         Main execution dispatcher with security and verification enforcement.
+        Maps backend and local tool names to explicitly approved local tools.
         """
+        # 0. Tool Name Normalization
+        resolved_tool = normalize_tool_name(tool_name)
+
         # 1. Authentication Check
         if not verify_auth_token(auth_token):
-            logger.warning(f"Unauthorized execution attempt for tool '{tool_name}' - invalid token.")
+            logger.warning(f"Unauthorized execution attempt for tool '{resolved_tool}' - invalid token.")
             return {
                 "status": "DENIED",
-                "tool": tool_name,
+                "tool": resolved_tool,
                 "verified": False,
                 "error": "Authentication token missing or invalid."
             }
 
         # 2. Tool Allowlist Check
-        if tool_name not in self.AVAILABLE_TOOLS:
-            logger.warning(f"Unregistered tool requested: '{tool_name}'")
+        if resolved_tool not in self.AVAILABLE_TOOLS:
+            logger.warning(f"Unregistered tool requested: '{resolved_tool}' (raw: '{tool_name}')")
             return {
                 "status": "DENIED",
-                "tool": tool_name,
+                "tool": resolved_tool,
                 "verified": False,
-                "error": f"Tool '{tool_name}' is not in the local agent tool allowlist."
+                "error": f"Tool '{resolved_tool}' is not in the local agent tool allowlist."
             }
 
-        logger.info(f"Executing approved tool '{tool_name}' with parameters: {parameters}")
+        logger.info(f"Executing approved tool '{resolved_tool}' with parameters: {parameters}")
 
         # 3. Safe Execution
         try:
             raw_result = None
-            if tool_name == "get_current_time":
+            if resolved_tool == "get_current_time":
                 raw_result = get_current_time()
-            elif tool_name == "get_system_info":
+            elif resolved_tool == "get_system_info":
                 raw_result = get_system_info()
-            elif tool_name == "open_application":
+            elif resolved_tool == "open_application":
                 app_target = parameters.get("application") or parameters.get("name") or parameters.get("app")
                 raw_result = open_application(str(app_target))
-            elif tool_name == "open_url":
+            elif resolved_tool == "open_url":
                 url_target = parameters.get("url") or parameters.get("link")
                 raw_result = open_url(str(url_target))
-            elif tool_name == "list_allowed_directory":
+            elif resolved_tool == "list_allowed_directory":
                 dir_target = parameters.get("directory") or parameters.get("path") or "Desktop"
                 raw_result = list_allowed_directory(str(dir_target))
-            elif tool_name == "open_file":
+            elif resolved_tool == "open_file":
                 file_target = parameters.get("file_path") or parameters.get("file")
                 raw_result = open_file(str(file_target))
-            elif tool_name == "open_folder":
+            elif resolved_tool == "open_folder":
                 folder_target = parameters.get("folder_path") or parameters.get("folder") or parameters.get("path") or "Desktop"
                 raw_result = open_folder(str(folder_target))
-            elif tool_name in ["capture_screen", "local_capture_screen"]:
+            elif resolved_tool == "capture_screen":
                 quality = int(parameters.get("quality", 85))
                 max_dim = int(parameters.get("max_dimension", 1920))
                 raw_result = capture_screen(quality=quality, max_dimension=max_dim)
 
             # 4. Result Verification
-            verif = verify_tool_result(tool_name, raw_result if isinstance(raw_result, dict) else {"status": "success"})
-            if isinstance(raw_result, dict) and (raw_result.get("status") == "failed" or raw_result.get("verified") is False or raw_result.get("success") is False):
+            verif = verify_tool_result(resolved_tool, raw_result if isinstance(raw_result, dict) else {"status": "success"})
+            is_success = True
+            if isinstance(raw_result, dict):
+                if (raw_result.get("status") in ["failed", "denied", "error"] or
+                    raw_result.get("verified") is False or
+                    raw_result.get("success") is False):
+                    is_success = False
+
+            if not verif.get("verified", True) or verif.get("status") == "FAILED":
+                is_success = False
+
+            if not is_success:
+                err_msg = None
+                if isinstance(raw_result, dict):
+                    err_msg = raw_result.get("error") or raw_result.get("message") or raw_result.get("reason")
                 return {
                     "status": "FAILED",
-                    "tool": tool_name,
+                    "tool": resolved_tool,
                     "output": raw_result,
                     "verified": False,
                     "detail": verif.get("detail", "Execution reported failure."),
-                    "error": raw_result.get("error") or raw_result.get("message") or raw_result.get("reason") or "Execution failed."
+                    "error": err_msg or verif.get("detail") or "Execution failed."
                 }
 
             return {
                 "status": "SUCCESS",
-                "tool": tool_name,
+                "tool": resolved_tool,
                 "output": raw_result,
-                "verified": verif.get("verified", True),
+                "verified": True,
                 "detail": verif.get("detail", "Operation completed.")
             }
 
         except PermissionDeniedError as pe:
-            logger.warning(f"Permission denied for '{tool_name}': {pe}")
+            logger.warning(f"Permission denied for '{resolved_tool}': {pe}")
             return {
                 "status": "DENIED",
-                "tool": tool_name,
+                "tool": resolved_tool,
                 "verified": False,
                 "error": str(pe)
             }
         except Exception as e:
-            logger.error(f"Error executing '{tool_name}': {e}")
+            logger.error(f"Error executing '{resolved_tool}': {e}")
             return {
                 "status": "FAILED",
-                "tool": tool_name,
+                "tool": resolved_tool,
                 "verified": False,
                 "error": str(e)
             }
@@ -249,8 +266,10 @@ class WindowsLocalAgent:
                     payload = json.loads(body.decode("utf-8")) if body else {}
                 except Exception:
                     self.send_response(400)
+                    self.send_header("Content-Type", "application/json")
                     self._send_cors_headers()
                     self.end_headers()
+                    self.wfile.write(json.dumps({"status": "FAILED", "error": "Malformed JSON payload"}).encode("utf-8"))
                     return
 
                 # Wake-word candidate detection endpoint
@@ -273,15 +292,25 @@ class WindowsLocalAgent:
 
                 if path not in ["/execute", "/tools/execute"]:
                     self.send_response(404)
+                    self.send_header("Content-Type", "application/json")
                     self._send_cors_headers()
                     self.end_headers()
+                    self.wfile.write(json.dumps({"status": "FAILED", "error": f"Endpoint '{path}' not found"}).encode("utf-8"))
                     return
 
                 tool = payload.get("tool") or payload.get("tool_name")
                 params = payload.get("parameters", {})
                 res = agent_ref.execute_action(tool, params, auth_token=token)
 
-                self.send_response(200)
+                # Return appropriate HTTP code reflecting execution / auth outcome
+                if res.get("status") == "DENIED":
+                    http_code = 401 if "authentication" in (res.get("error") or "").lower() else 403
+                elif res.get("status") == "FAILED":
+                    http_code = 200  # Transport succeeded; action result conveys status
+                else:
+                    http_code = 200
+
+                self.send_response(http_code)
                 self.send_header("Content-Type", "application/json")
                 self._send_cors_headers()
                 self.end_headers()
@@ -292,30 +321,45 @@ class WindowsLocalAgent:
 
         try:
             self._server = ReusableHTTPServer((LOCAL_SERVER_HOST, LOCAL_SERVER_PORT), AgentHandler)
-            self._server_thread = threading.Thread(target=self._server.serve_forever, daemon=True)
+            self._server_thread = threading.Thread(target=self._server.serve_forever, daemon=True, name="JarvisBridgeServer")
             self._server_thread.start()
             logger.info(f"Loopback bridge listening on {LOCAL_SERVER_HOST}:{LOCAL_SERVER_PORT}")
         except Exception as e:
-            logger.warning(f"Loopback server could not bind to port {LOCAL_SERVER_PORT}: {e}")
+            logger.error(f"Loopback server could not bind to port {LOCAL_SERVER_PORT}: {e}")
+            self._server = None
+            raise RuntimeError(f"Port {LOCAL_SERVER_PORT} is unavailable (likely another agent process is running): {e}")
 
-    def start(self):
+    def start(self, retry_backend: bool = True, max_startup_retries: int = 5):
         """Starts the local agent, registers with backend, and sends heartbeats."""
+        if self.is_running:
+            logger.warning(f"Local agent {self.device_name} is already running.")
+            return
+
         logger.info(f"Starting {self.device_name} (Windows Local Agent v{self.version})...")
+
+        # Start loopback server
+        self._start_local_bridge_server()
         self.is_running = True
 
         # Activate wake-word detector
         self.wake_detector.start()
 
-        # Start loopback server
-        self._start_local_bridge_server()
-
-        # Register with backend
+        # Register with backend with retry
         registered = self.connection.register(self.AVAILABLE_TOOLS)
+        retries = 0
+        while not registered and retry_backend and retries < max_startup_retries:
+            retries += 1
+            logger.warning(f"Connection to backend failed (attempt {retries}/{max_startup_retries}): {self.connection.last_connection_error}. Retrying in 2 seconds...")
+            time.sleep(2)
+            registered = self.connection.register(self.AVAILABLE_TOOLS)
+
         if registered:
             self.connection.start_heartbeat_loop()
             logger.info(f"Local agent {self.device_name} is ONLINE and synchronized with JARVIS Core.")
         else:
-            logger.warning("Could not register with backend. Operating in standalone mode.")
+            logger.error(f"STARTUP NOTICE: Could not register with backend at {self.connection.backend_url} ({self.connection.last_connection_error}). Starting background reconnection worker.")
+            # Start background reconnection thread to automatically connect when backend becomes available
+            self.connection.start_background_reconnect(self.AVAILABLE_TOOLS)
 
     def stop(self):
         """Stops the local agent gracefully."""
@@ -325,8 +369,10 @@ class WindowsLocalAgent:
         if self._server:
             try:
                 self._server.shutdown()
+                self._server.server_close()
             except Exception:
                 pass
+            self._server = None
         logger.info("Local agent stopped.")
 
 
