@@ -130,6 +130,22 @@ app.whenReady().then(async () => {
     }
   });
 
+  // Start background wake-word listener on loopback port 8003
+  serviceManager.startWakeListener(8003);
+  serviceManager.on('wake-word-detected', (data) => {
+    console.log('[JARVIS] Background wake word event received:', (data && data.wake_phrase) || 'Hey JARVIS');
+    if (windowManager && windowManager.mainWindow && !windowManager.mainWindow.isDestroyed()) {
+      if (!windowManager.mainWindow.isVisible()) {
+        windowManager.mainWindow.show();
+      }
+      if (windowManager.mainWindow.isMinimized()) {
+        windowManager.mainWindow.restore();
+      }
+      windowManager.mainWindow.focus();
+      windowManager.mainWindow.webContents.send('desktop:wake-word-detected', data);
+    }
+  });
+
   // 6. Start Background Services if configured
   const settings = settingsStore.getAll();
   if (settings.startBackgroundServices) {

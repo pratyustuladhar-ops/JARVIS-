@@ -16,7 +16,8 @@ from local_agent.config import (
     AGENT_VERSION,
     LOCAL_SERVER_HOST,
     LOCAL_SERVER_PORT,
-    AUTH_TOKEN
+    AUTH_TOKEN,
+    BACKEND_URL
 )
 from local_agent.permissions import verify_auth_token, PermissionDeniedError, normalize_tool_name
 from local_agent.tools import (
@@ -65,24 +66,42 @@ class WindowsLocalAgent:
         self._server: Optional[HTTPServer] = None
         self._server_thread: Optional[threading.Thread] = None
 
-    def _handle_wake_detection(self):
+    def _handle_wake_detection(self, event_data: Optional[Dict[str, Any]] = None):
         logger.info(f"Local agent captured wake word on {self.device_name}. Waking JARVIS.")
-        # Non-blocking notification to JARVIS backend
-        def notify_backend():
+        # Non-blocking notification to JARVIS backend and Electron supervisor
+        def notify_targets():
+            # 1. Notify Backend audit endpoint
             try:
                 import urllib.request
-                url = f"{BACKEND_BASE_URL}/voice/wake-word/event"
+                backend_base = getattr(self.connection, "backend_url", None) or BACKEND_URL
+                url = f"{backend_base}/voice/wake-word/event"
                 payload = json.dumps({
                     "event_type": "WAKE_WORD_DETECTED",
                     "wake_phrase": self.wake_detector.wake_phrase,
-                    "detail": f"Wake word captured locally by {self.device_name}."
+                    "detail": f"Wake word captured locally by {self.device_name}.",
+                    "metadata": event_data or {}
                 }).encode("utf-8")
                 req = urllib.request.Request(url, data=payload, headers={"Content-Type": "application/json"})
                 urllib.request.urlopen(req, timeout=3)
             except Exception as e:
                 logger.debug(f"Backend wake notification skipped/unreachable: {e}")
 
-        threading.Thread(target=notify_backend, daemon=True).start()
+            # 2. Notify Electron supervisor directly if listening on loopback
+            try:
+                import urllib.request
+                electron_port = os.getenv("JARVIS_ELECTRON_EVENT_PORT", "8003")
+                electron_url = f"http://127.0.0.1:{electron_port}/wake"
+                event_payload = event_data or {"event_type": "WAKE_WORD_DETECTED", "wake_phrase": self.wake_detector.wake_phrase}
+                req = urllib.request.Request(
+                    electron_url,
+                    data=json.dumps(event_payload).encode("utf-8"),
+                    headers={"Content-Type": "application/json"}
+                )
+                urllib.request.urlopen(req, timeout=2)
+            except Exception as e:
+                logger.debug(f"Electron supervisor wake webhook skipped: {e}")
+
+        threading.Thread(target=notify_targets, daemon=True).start()
 
 
     def execute_action(
@@ -210,11 +229,7 @@ class WindowsLocalAgent:
                 resp = {
                     "device_name": agent_ref.device_name,
                     "status": "ONLINE" if agent_ref.is_running else "STANDBY",
-                    "wake_word_detector": {
-                        "running": agent_ref.wake_detector.is_running(),
-                        "phrase": agent_ref.wake_detector.wake_phrase,
-                        "paused": agent_ref.wake_detector.is_paused_state()
-                    },
+                    "wake_word_detector": agent_ref.wake_detector.get_status_dict(),
                     "available_tools": agent_ref.AVAILABLE_TOOLS
                 }
                 return json.dumps(resp).encode("utf-8")
@@ -282,6 +297,58 @@ class WindowsLocalAgent:
                         "phrase": phrase,
                         "wake_phrase": agent_ref.wake_detector.wake_phrase,
                         "detector_running": agent_ref.wake_detector.is_running()
+                    }
+                    self.send_response(200)
+                    self.send_header("Content-Type", "application/json")
+                    self._send_cors_headers()
+                    self.end_headers()
+                    self.wfile.write(json.dumps(res).encode("utf-8"))
+                    return
+
+                # Authenticated wake-word control endpoints
+                if path in ["/wake-word/toggle", "/wake-word/control"]:
+                    if not verify_auth_token(token):
+                        self.send_response(401)
+                        self.send_header("Content-Type", "application/json")
+                        self._send_cors_headers()
+                        self.end_headers()
+                        self.wfile.write(json.dumps({"status": "DENIED", "error": "Unauthorized"}).encode("utf-8"))
+                        return
+
+                    target_enabled = payload.get("enabled", True)
+                    if target_enabled:
+                        agent_ref.wake_detector.start()
+                    else:
+                        agent_ref.wake_detector.stop()
+
+                    res = {
+                        "status": "SUCCESS",
+                        "wake_word_detector": agent_ref.wake_detector.get_status_dict()
+                    }
+                    self.send_response(200)
+                    self.send_header("Content-Type", "application/json")
+                    self._send_cors_headers()
+                    self.end_headers()
+                    self.wfile.write(json.dumps(res).encode("utf-8"))
+                    return
+
+                if path in ["/wake-word/pause", "/wake-word/resume"]:
+                    if not verify_auth_token(token):
+                        self.send_response(401)
+                        self.send_header("Content-Type", "application/json")
+                        self._send_cors_headers()
+                        self.end_headers()
+                        self.wfile.write(json.dumps({"status": "DENIED", "error": "Unauthorized"}).encode("utf-8"))
+                        return
+
+                    if "pause" in path:
+                        agent_ref.wake_detector.pause()
+                    else:
+                        agent_ref.wake_detector.resume()
+
+                    res = {
+                        "status": "SUCCESS",
+                        "wake_word_detector": agent_ref.wake_detector.get_status_dict()
                     }
                     self.send_response(200)
                     self.send_header("Content-Type", "application/json")
@@ -365,6 +432,7 @@ class WindowsLocalAgent:
         """Stops the local agent gracefully."""
         logger.info(f"Stopping {self.device_name}...")
         self.is_running = False
+        self.wake_detector.stop()
         self.connection.stop()
         if self._server:
             try:

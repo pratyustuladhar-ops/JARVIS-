@@ -38,5 +38,14 @@ contextBridge.exposeInMainWorld('jarvisDesktop', {
     return () => {
       ipcRenderer.removeListener('desktop:service-status-changed', listener);
     };
+  },
+
+  onWakeWordDetected: (callback) => {
+    if (typeof callback !== 'function') return () => {};
+    const listener = (_event, data) => callback(data);
+    ipcRenderer.on('desktop:wake-word-detected', listener);
+    return () => {
+      ipcRenderer.removeListener('desktop:wake-word-detected', listener);
+    };
   }
 });

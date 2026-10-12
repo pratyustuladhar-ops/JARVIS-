@@ -1212,6 +1212,7 @@
           isSpeaking = true;
           showStopSpeakingButton(true);
           if (wakeController) wakeController.notifySpeakingStart();
+          notifyLocalAgentWakePause(true);
           window.setAgentState('responding');
         };
 
@@ -1219,6 +1220,7 @@
           isSpeaking = false;
           showStopSpeakingButton(false);
           if (wakeController) wakeController.notifySpeakingEnd();
+          notifyLocalAgentWakePause(false);
           setTimeout(() => {
             window.setAgentState('idle');
           }, 350);
@@ -1228,6 +1230,7 @@
           isSpeaking = false;
           showStopSpeakingButton(false);
           if (wakeController) wakeController.notifySpeakingEnd();
+          notifyLocalAgentWakePause(false);
           window.setAgentState('idle');
         };
 
@@ -1236,6 +1239,7 @@
         isSpeaking = false;
         showStopSpeakingButton(false);
         if (wakeController) wakeController.notifySpeakingEnd();
+        notifyLocalAgentWakePause(false);
         window.setAgentState('idle');
       }
     };
@@ -1247,6 +1251,7 @@
       isSpeaking = false;
       showStopSpeakingButton(false);
       if (wakeController) wakeController.notifySpeakingEnd();
+      notifyLocalAgentWakePause(false);
       setTimeout(() => {
         window.setAgentState('idle');
       }, 250);
@@ -1285,6 +1290,56 @@
     // ==========================================
     // HANDS-FREE WAKE WORD CONTROLLER SETUP
     // ==========================================
+    async function notifyLocalAgentWakePause(pause) {
+      try {
+        const endpoint = pause ? 'pause' : 'resume';
+        const token = 'jarvis_windows_local_agent_secret_2026';
+        await fetch(`http://127.0.0.1:8001/wake-word/${endpoint}`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-Local-Agent-Token': token
+          },
+          body: JSON.stringify({})
+        });
+      } catch (e) {}
+    }
+
+    function handleBackgroundWakeDetected(data) {
+      window.setAgentState('listening');
+      if (voiceConfig.enabled && speechSynthesisSupported) {
+        try {
+          window.speechSynthesis.cancel();
+          const utt = new SpeechSynthesisUtterance("Yes?");
+          utt.rate = 1.15;
+          notifyLocalAgentWakePause(true);
+          utt.onend = () => {
+            notifyLocalAgentWakePause(false);
+            triggerCommandVoiceCapture();
+          };
+          utt.onerror = () => {
+            notifyLocalAgentWakePause(false);
+            triggerCommandVoiceCapture();
+          };
+          window.speechSynthesis.speak(utt);
+        } catch(e) {
+          triggerCommandVoiceCapture();
+        }
+      } else {
+        triggerCommandVoiceCapture();
+      }
+    }
+
+    function triggerCommandVoiceCapture() {
+      window.setAgentState('listening');
+      const input = document.getElementById('agent-input-buffer');
+      if (input) input.focus();
+
+      if (!isListening && typeof window.toggleSpeechRecognition === 'function') {
+        window.toggleSpeechRecognition();
+      }
+    }
+
     function initWakeWord() {
       wakeController = new WakeWordController({
         wakePhrase: 'Hey JARVIS',
@@ -1329,6 +1384,14 @@
         }
       });
 
+      // Synchronize with Electron desktop background wake word event
+      if (window.jarvisDesktop && window.jarvisDesktop.onWakeWordDetected) {
+        window.jarvisDesktop.onWakeWordDetected((data) => {
+          console.log('[JARVIS] Background wake word event received:', data);
+          handleBackgroundWakeDetected(data);
+        });
+      }
+
       // Synchronize with backend status
       if (window.jarvisApi && window.jarvisApi.getWakeWordStatus) {
         window.jarvisApi.getWakeWordStatus().then(res => {
@@ -1347,14 +1410,45 @@
     }
 
     window.toggleWakeWordMode = async function() {
-      if (!wakeController) return;
-      const isNowEnabled = await wakeController.toggle();
-      
+      let targetEnabled = true;
+      if (wakeController) {
+        targetEnabled = !wakeController.isEnabled();
+        await wakeController.toggle();
+      }
+
+      // Notify Local Agent directly
+      try {
+        const token = 'jarvis_windows_local_agent_secret_2026';
+        const res = await fetch('http://127.0.0.1:8001/wake-word/toggle', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-Local-Agent-Token': token
+          },
+          body: JSON.stringify({ enabled: targetEnabled })
+        });
+        const data = await res.json();
+        if (data && data.wake_word_detector) {
+          updateTruthfulWakeWordUI(data.wake_word_detector);
+        }
+      } catch (e) {}
+
       // Notify backend service
       if (window.jarvisApi && window.jarvisApi.toggleWakeWord) {
-        window.jarvisApi.toggleWakeWord(isNowEnabled).catch(() => {});
+        window.jarvisApi.toggleWakeWord(targetEnabled).catch(() => {});
       }
     };
+
+    function updateTruthfulWakeWordUI(ww) {
+      if (!ww) return;
+      if (ww.status === 'MICROPHONE_ERROR' || ww.microphone_state === 'NO_MICROPHONE' || ww.engine_ready === false) {
+        updateWakeWordUI('MIC_ERROR');
+      } else if (ww.running || ww.status === 'ACTIVE') {
+        updateWakeWordUI(WakeWordState.LISTENING_FOR_WAKE_WORD);
+      } else {
+        updateWakeWordUI(WakeWordState.DISABLED);
+      }
+    }
 
     function updateWakeWordUI(state = null) {
       const s = state || (wakeController ? wakeController.getState() : WakeWordState.DISABLED);
@@ -1369,9 +1463,9 @@
         topIcon.innerText = "hearing_disabled";
         topIcon.className = "material-symbols-outlined text-sm text-outline";
         topBtn.className = "px-3 py-1.5 text-xs font-mono rounded-lg border border-outline-variant/40 text-outline hover:text-on-surface hover:bg-surface-container transition-all flex items-center gap-1.5";
-      } else if (s === WakeWordState.ERROR) {
-        topLabel.innerText = "WAKE WORD: ERROR";
-        topIcon.innerText = "error_outline";
+      } else if (s === WakeWordState.ERROR || s === 'MIC_ERROR') {
+        topLabel.innerText = s === 'MIC_ERROR' ? "WAKE WORD: NO MIC" : "WAKE WORD: ERROR";
+        topIcon.innerText = "mic_off";
         topIcon.className = "material-symbols-outlined text-sm text-error";
         topBtn.className = "px-3 py-1.5 text-xs font-mono rounded-lg border border-error/50 text-error bg-red-950/30 hover:bg-red-900/40 transition-all flex items-center gap-1.5";
       } else if (s === WakeWordState.RESTARTING) {
@@ -1393,13 +1487,12 @@
         const badge = document.getElementById('local-agent-status-badge');
         let isOnline = false;
 
-        if (window.jarvisApi && window.jarvisApi.getLocalAgentStatus) {
-          const res = await window.jarvisApi.getLocalAgentStatus();
-          isOnline = !!(res && res.is_online);
-        } else {
-          const res = await fetch('http://127.0.0.1:8001/status');
-          const data = await res.json();
-          isOnline = !!(data && data.status === 'ONLINE');
+        const res = await fetch('http://127.0.0.1:8001/status');
+        const data = await res.json();
+        isOnline = !!(data && data.status === 'ONLINE');
+
+        if (data && data.wake_word_detector) {
+          updateTruthfulWakeWordUI(data.wake_word_detector);
         }
 
         if (badge) {

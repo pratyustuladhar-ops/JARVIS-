@@ -262,5 +262,38 @@ describe('JARVIS Windows Desktop Application Architecture', () => {
       assert.ok(html.includes('minimizeToTrayAction'), 'Must have minimizeToTrayAction handler');
     });
   });
+
+  describe('Background Wake-Word Detection IPC & Desktop Supervision', () => {
+    test('preload.cjs exposes background wake-word API without leaking ipcRenderer', () => {
+      const preloadCode = fs.readFileSync(path.resolve('desktop/preload.cjs'), 'utf8');
+      assert.ok(preloadCode.includes('onWakeWordDetected'), 'Must expose onWakeWordDetected');
+      assert.ok(preloadCode.includes("ipcRenderer.on('desktop:wake-word-detected'"), 'Must bind desktop:wake-word-detected IPC channel');
+    });
+
+    test('service-manager.cjs implements loopback wake listener and tracks wakeWord status', () => {
+      const smCode = fs.readFileSync(path.resolve('desktop/service-manager.cjs'), 'utf8');
+      assert.ok(smCode.includes('startWakeListener(port = 8003)'), 'Must define startWakeListener on port 8003');
+      assert.ok(smCode.includes("wakeWord: 'offline'"), 'Must track wakeWord status');
+      assert.ok(smCode.includes('this.wakeServer.close'), 'Must cleanly close wakeServer on shutdown');
+      assert.ok(smCode.includes("emit('wake-word-detected'"), 'Must emit wake-word-detected event');
+    });
+
+    test('desktop/main.cjs wires background wake-word restoration to renderer', () => {
+      const mainCode = fs.readFileSync(path.resolve('desktop/main.cjs'), 'utf8');
+      assert.ok(mainCode.includes("serviceManager.on('wake-word-detected'"), 'Must listen for wake-word-detected event');
+      assert.ok(mainCode.includes("windowManager.mainWindow.show()"), 'Must restore window if hidden');
+      assert.ok(mainCode.includes("windowManager.mainWindow.restore()"), 'Must restore window if minimized');
+      assert.ok(mainCode.includes("webContents.send('desktop:wake-word-detected'"), 'Must send IPC event to renderer');
+    });
+
+    test('assistant.html binds desktop wake listener and maintains truthful mic status', () => {
+      const html = fs.readFileSync(path.resolve('assistant.html'), 'utf8');
+      assert.ok(html.includes('jarvisDesktop.onWakeWordDetected'), 'Must subscribe to onWakeWordDetected');
+      assert.ok(html.includes('notifyLocalAgentWakePause'), 'Must implement echo-isolation pause/resume during speech');
+      assert.ok(html.includes('WAKE WORD: READY'), 'Must display READY state when background listener is active');
+      assert.ok(html.includes('WAKE WORD: NO MIC'), 'Must display NO MIC state when microphone is absent');
+      assert.ok(html.includes('WAKE WORD: OFF'), 'Must display OFF state when listener is disabled');
+    });
+  });
 });
 

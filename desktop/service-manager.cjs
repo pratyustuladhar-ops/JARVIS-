@@ -24,6 +24,7 @@ class ServiceManager extends EventEmitter {
     this.status = {
       backend: 'offline', // 'offline' | 'starting' | 'online' | 'error'
       localAgent: 'offline',
+      wakeWord: 'offline',
       backendPid: null,
       localAgentPid: null,
       lastHealthCheck: null,
@@ -32,6 +33,8 @@ class ServiceManager extends EventEmitter {
 
     this.pollTimer = null;
     this.isShuttingDown = false;
+    this.wakeServer = null;
+    this.wakePort = options.wakePort || 8003;
   }
 
   /**
@@ -248,12 +251,15 @@ class ServiceManager extends EventEmitter {
     try {
       const res = await this.httpGetJson(`${this.localAgentUrl}/status`, 1500);
       if (res && (res.statusCode === 200 || res.data)) {
-        return { online: true };
+        return {
+          online: true,
+          wakeWord: (res.data && res.data.wake_word_detector) ? res.data.wake_word_detector : null
+        };
       }
-      return { online: false, reason: 'Inactive' };
+      return { online: false, reason: 'Inactive', wakeWord: null };
     } catch (err) {
       // Local agent might not expose /status, or is inactive
-      return { online: false, reason: err.message };
+      return { online: false, reason: err.message, wakeWord: null };
     }
   }
 
@@ -293,7 +299,8 @@ class ServiceManager extends EventEmitter {
       backendPid: this.backendPid,
       localAgentPid: this.localAgentPid,
       lastHealthCheck: new Date().toISOString(),
-      details
+      details,
+      wakeWord: agentRes.wakeWord || null
     };
 
     if (prevBackend !== newBackend || prevAgent !== newAgent) {
@@ -595,12 +602,48 @@ class ServiceManager extends EventEmitter {
 
     await Promise.all(promises);
 
+    if (this.wakeServer) {
+      try {
+        this.wakeServer.close();
+      } catch {}
+      this.wakeServer = null;
+    }
+
     this.backendProcess = null;
     this.backendPid = null;
     this.localAgentProcess = null;
     this.localAgentPid = null;
     this.status.backend = 'offline';
     this.status.localAgent = 'offline';
+    this.status.wakeWord = 'offline';
+  }
+
+  /**
+   * Starts a local loopback listener to receive instantaneous wake-word events from Local Agent
+   */
+  startWakeListener(port = 8003) {
+    if (this.wakeServer) return;
+    this.wakePort = port;
+    try {
+      this.wakeServer = http.createServer((req, res) => {
+        if (req.method === 'POST' && (req.url === '/wake' || req.url === '/wake-word')) {
+          let body = '';
+          req.on('data', chunk => { body += chunk; });
+          req.on('end', () => {
+            let data = {};
+            try { data = JSON.parse(body); } catch {}
+            this.emit('wake-word-detected', data);
+            res.writeHead(200, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({ status: 'ACK' }));
+          });
+        } else {
+          res.writeHead(404);
+          res.end();
+        }
+      });
+      this.wakeServer.listen(port, '127.0.0.1');
+      this.wakeServer.on('error', () => {});
+    } catch {}
   }
 }
 
