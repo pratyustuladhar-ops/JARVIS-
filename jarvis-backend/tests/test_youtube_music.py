@@ -700,3 +700,162 @@ def test_23_youtube_service_returns_consistent_track_artist_aliases():
         assert out["url"] == "https://www.youtube.com/watch?v=NU9JoFKlaZ0"
 
 
+def test_24_three_candidate_case_selects_official_music_video_without_ambiguity():
+    """Verify that the reported 3-candidate scenario selects the official music video directly without asking to choose."""
+    c1 = {
+        "title": "Green Day - Wake Me Up When September Ends [Official Music Video] [4K Upgrade]",
+        "video_id": "vid_mv_4k",
+        "channel": "Green Day",
+        "url": "https://www.youtube.com/watch?v=vid_mv_4k",
+        "is_official": True
+    }
+    c2 = {
+        "title": "Mix - Green Day - Wake Me Up When September Ends [Official Music Video] [4K Upgrade]",
+        "video_id": "vid_mix",
+        "channel": "YouTube",
+        "url": "https://www.youtube.com/watch?v=vid_mix&list=RDvid_mix",
+        "is_official": False,
+        "is_mix": True
+    }
+    c3 = {
+        "title": "Green Day - Wake Me Up When September Ends (Official Audio)",
+        "video_id": "vid_audio",
+        "channel": "Green Day",
+        "url": "https://www.youtube.com/watch?v=vid_audio",
+        "is_official": True
+    }
+    candidates = [c1, c2, c3]
+
+    with patch.object(youtube_service, "search_music", return_value=candidates):
+        status, selected, _ = youtube_service.resolve_track("When September Ends")
+
+        assert status in ["EXACT_MATCH", "APPROXIMATE_MATCH"]
+        assert status != "AMBIGUOUS_MATCH"
+        assert selected is not None
+        assert selected["video_id"] == "vid_mv_4k"
+
+
+def test_25_mix_entries_penalized_below_direct_video():
+    """Verify Mix entries are penalized and ranked below direct video results for non-mix requests, but rewarded when requested."""
+    c_direct = {
+        "title": "Green Day - Wake Me Up When September Ends [Official Music Video] [4K Upgrade]",
+        "video_id": "vid_direct",
+        "channel": "Green Day",
+        "is_official": True
+    }
+    c_mix = {
+        "title": "Mix - Green Day - Wake Me Up When September Ends [Official Music Video] [4K Upgrade]",
+        "video_id": "vid_mix",
+        "channel": "YouTube",
+        "url": "https://www.youtube.com/watch?v=vid_mix&list=RDvid_mix",
+        "is_official": False,
+        "is_mix": True
+    }
+
+    # Normal playback request: direct video must beat mix by a wide margin
+    score_direct = youtube_service._score_candidate(c_direct, "When September Ends", "Green Day")
+    score_mix = youtube_service._score_candidate(c_mix, "When September Ends", "Green Day")
+    assert score_direct > score_mix
+    assert (score_direct - score_mix) >= 50.0
+
+    # User explicitly asks for a mix: mix bonus applies
+    score_mix_requested = youtube_service._score_candidate(c_mix, "Green Day Mix", "Green Day")
+    assert score_mix_requested > score_mix
+
+
+def test_26_genuine_ambiguity_triggers_clarification():
+    """Verify genuinely ambiguous matches (same title by two different artists with no artist specified) trigger AMBIGUOUS_MATCH."""
+    c_art1 = {
+        "title": "Song Alpha by Artist One",
+        "channel": "Artist One",
+        "url": "https://www.youtube.com/watch?v=art1",
+        "is_official": True
+    }
+    c_art2 = {
+        "title": "Song Alpha by Artist Two",
+        "channel": "Artist Two",
+        "url": "https://www.youtube.com/watch?v=art2",
+        "is_official": True
+    }
+    candidates = [c_art1, c_art2]
+
+    with patch.object(youtube_service, "search_music", return_value=candidates):
+        # 1. Without artist: genuine ambiguity must ask user
+        status, selected, _ = youtube_service.resolve_track("Song Alpha")
+        assert status == "AMBIGUOUS_MATCH"
+        assert selected is None
+
+        # 2. With artist: resolved unambiguously
+        status_with_art, selected_art, _ = youtube_service.resolve_track("Song Alpha", artist="Artist One")
+        assert status_with_art in ["EXACT_MATCH", "APPROXIMATE_MATCH"]
+        assert selected_art is not None
+        assert selected_art["channel"] == "Artist One"
+
+
+def test_27_e2e_agent_resolves_three_candidate_case_directly(db_session):
+    """End-to-end agent test verifying 'play When September Ends' with the three candidates plays candidate 1 directly."""
+    c1 = {
+        "title": "Green Day - Wake Me Up When September Ends [Official Music Video] [4K Upgrade]",
+        "video_id": "vid_mv_4k",
+        "channel": "Green Day",
+        "url": "https://www.youtube.com/watch?v=vid_mv_4k",
+        "is_official": True
+    }
+    c2 = {
+        "title": "Mix - Green Day - Wake Me Up When September Ends [Official Music Video] [4K Upgrade]",
+        "video_id": "vid_mix",
+        "channel": "YouTube",
+        "url": "https://www.youtube.com/watch?v=vid_mix&list=RDvid_mix",
+        "is_official": False,
+        "is_mix": True
+    }
+    c3 = {
+        "title": "Green Day - Wake Me Up When September Ends (Official Audio)",
+        "video_id": "vid_audio",
+        "channel": "Green Day",
+        "url": "https://www.youtube.com/watch?v=vid_audio",
+        "is_official": True
+    }
+    candidates = [c1, c2, c3]
+
+    mock_state = {
+        "player_found": True,
+        "paused": False,
+        "currentTime": 5.0,
+        "duration": 285.0,
+        "title": c1["title"],
+        "channel": c1["channel"]
+    }
+
+    mock_sess = MagicMock()
+    mock_page = MagicMock()
+    mock_page.is_closed.return_value = False
+    mock_sess.page = mock_page
+
+    def _fake_play_run(coro, timeout=None):
+        if hasattr(coro, "close"):
+            coro.close()
+        return mock_state
+
+    with patch.object(youtube_service, "search_music", return_value=candidates), \
+         patch("app.services.youtube_service.browser_automation_service._get_active_session", return_value=mock_sess), \
+         patch("app.services.youtube_service.browser_worker.run_coro", side_effect=_fake_play_run):
+
+        res = jarvis_agent.process(db=db_session, message="play When September Ends")
+
+        assert res["verified"] is True
+        assert len(res["actions"]) == 1
+        assert res["actions"][0]["tool_name"] == "youtube_play"
+
+        out = res["actions"][0]["output"]
+        assert out["status"] == "PLAYBACK_CONFIRMED"
+        assert out["video_id"] == "vid_mv_4k"
+
+        resp = res["response"].lower()
+        assert "wake me up when september ends" in resp
+        assert "green day" in resp
+        assert "multiple youtube videos matched" not in resp
+        assert "which one did you mean" not in resp
+
+
+

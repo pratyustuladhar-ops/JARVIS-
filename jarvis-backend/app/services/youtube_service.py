@@ -44,33 +44,96 @@ class YouTubeMusicService:
         self.playback_state: str = "IDLE"  # IDLE, PLAYING, PAUSED, STOPPED
         self.history: List[Dict[str, Any]] = []
 
-    def _build_search_query(self, query: Optional[str] = None, artist: Optional[str] = None, genre: Optional[str] = None) -> str:
-        """Constructs an optimized YouTube search query string."""
-        parts = []
-        q = (query or "").strip().strip("\"'")
+    @classmethod
+    def _normalize_track_and_artist(cls, track: Optional[str], artist: Optional[str] = None) -> Tuple[str, Optional[str]]:
+        """
+        Normalizes track title and artist. Resolves canonical aliases, strips trailing provider suffixes,
+        and extracts embedded artists ('Title by Artist').
+        """
+        q = (track or "").strip().strip("\"'")
         a = (artist or "").strip().strip("\"'")
-        g = (genre or "").strip().strip("\"'")
 
-        # Clean trailing 'on youtube'
-        q = re.sub(r"\s+on\s+youtube\b.*$", "", q, flags=re.I).strip()
+        # Clean trailing 'on youtube' and 'on spotify'
+        q = re.sub(r"\s+on\s+(?:youtube|spotify)\b.*$", "", q, flags=re.I).strip()
         if a:
-            a = re.sub(r"\s+on\s+youtube\b.*$", "", a, flags=re.I).strip()
+            a = re.sub(r"\s+on\s+(?:youtube|spotify)\b.*$", "", a, flags=re.I).strip()
 
-        # If artist is not provided separately, check if embedded in query via ' by '
+        # If artist is not provided separately, check if embedded via ' by '
         if not a and " by " in q:
             q_parts = re.split(r"\s+by\s+", q, maxsplit=1, flags=re.I)
             if len(q_parts) == 2:
                 q, a = q_parts[0].strip(), q_parts[1].strip()
 
-        # Clean extraneous words like 'music video for'
+        # Clean extraneous phrasing like 'music video for'
         clean_q = re.sub(r"^(?:the\s+)?(?:official\s+)?(?:music\s+)?video\s+(?:for|of)\s+", "", q, flags=re.I).strip()
         clean_q = re.sub(r"^(?:that\s+)?(?:september\s+song)\b", "Wake Me Up When September Ends", clean_q, flags=re.I)
         if clean_q.lower() in ["september ends", "when september ends"]:
             clean_q = "Wake Me Up When September Ends"
 
-        # If canonical title is Wake Me Up When September Ends without artist, Green Day is the canonical artist
+        # Canonical artist associations for unambiguous canonical titles
         if clean_q.lower() == "wake me up when september ends" and not a:
             a = "Green Day"
+        elif clean_q.lower() == "boulevard of broken dreams" and not a:
+            a = "Green Day"
+        elif clean_q.lower() == "numb" and not a:
+            a = "Linkin Park"
+
+        return clean_q, (a if a else None)
+
+    @classmethod
+    def _extract_core_title(cls, title: str, artist: Optional[str] = None) -> str:
+        """Extracts normalized core song title by removing mix prefixes, artist markers, and video tags."""
+        t = (title or "").strip()
+        # Remove Mix prefixes
+        t = re.sub(r"^mix\s*[-–—:]\s*", "", t, flags=re.I).strip()
+
+        # Remove bracketed and parenthesized metadata tags
+        t = re.sub(r"\[(?:official\s+(?:music\s+)?video|official\s+audio|official|music\s+video|video|audio|lyrics?|lyric\s+video|4k(?:\s+upgrade)?|hd|remastered|explicit|clean|visualizer|live|full\s+audio)[^\]]*\]", "", t, flags=re.I)
+        t = re.sub(r"\((?:official\s+(?:music\s+)?video|official\s+audio|official|music\s+video|video|audio|lyrics?|lyric\s+video|4k(?:\s+upgrade)?|hd|remastered|explicit|clean|visualizer|live|full\s+audio)[^\)]*\)", "", t, flags=re.I)
+        t = re.sub(r"\[(?:4k(?:\s+upgrade)?|hd|remastered|hq)[^\]]*\]", "", t, flags=re.I)
+        t = re.sub(r"\((?:4k(?:\s+upgrade)?|hd|remastered|hq)[^\)]*\)", "", t, flags=re.I)
+
+        # Remove artist prefix or suffix if artist is known
+        if artist:
+            art_esc = re.escape(artist.strip())
+            t = re.sub(rf"^{art_esc}\s*[-–—:]\s*", "", t, flags=re.I).strip()
+            t = re.sub(rf"\s*[-–—:]\s*{art_esc}$", "", t, flags=re.I).strip()
+
+        # If still in "Artist - Song" format, remove general artist prefix
+        if " - " in t:
+            parts = t.split(" - ", 1)
+            if len(parts) == 2 and parts[1].strip():
+                t = parts[1].strip()
+
+        # Strip 'by Artist' suffix
+        t = re.sub(r"\s+by\s+.*$", "", t, flags=re.I).strip()
+
+        # Normalize whitespace and lowercase
+        t = re.sub(r"[\s\-_]+$", "", t).strip()
+        return t.lower()
+
+    @classmethod
+    def _extract_core_artist(cls, cand: Dict[str, Any]) -> str:
+        """Extracts normalized artist/channel identity from candidate."""
+        ch = (cand.get("channel") or "").strip()
+        ch = re.sub(r"\s*-\s*topic$", "", ch, flags=re.I)
+        ch = re.sub(r"\s*vevo$", "", ch, flags=re.I)
+        ch = re.sub(r"\s*official$", "", ch, flags=re.I)
+        if ch:
+            return ch.lower().strip()
+
+        title = cand.get("title", "")
+        clean_title = re.sub(r"^mix\s*[-–—:]\s*", "", title, flags=re.I).strip()
+        if " - " in clean_title:
+            return clean_title.split(" - ", 1)[0].strip().lower()
+
+        return ""
+
+    def _build_search_query(self, query: Optional[str] = None, artist: Optional[str] = None, genre: Optional[str] = None) -> str:
+        """Constructs an optimized YouTube search query string."""
+        clean_q, a = self._normalize_track_and_artist(query, artist)
+        g = (genre or "").strip().strip("\"'")
+        parts = []
 
         if clean_q and a:
             if a.lower() not in clean_q.lower():
@@ -165,16 +228,18 @@ class YouTubeMusicService:
                             const badgeNode = node.querySelector(
                                 '[aria-label*="Official"], [aria-label*="Verified"], .badge-style-type-verified, .badge-style-type-verified-artist, ytd-badge-supported-renderer'
                             );
-                            const isOfficial = !!badgeNode 
+                            const isMix = /^mix\s*[-–—:]/i.test(title) || /list=RD/i.test(href);
+                            const isOfficial = !isMix && (!!badgeNode 
                                 || /official\\s+(?:music\\s+)?video|official\\s+audio|\\[official\\]|\\(official\\)/i.test(title)
-                                || /(?:VEVO|\\bTopic)$/i.test(channel);
+                                || /(?:VEVO|\\bTopic)$/i.test(channel));
 
                             results.push({
                                 title: title,
                                 video_id: videoId,
                                 url: `https://www.youtube.com/watch?v=${videoId}`,
                                 channel: channel,
-                                is_official: isOfficial
+                                is_official: isOfficial,
+                                is_mix: isMix
                             });
                             if (results.length >= 10) break;
                         }
@@ -206,32 +271,38 @@ class YouTubeMusicService:
         """
         Computes relevance score for candidate search result.
         Gives priority to exact/approximate title matches and official artist channels.
+        Favors official music video for generic playback requests, and penalizes YouTube Mix / aggregate entries.
         """
         score = 0.0
-        title_low = cand.get("title", "").lower()
+        title_raw = cand.get("title", "")
+        title_low = title_raw.lower()
         channel_low = cand.get("channel", "").lower()
-        t_norm = (track_query or "").lower().strip()
-        a_norm = (artist or "").lower().strip()
+        url_low = cand.get("url", "").lower()
 
-        # If track_query contains " by ", separate implied artist
-        if " by " in t_norm and not a_norm:
-            parts = re.split(r"\s+by\s+", t_norm, maxsplit=1)
-            if len(parts) == 2:
-                t_norm, a_norm = parts[0].strip(), parts[1].strip()
+        # Canonical normalization
+        canon_track, canon_artist = self._normalize_track_and_artist(track_query, artist)
+        t_norm = canon_track.lower().strip()
+        a_norm = (canon_artist or "").lower().strip()
+
+        core_title = self._extract_core_title(title_raw, canon_artist)
 
         # 1. Artist Matching
         if a_norm:
-            if a_norm in channel_low:
+            if a_norm == channel_low or f"{a_norm} - topic" in channel_low or f"{a_norm}vevo" in channel_low:
+                score += 45.0
+            elif a_norm in channel_low:
                 score += 35.0
+
             if a_norm in title_low:
-                score += 30.0
+                score += 25.0
 
         # 2. Track Title Matching
         if t_norm:
-            if t_norm in title_low:
+            if core_title == t_norm or core_title == self._extract_core_title(track_query, artist):
+                score += 50.0
+            elif t_norm in title_low:
                 score += 40.0
             else:
-                # Word-based token matching
                 t_words = [w for w in re.split(r"[^\w]+", t_norm) if len(w) > 2]
                 if t_words:
                     matched = sum(1 for w in t_words if w in title_low)
@@ -239,24 +310,67 @@ class YouTubeMusicService:
 
         # 3. Known approximate mappings
         if ("september ends" in t_norm or "when september ends" in t_norm) and "wake me up when september ends" in title_low:
-            score += 45.0
+            score += 35.0
         if "boulevard of broken dreams" in t_norm and "boulevard of broken dreams" in title_low:
-            score += 45.0
+            score += 35.0
         if "numb" in t_norm and "numb" in title_low:
-            score += 40.0
+            score += 35.0
 
-        # 4. Official Video / Channel Bonus
+        # 4. Official Channel / Artist verification badge
         if cand.get("is_official"):
             score += 15.0
 
-        # 5. Penalties for live/cover/parody/remix unless requested by user
-        penalties = ["cover", "parody", "reaction", "karaoke", "remix", "guitar lesson", "tutorial"]
+        # 5. Format Detection & Preference
+        is_mix = bool(
+            cand.get("is_mix")
+            or re.search(r"^mix\s*[-–—:]|\bmix\b", title_low)
+            or "list=" in url_low
+            or "start_radio=1" in url_low
+        )
+        is_official_mv = bool(
+            re.search(r"official\s+(?:music\s+)?video|\bmusic\s+video\b|\[official\s+video\]|\(official\s+video\)", title_low)
+            and not is_mix
+        )
+        is_official_audio = bool(
+            re.search(r"official\s+audio|\bvisualizer\b|audio\s+video|\[official\s+audio\]|\(official\s+audio\)", title_low)
+            and not is_mix
+        )
+
+        user_wants_audio = "audio" in t_norm
+        user_wants_lyrics = "lyric" in t_norm or "lyrics" in t_norm
+        user_wants_mix = "mix" in t_norm
+
+        # Mix handling: heavy penalty unless user specifically asked for a mix
+        if user_wants_mix:
+            if is_mix:
+                score += 25.0
+        else:
+            if is_mix:
+                score -= 60.0
+
+        # Official Music Video vs Official Audio vs Lyrics
+        if is_official_mv and not user_wants_audio and not user_wants_lyrics:
+            score += 20.0
+        elif is_official_audio:
+            if user_wants_audio:
+                score += 25.0
+            else:
+                score += 8.0
+
+        # 6. Aggregates and duplicates penalties
+        aggregates = ["playlist", "compilation", "full album", "top tracks", "greatest hits"]
+        for agg in aggregates:
+            if agg in title_low and agg not in t_norm:
+                score -= 35.0
+
+        # 7. Penalties for live/cover/parody/remix/reaction/tutorial unless requested
+        penalties = ["cover", "parody", "reaction", "karaoke", "remix", "guitar lesson", "tutorial", "how to play", "lesson"]
         for p in penalties:
             if p in title_low and p not in t_norm:
-                score -= 30.0
+                score -= 35.0
 
         if "live" in title_low and "live" not in t_norm:
-            score -= 10.0
+            score -= 15.0
 
         return score
 
@@ -272,24 +386,45 @@ class YouTubeMusicService:
         Statuses: EXACT_MATCH, APPROXIMATE_MATCH, AMBIGUOUS_MATCH, NO_MATCH
         Propagates browser, session, and network errors.
         """
-        candidates = self.search_music(query=track_query, artist=artist, limit=8, session_id=session_id)
+        canon_track, canon_artist = self._normalize_track_and_artist(track_query, artist)
+        candidates = self.search_music(query=canon_track, artist=canon_artist, limit=8, session_id=session_id)
         if not candidates:
             return "NO_MATCH", None, []
 
         scored = []
         for c in candidates:
-            s = self._score_candidate(c, track_query=track_query, artist=artist)
+            s = self._score_candidate(c, track_query=canon_track, artist=canon_artist)
             scored.append((s, c))
 
         scored.sort(key=lambda x: x[0], reverse=True)
         top_score, top_cand = scored[0]
 
-        # Check for ambiguity: multiple top candidates with very close scores and different titles
+        # Check for genuine ambiguity between top candidates
         if len(scored) > 1:
             second_score, second_cand = scored[1]
-            if top_score >= 45.0 and abs(top_score - second_score) < 3.0:
-                # If titles differ significantly, consider ambiguous
-                if top_cand["title"].strip().lower() != second_cand["title"].strip().lower():
+            core_top = self._extract_core_title(top_cand.get("title", ""), canon_artist)
+            core_second = self._extract_core_title(second_cand.get("title", ""), canon_artist)
+            artist_top = self._extract_core_artist(top_cand)
+            artist_second = self._extract_core_artist(second_cand)
+
+            # Determine whether top two candidates represent the exact same song & artist
+            same_song_and_artist = (
+                bool(core_top)
+                and bool(core_second)
+                and (core_top == core_second or core_top in core_second or core_second in core_top)
+                and (
+                    not artist_top
+                    or not artist_second
+                    or artist_top == artist_second
+                    or (canon_artist and canon_artist.lower() in [artist_top, artist_second])
+                )
+            )
+
+            # Only consider ambiguous if top candidates are genuinely different songs or artists,
+            # and confidence gap between them is narrow without an overwhelming top score
+            if not same_song_and_artist:
+                score_gap = top_score - second_score
+                if top_score >= 35.0 and score_gap < 20.0 and top_score < 120.0:
                     return "AMBIGUOUS_MATCH", None, [c for _, c in scored[:3]]
 
         if top_score >= 60.0:
@@ -334,17 +469,11 @@ class YouTubeMusicService:
                 vid_id = video_id
                 is_off = False
             elif track or artist or genre:
-                raw_track = (track or "").strip().strip("\"'")
-                raw_track = re.sub(r"\s+on\s+youtube\b.*$", "", raw_track, flags=re.I).strip()
-                if " by " in raw_track and not artist:
-                    parts = re.split(r"\s+by\s+", raw_track, maxsplit=1, flags=re.I)
-                    if len(parts) == 2:
-                        raw_track, artist = parts[0].strip(), parts[1].strip()
-
-                q = raw_track or (f"{genre} music" if genre else f"{artist} songs")
+                canon_track, canon_artist = self._normalize_track_and_artist(track, artist)
+                q = canon_track or (f"{genre} music" if genre else f"{canon_artist} songs")
                 match_status, selected_cand, candidates = self.resolve_track(
                     track_query=q,
-                    artist=artist,
+                    artist=canon_artist,
                     session_id=session_id
                 )
 
