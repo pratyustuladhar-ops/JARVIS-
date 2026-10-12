@@ -2,6 +2,7 @@ import { resolve } from 'path';
 import { defineConfig } from 'vite';
 
 export default defineConfig({
+  base: './',
   server: {
     port: 5173,
     host: 'localhost',
@@ -32,6 +33,7 @@ export default defineConfig({
         activity: resolve(__dirname, 'activity.html'),
         settings: resolve(__dirname, 'settings.html'),
         cms: resolve(__dirname, 'cms.html'),
+        diagnostic: resolve(__dirname, 'diagnostic.html'),
       },
     },
   },

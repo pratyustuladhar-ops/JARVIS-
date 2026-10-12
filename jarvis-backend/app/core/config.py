@@ -100,7 +100,7 @@ class Settings(BaseSettings):
 
     @property
     def all_cors_origins(self) -> List[str]:
-        origins = [self.FRONTEND_URL]
+        origins = [self.FRONTEND_URL, "null"]
         if isinstance(self.ADDITIONAL_CORS_ORIGINS, list):
             origins.extend(self.ADDITIONAL_CORS_ORIGINS)
         # Deduplicate while preserving order

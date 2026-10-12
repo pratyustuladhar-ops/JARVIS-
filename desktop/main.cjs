@@ -135,8 +135,9 @@ app.whenReady().then(async () => {
   if (settings.startBackgroundServices) {
     try {
       console.log('[JARVIS] Checking and starting background services...');
-      await serviceManager.startBackend();
-      await serviceManager.startLocalAgent();
+      await serviceManager.startBackend({ waitForReady: true, timeoutMs: 15000 });
+      await serviceManager.startLocalAgent({ waitForReady: true, timeoutMs: 10000 });
+      console.log('[JARVIS] Background services online and verified.');
     } catch (err) {
       console.warn('[JARVIS] Note during background service startup:', err.message);
     }
@@ -210,8 +211,12 @@ ipcMain.handle('desktop:restart-services', async () => {
   await serviceManager.shutdownAll();
   const settings = settingsStore.getAll();
   if (settings.startBackgroundServices) {
-    await serviceManager.startBackend();
-    await serviceManager.startLocalAgent();
+    try {
+      await serviceManager.startBackend({ waitForReady: true, timeoutMs: 15000 });
+      await serviceManager.startLocalAgent({ waitForReady: true, timeoutMs: 10000 });
+    } catch (err) {
+      console.warn('[JARVIS] Note during background service restart:', err.message);
+    }
   }
   const status = await serviceManager.checkAll();
   return status;
@@ -255,16 +260,26 @@ ipcMain.handle('desktop:quit-app', async () => {
   app.quit();
 });
 
-// App shutdown lifecycle
-app.on('before-quit', async () => {
+// App shutdown lifecycle with graceful async cleanup
+let isQuittingCleanly = false;
+app.on('before-quit', (event) => {
+  if (isQuittingCleanly) {
+    return;
+  }
+  event.preventDefault();
   if (windowManager) {
     windowManager.setQuitting();
   }
-  globalShortcut.unregisterAll();
+  try {
+    globalShortcut.unregisterAll();
+  } catch {}
   if (trayManager) {
     trayManager.destroy();
   }
-  await serviceManager.shutdownAll();
+  serviceManager.shutdownAll().finally(() => {
+    isQuittingCleanly = true;
+    app.quit();
+  });
 });
 
 app.on('window-all-closed', () => {

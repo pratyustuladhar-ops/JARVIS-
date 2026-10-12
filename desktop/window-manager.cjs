@@ -110,28 +110,28 @@ class WindowManager {
     return this.mainWindow;
   }
 
+  getEntryHtmlPath(entryName = 'assistant') {
+    const distPath = path.join(path.resolve(__dirname, '..'), 'dist', `${entryName}.html`);
+    const rootPath = path.join(path.resolve(__dirname, '..'), `${entryName}.html`);
+    if (fs.existsSync(distPath)) {
+      return distPath;
+    }
+    return rootPath;
+  }
+
   loadAssistantUrl() {
     const isDev = process.argv.includes('--dev') || process.env.NODE_ENV === 'development';
-    const distAssistant = path.join(path.resolve(__dirname, '..'), 'dist', 'assistant.html');
-    const rootAssistant = path.join(path.resolve(__dirname, '..'), 'assistant.html');
+    const entryPath = this.getEntryHtmlPath('assistant');
 
     if (isDev) {
       // In dev mode, attempt Vite dev server first
       this.mainWindow.loadURL('http://localhost:5173/assistant.html').catch(() => {
         // Fallback to local file if dev server is not running
-        if (fs.existsSync(distAssistant)) {
-          this.mainWindow.loadFile(distAssistant);
-        } else {
-          this.mainWindow.loadFile(rootAssistant);
-        }
+        this.mainWindow.loadFile(entryPath);
       });
     } else {
       // Production mode: load bundled HTML directly
-      if (fs.existsSync(distAssistant)) {
-        this.mainWindow.loadFile(distAssistant);
-      } else {
-        this.mainWindow.loadFile(rootAssistant);
-      }
+      this.mainWindow.loadFile(entryPath);
     }
   }
 
@@ -163,17 +163,16 @@ class WindowManager {
   showSettings() {
     if (!this.mainWindow) return;
     const isDev = process.argv.includes('--dev') || process.env.NODE_ENV === 'development';
-    const distSettings = path.join(path.resolve(__dirname, '..'), 'dist', 'settings.html');
-    const rootSettings = path.join(path.resolve(__dirname, '..'), 'settings.html');
+    const entryPath = this.getEntryHtmlPath('settings');
 
     if (isDev) {
       this.mainWindow.loadURL('http://localhost:5173/settings.html?tab=desktop').catch(() => {
-        this.mainWindow.loadFile(fs.existsSync(distSettings) ? distSettings : rootSettings, {
+        this.mainWindow.loadFile(entryPath, {
           query: { tab: 'desktop' }
         });
       });
     } else {
-      this.mainWindow.loadFile(fs.existsSync(distSettings) ? distSettings : rootSettings, {
+      this.mainWindow.loadFile(entryPath, {
         query: { tab: 'desktop' }
       });
     }

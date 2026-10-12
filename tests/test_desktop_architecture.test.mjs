@@ -7,6 +7,7 @@ import { createRequire } from 'node:module';
 const require = createRequire(import.meta.url);
 const { SettingsStore, DEFAULT_SETTINGS } = require('../desktop/settings-store.cjs');
 const { ServiceManager } = require('../desktop/service-manager.cjs');
+const { WindowManager } = require('../desktop/window-manager.cjs');
 
 describe('JARVIS Windows Desktop Application Architecture', () => {
   const testConfigPath = path.resolve('.test-desktop-settings.json');
@@ -103,6 +104,65 @@ describe('JARVIS Windows Desktop Application Architecture', () => {
       assert.equal(sm.status.localAgent, 'offline');
       assert.equal(sm.backendPid, null);
     });
+
+    test('ServiceManager rejects invalid virtual environment missing uvicorn and falls back safely', () => {
+      const sm = new ServiceManager();
+      const venvPy = path.join(sm.backendDir, 'venv', 'Scripts', 'python.exe');
+
+      if (fs.existsSync(venvPy)) {
+        // jarvis-backend/venv exists on disk but has only pip/setuptools (missing uvicorn)
+        const probe = sm.verifyPythonCandidate(venvPy);
+        assert.equal(probe.valid, false, 'venv lacking uvicorn must be rejected');
+      }
+
+      // Resolved interpreter must be verified and not select the unverified venv
+      const resolved = sm.findPythonInterpreter(true);
+      assert.equal(resolved.verified, true, 'Resolved interpreter must be verified');
+      assert.notEqual(resolved.command, venvPy, 'Must not pick invalid venv');
+      assert.ok(resolved.version, 'Must detect valid Python version');
+    });
+
+    test('ServiceManager prevents duplicate backend and local agent process spawning', async () => {
+      const sm = new ServiceManager();
+
+      // Simulate backend already running
+      sm.checkBackendHealth = async () => ({ online: true, version: '1.0.0' });
+      const backendResult = await sm.startBackend({ waitForReady: false });
+      assert.equal(backendResult.started, false);
+      assert.equal(backendResult.alreadyRunning, true);
+      assert.equal(sm.backendProcess, null);
+
+      // Simulate local agent already running
+      sm.checkLocalAgentHealth = async () => ({ online: true });
+      const agentResult = await sm.startLocalAgent({ waitForReady: false });
+      assert.equal(agentResult.started, false);
+      assert.equal(agentResult.alreadyRunning, true);
+      assert.equal(sm.localAgentProcess, null);
+
+      // Simulate process already starting
+      sm.checkBackendHealth = async () => ({ online: false });
+      sm.backendProcess = { pid: 99999 };
+      const startingBackend = await sm.startBackend({ waitForReady: false });
+      assert.equal(startingBackend.started, false);
+      assert.equal(startingBackend.alreadyStarting, true);
+    });
+
+    test('ServiceManager readiness check captures errors and times out cleanly on failing processes', async () => {
+      const sm = new ServiceManager();
+      sm.checkBackendHealth = async () => ({ online: false, reason: 'Simulated connection refused' });
+      sm.backendStderrLog = ['Error: Address already in use'];
+
+      // Bounded timeout
+      await assert.rejects(
+        async () => {
+          await sm.waitForBackendReady(350);
+        },
+        /did not become ready/
+      );
+      assert.equal(sm.status.backend, 'error');
+      assert.ok(sm.status.details.includes('Readiness timeout'));
+      assert.ok(sm.status.details.includes('Address already in use'));
+    });
   });
 
   describe('Desktop Files and Packaging Structure', () => {
@@ -157,6 +217,24 @@ describe('JARVIS Windows Desktop Application Architecture', () => {
       assert.ok(tmCode.includes('Desktop Settings'), 'Must include Desktop Settings link');
       assert.ok(tmCode.includes('Quit JARVIS'), 'Must include Quit JARVIS');
       assert.ok(tmCode.includes('notifyBackgroundMode'), 'Must support background notification');
+    });
+
+    test('WindowManager resolves built entry HTML files and dist/assistant.html uses relative paths', () => {
+      const wm = new WindowManager({ settingsStore: new SettingsStore() });
+      const assistantEntry = wm.getEntryHtmlPath('assistant');
+      const settingsEntry = wm.getEntryHtmlPath('settings');
+
+      assert.ok(fs.existsSync(assistantEntry), 'Resolved assistant entry HTML must exist on disk');
+      assert.ok(fs.existsSync(settingsEntry), 'Resolved settings entry HTML must exist on disk');
+
+      // Verify production dist entry exists and uses relative asset paths compatible with file:// URLs
+      const distAssistant = path.resolve('dist/assistant.html');
+      assert.ok(fs.existsSync(distAssistant), 'dist/assistant.html must exist from build');
+      assert.equal(assistantEntry, distAssistant, 'getEntryHtmlPath must prioritize built dist/ file');
+
+      const content = fs.readFileSync(distAssistant, 'utf8');
+      assert.ok(content.includes('./assets/'), 'Built HTML must reference scripts via relative ./assets/ paths');
+      assert.ok(!content.includes('src="/assets/'), 'Built HTML must not reference scripts via absolute /assets/ paths');
     });
   });
 
