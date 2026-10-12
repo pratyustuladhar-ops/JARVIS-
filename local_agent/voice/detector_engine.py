@@ -35,6 +35,38 @@ class BaseWakeWordEngine(ABC):
         pass
 
 
+def find_model_asset(filename: str) -> Optional[str]:
+    """
+    Locates an offline ONNX model asset across packaged, bundled, and local paths.
+    Avoids reliance on machine-specific directories or internet downloads.
+    """
+    candidates = []
+
+    # 1. Environment variable override
+    env_dir = os.getenv("JARVIS_MODELS_DIR")
+    if env_dir:
+        candidates.append(os.path.join(env_dir, filename))
+
+    # 2. Bundled local_agent/resources/models relative to this file
+    this_dir = os.path.dirname(os.path.abspath(__file__))
+    bundled = os.path.abspath(os.path.join(this_dir, "..", "resources", "models", filename))
+    candidates.append(bundled)
+
+    # 3. User application data directory (%APPDATA%\JARVIS\models)
+    appdata = os.getenv("APPDATA")
+    if appdata:
+        candidates.append(os.path.join(appdata, "JARVIS", "models", filename))
+    localappdata = os.getenv("LOCALAPPDATA")
+    if localappdata:
+        candidates.append(os.path.join(localappdata, "JARVIS", "models", filename))
+
+    for p in candidates:
+        if os.path.exists(p) and os.path.getsize(p) > 0:
+            return p
+
+    return None
+
+
 class OpenWakeWordEngine(BaseWakeWordEngine):
     """
     Local offline wake-word inference engine powered by openWakeWord + ONNX Runtime.
@@ -64,17 +96,35 @@ class OpenWakeWordEngine(BaseWakeWordEngine):
             import openwakeword
             from openwakeword.model import Model
 
+            # Resolve wake-word model path
+            resolved_model = self.model_path
+            if not os.path.isabs(resolved_model) or not os.path.exists(resolved_model):
+                found = find_model_asset(os.path.basename(resolved_model))
+                if found:
+                    resolved_model = found
+
+            # Resolve feature extraction models (melspectrogram and embedding)
+            extra_kwargs = {}
+            melspec = find_model_asset("melspectrogram.onnx")
+            if melspec and os.path.exists(melspec):
+                extra_kwargs["melspec_model_path"] = melspec
+
+            embedding = find_model_asset("embedding_model.onnx")
+            if embedding and os.path.exists(embedding):
+                extra_kwargs["embedding_model_path"] = embedding
+
             # Initialize model with ONNX inference framework
             self.model = Model(
-                wakeword_models=[self.model_path],
-                inference_framework="onnx"
+                wakeword_models=[resolved_model],
+                inference_framework="onnx",
+                **extra_kwargs
             )
             # Find the actual dictionary key loaded by openWakeWord
             keys = list(self.model.models.keys())
             self.target_key = keys[0] if keys else None
             self.is_ready = True
             self.last_error = None
-            logger.info(f"OpenWakeWordEngine initialized successfully with model '{self.target_key}' (threshold={self.threshold})")
+            logger.info(f"OpenWakeWordEngine initialized successfully with model '{self.target_key}' (path='{resolved_model}', threshold={self.threshold})")
 
         except Exception as e:
             self.is_ready = False

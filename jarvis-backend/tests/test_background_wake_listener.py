@@ -55,6 +55,23 @@ def test_openwakeword_engine_synthetic_frames():
     assert detected is False
 
 
+def test_bundled_model_asset_discovery():
+    """Verify detector_engine discovers bundled offline ONNX models."""
+    from local_agent.voice.detector_engine import find_model_asset
+    jarvis_path = find_model_asset("hey_jarvis_v0.1.onnx")
+    assert jarvis_path is not None
+    assert Path(jarvis_path).exists()
+    assert Path(jarvis_path).stat().st_size > 0
+
+    melspec = find_model_asset("melspectrogram.onnx")
+    assert melspec is not None
+    assert Path(melspec).exists()
+
+    embedding = find_model_asset("embedding_model.onnx")
+    assert embedding is not None
+    assert Path(embedding).exists()
+
+
 # ==============================================================================
 # 2. GENUINE DETECTOR EVENT TRIGGERING EXACTLY ONE WAKE EVENT
 # ==============================================================================

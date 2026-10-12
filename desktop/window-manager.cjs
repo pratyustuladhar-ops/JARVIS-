@@ -41,10 +41,11 @@ class WindowManager {
     // Load Assistant URL
     this.loadAssistantUrl();
 
-    // Show when ready, unless startMinimized is configured
+    // Show when ready, unless startMinimized or --minimized is configured
     this.mainWindow.once('ready-to-show', () => {
       const settings = this.options.settingsStore.getAll();
-      if (!settings.startMinimized) {
+      const isMinimizedArg = process.argv.includes('--minimized');
+      if (!settings.startMinimized && !isMinimizedArg) {
         this.mainWindow.show();
         this.mainWindow.focus();
       }
@@ -111,12 +112,20 @@ class WindowManager {
   }
 
   getEntryHtmlPath(entryName = 'assistant') {
-    const distPath = path.join(path.resolve(__dirname, '..'), 'dist', `${entryName}.html`);
-    const rootPath = path.join(path.resolve(__dirname, '..'), `${entryName}.html`);
-    if (fs.existsSync(distPath)) {
-      return distPath;
+    const candidates = [];
+    if (process.resourcesPath) {
+      candidates.push(path.join(process.resourcesPath, 'app', 'dist', `${entryName}.html`));
+      candidates.push(path.join(process.resourcesPath, 'app', `${entryName}.html`));
     }
-    return rootPath;
+    candidates.push(path.join(path.resolve(__dirname, '..'), 'dist', `${entryName}.html`));
+    candidates.push(path.join(path.resolve(__dirname, '..'), `${entryName}.html`));
+
+    for (const c of candidates) {
+      if (fs.existsSync(c)) {
+        return c;
+      }
+    }
+    return candidates[candidates.length - 1];
   }
 
   loadAssistantUrl() {

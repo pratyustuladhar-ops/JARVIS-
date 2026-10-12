@@ -4,10 +4,24 @@ const path = require('path');
 const fs = require('fs');
 const EventEmitter = require('events');
 
+function resolveEffectiveRepoRoot(customRoot) {
+  if (customRoot && fs.existsSync(customRoot)) {
+    return customRoot;
+  }
+  if (process.resourcesPath) {
+    const unpacked = path.join(process.resourcesPath, 'app.asar.unpacked');
+    if (fs.existsSync(unpacked)) return unpacked;
+    const appDir = path.join(process.resourcesPath, 'app');
+    if (fs.existsSync(appDir)) return appDir;
+  }
+  return path.resolve(__dirname, '..');
+}
+
 class ServiceManager extends EventEmitter {
   constructor(options = {}) {
     super();
-    this.repoRoot = options.repoRoot || path.resolve(__dirname, '..');
+    this.options = options;
+    this.repoRoot = resolveEffectiveRepoRoot(options.repoRoot);
     this.backendDir = path.join(this.repoRoot, 'jarvis-backend');
     this.backendUrl = options.backendUrl || 'http://127.0.0.1:8000';
     this.localAgentUrl = options.localAgentUrl || 'http://127.0.0.1:8001';
@@ -80,6 +94,31 @@ class ServiceManager extends EventEmitter {
 
     const isWin = process.platform === 'win32';
     const candidates = [];
+
+    // 0. Bundled Python runtimes in packaged application or resources
+    const bundledCandidates = [];
+    if (process.resourcesPath) {
+      bundledCandidates.push(
+        path.join(process.resourcesPath, 'python_runtime', isWin ? 'python.exe' : 'bin/python'),
+        path.join(process.resourcesPath, 'python', isWin ? 'python.exe' : 'bin/python')
+      );
+    }
+    bundledCandidates.push(
+      path.join(this.repoRoot, 'python_runtime', isWin ? 'python.exe' : 'bin/python'),
+      path.join(this.repoRoot, 'python', isWin ? 'python.exe' : 'bin/python')
+    );
+
+    for (const bPath of bundledCandidates) {
+      if (fs.existsSync(bPath)) {
+        candidates.push({
+          command: bPath,
+          baseArgs: [],
+          displayPath: bPath,
+          isVenv: false,
+          label: 'Bundled Python Runtime'
+        });
+      }
+    }
 
     // 1. Virtual environments (preferred only if dependencies are verified)
     const venvRelPaths = isWin
@@ -468,7 +507,9 @@ class ServiceManager extends EventEmitter {
         env: {
           ...process.env,
           PYTHONUNBUFFERED: '1',
-          PYTHONPATH: this.repoRoot
+          PYTHONPATH: this.repoRoot,
+          JARVIS_MODELS_DIR: path.join(this.repoRoot, 'local_agent', 'resources', 'models'),
+          JARVIS_WAKE_WORD_MODEL_PATH: path.join(this.repoRoot, 'local_agent', 'resources', 'models', 'hey_jarvis_v0.1.onnx')
         },
         stdio: ['ignore', 'pipe', 'pipe'],
         windowsHide: true

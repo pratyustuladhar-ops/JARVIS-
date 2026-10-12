@@ -295,5 +295,98 @@ describe('JARVIS Windows Desktop Application Architecture', () => {
       assert.ok(html.includes('WAKE WORD: OFF'), 'Must display OFF state when listener is disabled');
     });
   });
+
+  describe('Windows Sign-in Startup & Standalone Packaging Lifecycle', () => {
+    const { StartupManager } = require('../desktop/startup-manager.cjs');
+    const testStartupDir = path.resolve('.test-startup-dir');
+    const dummyExe = path.resolve('.test-dummy-jarvis.exe');
+
+    before(() => {
+      if (!fs.existsSync(testStartupDir)) {
+        fs.mkdirSync(testStartupDir, { recursive: true });
+      }
+      fs.writeFileSync(dummyExe, 'mock executable', 'utf8');
+    });
+
+    after(() => {
+      try {
+        if (fs.existsSync(dummyExe)) fs.unlinkSync(dummyExe);
+        if (fs.existsSync(testStartupDir)) fs.rmSync(testStartupDir, { recursive: true, force: true });
+      } catch {}
+    });
+
+    test('StartupManager initializes with per-user startup path without admin privileges', () => {
+      const sm = new StartupManager({
+        appName: 'JARVIS-Test',
+        startupDir: testStartupDir
+      });
+      assert.equal(sm.appName, 'JARVIS-Test');
+      assert.equal(sm.startupDir, testStartupDir);
+      assert.ok(sm.shortcutPath.endsWith('JARVIS-Test.lnk'));
+    });
+
+    test('StartupManager creates shortcut and reports truthful status', () => {
+      const sm = new StartupManager({
+        appName: 'JARVIS-Test',
+        startupDir: testStartupDir
+      });
+
+      // Enable startup pointing to dummy executable
+      const res = sm.enableStartup({ execPath: dummyExe, args: ['--minimized'] });
+      assert.equal(res.success, true);
+      assert.equal(res.enabled, true);
+
+      // Verify status
+      const status = sm.getStartupStatus();
+      assert.equal(status.shortcutExists, true);
+      assert.equal(status.enabled, true);
+
+      // Idempotent: enabling a second time does not duplicate or fail
+      const res2 = sm.enableStartup({ execPath: dummyExe, args: ['--minimized'] });
+      assert.equal(res2.success, true);
+      assert.equal(fs.existsSync(sm.shortcutPath), true);
+    });
+
+    test('StartupManager cleanly removes startup shortcut on disable', () => {
+      const sm = new StartupManager({
+        appName: 'JARVIS-Test',
+        startupDir: testStartupDir
+      });
+
+      const res = sm.disableStartup();
+      assert.equal(res.success, true);
+      assert.equal(res.enabled, false);
+
+      const status = sm.getStartupStatus();
+      assert.equal(status.shortcutExists, false);
+      assert.equal(fs.existsSync(sm.shortcutPath), false);
+    });
+
+    test('desktop/main.cjs enforces single-instance lock', () => {
+      const mainCode = fs.readFileSync(path.resolve('desktop/main.cjs'), 'utf8');
+      assert.ok(mainCode.includes('app.requestSingleInstanceLock()'), 'Must request single instance lock');
+      assert.ok(mainCode.includes("app.on('second-instance'"), 'Must handle second instance');
+    });
+
+    test('desktop/window-manager.cjs honors --minimized launch argument', () => {
+      const wmCode = fs.readFileSync(path.resolve('desktop/window-manager.cjs'), 'utf8');
+      assert.ok(wmCode.includes("process.argv.includes('--minimized')"), 'Must check --minimized argument');
+    });
+
+    test('local_agent/resources/models contains bundled offline wake-word ONNX models', () => {
+      const modelsDir = path.resolve('local_agent/resources/models');
+      assert.ok(fs.existsSync(modelsDir), 'local_agent/resources/models directory must exist');
+      assert.ok(fs.existsSync(path.join(modelsDir, 'hey_jarvis_v0.1.onnx')), 'hey_jarvis_v0.1.onnx must be bundled');
+      assert.ok(fs.existsSync(path.join(modelsDir, 'melspectrogram.onnx')), 'melspectrogram.onnx must be bundled');
+      assert.ok(fs.existsSync(path.join(modelsDir, 'embedding_model.onnx')), 'embedding_model.onnx must be bundled');
+      assert.ok(fs.existsSync(path.join(modelsDir, 'silero_vad.onnx')), 'silero_vad.onnx must be bundled');
+    });
+
+    test('package.json contains win32 packaging script and @electron/packager', () => {
+      const pkg = JSON.parse(fs.readFileSync(path.resolve('package.json'), 'utf8'));
+      assert.ok(pkg.scripts['package:win'], 'Must have package:win script');
+      assert.ok(pkg.devDependencies['@electron/packager'], 'Must have @electron/packager dependency');
+    });
+  });
 });
 

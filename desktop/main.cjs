@@ -4,6 +4,7 @@ const { SettingsStore } = require('./settings-store.cjs');
 const { ServiceManager } = require('./service-manager.cjs');
 const { WindowManager } = require('./window-manager.cjs');
 const { TrayManager } = require('./tray-manager.cjs');
+const { StartupManager } = require('./startup-manager.cjs');
 
 // Prevent multiple instances
 const gotTheLock = app.requestSingleInstanceLock();
@@ -15,6 +16,7 @@ if (!gotTheLock) {
 
 // Instantiate core modules
 const settingsStore = new SettingsStore();
+const startupManager = new StartupManager();
 const serviceManager = new ServiceManager({
   repoRoot: path.resolve(__dirname, '..'),
   backendUrl: settingsStore.get('backendUrl'),
@@ -60,15 +62,13 @@ function registerGlobalShortcut(shortcutKey) {
 
 function updateWindowsLoginItem(enable) {
   try {
-    if (process.platform === 'win32') {
-      app.setLoginItemSettings({
-        openAtLogin: !!enable,
-        path: process.execPath,
-        args: ['--minimized']
-      });
-      return true;
+    if (enable) {
+      const res = startupManager.enableStartup();
+      return res.success;
+    } else {
+      const res = startupManager.disableStartup();
+      return res.success;
     }
-    return false;
   } catch (err) {
     console.error('[JARVIS] Failed to set login item settings:', err.message);
     return false;
@@ -167,16 +167,11 @@ app.whenReady().then(async () => {
 // Setup IPC handlers
 ipcMain.handle('desktop:get-settings', async () => {
   const current = settingsStore.getAll();
-  let osLoginItemEnabled = false;
-  try {
-    const loginItem = app.getLoginItemSettings();
-    osLoginItemEnabled = !!loginItem.openAtLogin;
-  } catch {
-    // ignore
-  }
+  const startupStatus = startupManager.getStartupStatus();
   return {
     ...current,
-    osLoginItemEnabled
+    osLoginItemEnabled: startupStatus.enabled,
+    startupStatus
   };
 });
 

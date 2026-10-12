@@ -12,7 +12,7 @@
     "preview": "vite preview",
     "electron:start": "electron .",
     "electron:dev": "electron . --dev",
-    "package:win": "electron-packager . JARVIS --platform=win32 --arch=x64 --out=release-builds --icon=desktop/assets/icon.ico --overwrite --prune=true --ignore=\"^(tests|jarvis-backend/venv|jarvis-backend/\\.pytest_cache|release-builds|\\.git)\"",
+    "package:win": "electron-packager . JARVIS --platform=win32 --arch=x64 --out=release-builds --icon=desktop/assets/icon.ico --overwrite --prune=false --download.cacheRoot=\"%LOCALAPPDATA%\\electron\\Cache\" --ignore=\"^(tests|jarvis-backend/venv|jarvis-backend/\\.pytest_cache|release-builds|\\.git|jarvis-backend/app/ai/data/command_learning_dataset\\.jsonl)\"",
     "desktop:build": "npm run build && npm run package:win",
     "test": "node --test tests/*.test.mjs"
   },
