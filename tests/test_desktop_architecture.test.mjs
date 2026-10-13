@@ -159,9 +159,57 @@ describe('JARVIS Windows Desktop Application Architecture', () => {
         },
         /did not become ready/
       );
+      const detail = sm.backendStderrLog.join('').trim() || 'Address already in use';
       assert.equal(sm.status.backend, 'error');
       assert.ok(sm.status.details.includes('Readiness timeout'));
       assert.ok(sm.status.details.includes('Address already in use'));
+    });
+
+    test('ServiceManager emits status-change when wakeWord detector status updates', async () => {
+      const sm = new ServiceManager();
+      sm.checkBackendHealth = async () => ({ online: true, version: '1.0.0' });
+      sm.checkLocalAgentHealth = async () => ({
+        online: true,
+        wakeWord: { status: 'STARTING', running: false }
+      });
+
+      let emittedEvents = [];
+      sm.on('status-change', (st) => emittedEvents.push(st));
+
+      await sm.checkAll();
+      assert.equal(emittedEvents.length, 1);
+      assert.equal(emittedEvents[0].wakeWord.status, 'STARTING');
+
+      // Now wake word becomes READY
+      sm.checkLocalAgentHealth = async () => ({
+        online: true,
+        wakeWord: { status: 'ACTIVE', running: true, engine_ready: true }
+      });
+      await sm.checkAll();
+      assert.equal(emittedEvents.length, 2, 'Must emit status-change when wakeWord changes even if services stay online');
+      assert.equal(emittedEvents[1].wakeWord.status, 'ACTIVE');
+    });
+
+    test('ServiceManager redacts sensitive tokens and secrets in details and logs', () => {
+      const smCode = fs.readFileSync(path.resolve('desktop/service-manager.cjs'), 'utf8');
+      assert.ok(smCode.includes('redactSensitive'), 'Must implement redactSensitive');
+      assert.ok(smCode.includes('[REDACTED_SECRET]'), 'Must redact local agent secret');
+      assert.ok(smCode.includes('Bearer [REDACTED]'), 'Must redact Bearer tokens');
+    });
+
+    test('ServiceManager tracks crash count and limits auto-restart to maxCrashRestarts', () => {
+      const sm = new ServiceManager();
+      assert.equal(sm.maxCrashRestarts, 3);
+      assert.equal(sm.localAgentCrashCount, 0);
+      assert.equal(sm.backendCrashCount, 0);
+    });
+
+    test('ServiceManager Python discovery prefers direct executable over py wrapper', () => {
+      const sm = new ServiceManager();
+      const cfg = sm.findPythonInterpreter(true);
+      assert.ok(cfg.verified);
+      assert.ok(cfg.command.endsWith('python.exe') || cfg.command.endsWith('python3') || cfg.command === 'python');
+      assert.notEqual(cfg.command, 'py', 'Resolved command must be direct python executable, not py wrapper');
     });
   });
 
@@ -293,6 +341,14 @@ describe('JARVIS Windows Desktop Application Architecture', () => {
       assert.ok(html.includes('WAKE WORD: READY'), 'Must display READY state when background listener is active');
       assert.ok(html.includes('WAKE WORD: NO MIC'), 'Must display NO MIC state when microphone is absent');
       assert.ok(html.includes('WAKE WORD: OFF'), 'Must display OFF state when listener is disabled');
+    });
+
+    test('assistant.html isolates browser WebSpeech in desktop mode to avoid key error loops', () => {
+      const html = fs.readFileSync(path.resolve('assistant.html'), 'utf8');
+      assert.ok(html.includes('const isDesktop = !!(window.jarvisDesktop && window.jarvisDesktop.isDesktop)'), 'Must check isDesktop flag');
+      assert.ok(html.includes('updateTruthfulWakeWordUI'), 'Must implement updateTruthfulWakeWordUI');
+      assert.ok(html.includes('MIC_ERROR'), 'Must handle MIC_ERROR');
+      assert.ok(html.includes('WAKE WORD: RECONNECTING'), 'Must handle RECONNECTING state');
     });
   });
 

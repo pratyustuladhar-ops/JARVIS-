@@ -48,10 +48,18 @@ class BackendConnection:
         )
 
     def _get_target_urls(self, path: str) -> list:
-        urls = [f"{self.backend_url}{path}"]
-        if "localhost" in self.backend_url:
-            urls.append(f"{self.backend_url.replace('localhost', '127.0.0.1')}{path}")
-        return urls
+        base = self.backend_url
+        target_paths = []
+        if not base.endswith("/api/v1") and not path.startswith("/api/v1"):
+            target_paths.append(f"/api/v1{path}")
+        target_paths.append(path)
+
+        urls = []
+        for p in target_paths:
+            urls.append(f"{base}{p}")
+            if "localhost" in base:
+                urls.append(f"{base.replace('localhost', '127.0.0.1')}{p}")
+        return list(dict.fromkeys(urls))
 
     def _post(self, path: str, payload: Dict[str, Any]) -> Optional[Dict[str, Any]]:
         target_urls = self._get_target_urls(path)
@@ -74,7 +82,8 @@ class BackendConnection:
             except urllib.error.HTTPError as he:
                 last_error = f"HTTP {he.code}: {he.reason}"
                 logger.warning(f"Backend HTTP error reaching {url}: {last_error}")
-                break
+                if he.code != 404:
+                    break
             except Exception as e:
                 last_error = str(e)
                 logger.debug(f"Connection error reaching {url}: {e}")

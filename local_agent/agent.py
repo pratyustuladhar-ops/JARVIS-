@@ -1,3 +1,5 @@
+import os
+import time
 import sys
 from pathlib import Path
 _repo_root = Path(__file__).resolve().parent.parent
@@ -73,8 +75,9 @@ class WindowsLocalAgent:
             # 1. Notify Backend audit endpoint
             try:
                 import urllib.request
-                backend_base = getattr(self.connection, "backend_url", None) or BACKEND_URL
-                url = f"{backend_base}/voice/wake-word/event"
+                backend_base = (getattr(self.connection, "backend_url", None) or BACKEND_URL).rstrip("/")
+                endpoint = "/voice/wake-word/event" if backend_base.endswith("/api/v1") else "/api/v1/voice/wake-word/event"
+                url = f"{backend_base}{endpoint}"
                 payload = json.dumps({
                     "event_type": "WAKE_WORD_DETECTED",
                     "wake_phrase": self.wake_detector.wake_phrase,
@@ -444,11 +447,25 @@ class WindowsLocalAgent:
         logger.info("Local agent stopped.")
 
 
-# Singleton instance
-windows_local_agent = WindowsLocalAgent()
+# Singleton instance with lazy resolution to avoid duplicate initialization on module import
+_agent_singleton_instance: Optional[WindowsLocalAgent] = None
+
+def get_windows_local_agent() -> WindowsLocalAgent:
+    global _agent_singleton_instance
+    if _agent_singleton_instance is None:
+        _agent_singleton_instance = WindowsLocalAgent()
+    return _agent_singleton_instance
+
+class _LazyAgentProxy:
+    def __getattr__(self, name):
+        return getattr(get_windows_local_agent(), name)
+    def __repr__(self):
+        return "<WindowsLocalAgent (LazyProxy)>"
+
+windows_local_agent = _LazyAgentProxy()
 
 if __name__ == "__main__":
-    agent = WindowsLocalAgent()
+    agent = get_windows_local_agent()
     try:
         agent.start()
         print(f"\n[JARVIS-WINDOWS-AGENT] Running as {DEVICE_NAME}. Press Ctrl+C to terminate.\n")

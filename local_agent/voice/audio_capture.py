@@ -28,6 +28,7 @@ class AudioStreamState:
     LISTENING = "LISTENING"
     PAUSED = "PAUSED"
     NO_MICROPHONE = "NO_MICROPHONE"
+    RECONNECTING = "RECONNECTING"
     ERROR = "ERROR"
     STOPPED = "STOPPED"
 
@@ -205,17 +206,29 @@ class MicrophoneStream:
 
     def _run_capture_loop(self):
         backoff_seconds = 1.0
-        max_backoff = 8.0
+        max_backoff = 10.0
+        consecutive_failures = 0
+        max_fast_retries = 3
 
         while not self._stop_event.is_set():
             if not self._active_stream:
                 success = self._init_audio_device()
                 if not success:
+                    consecutive_failures += 1
+                    with self._lock:
+                        if consecutive_failures <= max_fast_retries:
+                            self.state = AudioStreamState.RECONNECTING
+                        elif "device" in str(self.last_error).lower() or "host error" in str(self.last_error).lower():
+                            self.state = AudioStreamState.NO_MICROPHONE
+                        else:
+                            self.state = AudioStreamState.ERROR
+
                     # Bounded backoff retry
                     time.sleep(backoff_seconds)
                     backoff_seconds = min(backoff_seconds * 1.5, max_backoff)
                     continue
                 else:
+                    consecutive_failures = 0
                     backoff_seconds = 1.0
 
             if self._pause_event.is_set():
@@ -243,8 +256,9 @@ class MicrophoneStream:
             except Exception as e:
                 logger.warning(f"Audio read error in capture loop: {e}. Reinitializing audio stream...")
                 self._cleanup_audio_device()
+                consecutive_failures += 1
                 with self._lock:
-                    self.state = AudioStreamState.ERROR
+                    self.state = AudioStreamState.RECONNECTING if consecutive_failures <= max_fast_retries else AudioStreamState.ERROR
                     self.last_error = str(e)
                 time.sleep(backoff_seconds)
                 backoff_seconds = min(backoff_seconds * 1.5, max_backoff)

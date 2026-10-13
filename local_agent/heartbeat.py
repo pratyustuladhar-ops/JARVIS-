@@ -46,10 +46,18 @@ class HeartbeatManager:
         self.last_error: Optional[str] = None
 
     def _get_target_urls(self, path: str) -> list:
-        urls = [f"{self.backend_url}{path}"]
-        if "localhost" in self.backend_url:
-            urls.append(f"{self.backend_url.replace('localhost', '127.0.0.1')}{path}")
-        return urls
+        base = self.backend_url
+        target_paths = []
+        if not base.endswith("/api/v1") and not path.startswith("/api/v1"):
+            target_paths.append(f"/api/v1{path}")
+        target_paths.append(path)
+
+        urls = []
+        for p in target_paths:
+            urls.append(f"{base}{p}")
+            if "localhost" in base:
+                urls.append(f"{base.replace('localhost', '127.0.0.1')}{p}")
+        return list(dict.fromkeys(urls))
 
     def send_pulse(self, status: str = "ONLINE") -> bool:
         """Sends a single heartbeat pulse to the backend with URL fallback and re-registration handling."""

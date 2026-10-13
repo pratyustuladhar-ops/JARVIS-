@@ -78,8 +78,9 @@ class LocalAgentWakeWordDetector:
         if self.audio_stream:
             self.audio_stream.stop()
 
-        if self._worker_thread and self._worker_thread.is_alive():
-            self._worker_thread.join(timeout=2.0)
+        if self._worker_thread:
+            if self._worker_thread.is_alive():
+                self._worker_thread.join(timeout=2.0)
             self._worker_thread = None
 
         logger.info("LocalAgentWakeWordDetector stopped.")
@@ -120,14 +121,28 @@ class LocalAgentWakeWordDetector:
             mic_err = self.audio_stream.get_last_error() if self.audio_stream else None
             engine_ready = self.detector_engine.is_available() if self.detector_engine else False
 
-            status_str = "ACTIVE" if (self.is_active and not self.is_paused) else ("PAUSED" if self.is_paused else "DISABLED")
-            if mic_state in [AudioStreamState.NO_MICROPHONE, AudioStreamState.ERROR]:
+            if mic_state in (AudioStreamState.NO_MICROPHONE, AudioStreamState.ERROR):
                 status_str = "MICROPHONE_ERROR"
             elif not engine_ready:
                 status_str = "ENGINE_UNAVAILABLE"
+            elif not self.is_active:
+                status_str = "DISABLED"
+            elif self.is_paused:
+                status_str = "PAUSED"
+            elif mic_state == AudioStreamState.STARTING:
+                status_str = "STARTING"
+            elif mic_state == AudioStreamState.RECONNECTING:
+                status_str = "RECONNECTING"
+            elif mic_state == AudioStreamState.LISTENING:
+                status_str = "READY"
+            else:
+                status_str = "DISABLED"
+
+            is_genuinely_ready = bool(self.is_active and not self.is_paused and engine_ready and mic_state == AudioStreamState.LISTENING)
 
             return {
                 "running": self.is_active and not self.is_paused,
+                "ready": is_genuinely_ready,
                 "active": self.is_active,
                 "paused": self.is_paused,
                 "phrase": self.wake_phrase,

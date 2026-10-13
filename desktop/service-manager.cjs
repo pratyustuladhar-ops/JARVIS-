@@ -4,6 +4,14 @@ const path = require('path');
 const fs = require('fs');
 const EventEmitter = require('events');
 
+function redactSensitive(text) {
+  if (!text || typeof text !== 'string') return '';
+  return text
+    .replace(/(?:token|auth_token|secret|password|key)[=:]["']?([^\s&"']+)["']?/gi, '$1=[REDACTED]')
+    .replace(/(?:bearer\s+)([a-zA-Z0-9_\-\.]{8,})/gi, 'Bearer [REDACTED]')
+    .replace(/jarvis_windows_local_agent_secret_\d+/gi, '[REDACTED_SECRET]');
+}
+
 function resolveEffectiveRepoRoot(customRoot) {
   if (customRoot && fs.existsSync(customRoot)) {
     return customRoot;
@@ -35,8 +43,14 @@ class ServiceManager extends EventEmitter {
     this.localAgentStderrLog = [];
     this.cachedPythonConfig = null;
 
+    this.localAgentCrashCount = 0;
+    this.backendCrashCount = 0;
+    this.localAgentRestartTimer = null;
+    this.backendRestartTimer = null;
+    this.maxCrashRestarts = 3;
+
     this.status = {
-      backend: 'offline', // 'offline' | 'starting' | 'online' | 'error'
+      backend: 'offline', // 'offline' | 'starting' | 'online' | 'error' | 'reconnecting'
       localAgent: 'offline',
       wakeWord: 'offline',
       backendPid: null,
@@ -59,19 +73,20 @@ class ServiceManager extends EventEmitter {
       const probeArgs = [
         ...baseArgs,
         '-c',
-        'import sys, uvicorn, fastapi; print("JARVIS_PYTHON_VALID:" + sys.version.split()[0])'
+        'import sys, uvicorn, fastapi; print("JARVIS_PYTHON_VALID:" + sys.version.split()[0] + "|||" + sys.executable)'
       ];
       const res = spawnSync(command, probeArgs, {
         encoding: 'utf8',
-        timeout: 4000,
+        timeout: 5000,
         windowsHide: true,
         stdio: ['ignore', 'pipe', 'pipe']
       });
 
       if (res.status === 0 && res.stdout && res.stdout.includes('JARVIS_PYTHON_VALID:')) {
-        const match = res.stdout.match(/JARVIS_PYTHON_VALID:([^\s\r\n]+)/);
+        const match = res.stdout.match(/JARVIS_PYTHON_VALID:([^\s\r\n\|]+)(?:\|\|\|([^\r\n]+))?/);
         const version = match ? match[1] : 'unknown';
-        return { valid: true, version };
+        const executable = match && match[2] ? match[2].trim() : null;
+        return { valid: true, version, executable };
       }
       return {
         valid: false,
@@ -178,13 +193,16 @@ class ServiceManager extends EventEmitter {
     for (const cand of candidates) {
       const probe = this.verifyPythonCandidate(cand.command, cand.baseArgs);
       if (probe.valid) {
+        const actualCommand = (cand.command === 'py' && probe.executable) ? probe.executable : cand.command;
+        const actualArgs = (cand.command === 'py' && probe.executable) ? [] : cand.baseArgs;
         this.cachedPythonConfig = {
-          command: cand.command,
-          baseArgs: cand.baseArgs,
+          command: actualCommand,
+          baseArgs: actualArgs,
           displayPath: cand.displayPath,
           isVenv: cand.isVenv,
           label: cand.label,
           version: probe.version,
+          executable: probe.executable,
           verified: true
         };
         return this.cachedPythonConfig;
@@ -308,6 +326,7 @@ class ServiceManager extends EventEmitter {
   async checkAll() {
     const prevBackend = this.status.backend;
     const prevAgent = this.status.localAgent;
+    const prevWakeWord = JSON.stringify(this.status.wakeWord);
 
     const [backendRes, agentRes] = await Promise.all([
       this.checkBackendHealth(),
@@ -316,10 +335,10 @@ class ServiceManager extends EventEmitter {
 
     const newBackend = backendRes.online
       ? 'online'
-      : (this.backendProcess ? 'starting' : (prevBackend === 'error' ? 'error' : 'offline'));
+      : (this.backendProcess ? 'starting' : (prevBackend === 'error' ? 'error' : (prevBackend === 'reconnecting' ? 'reconnecting' : 'offline')));
     const newAgent = agentRes.online
       ? 'online'
-      : (this.localAgentProcess ? 'starting' : (prevAgent === 'error' ? 'error' : 'offline'));
+      : (this.localAgentProcess ? 'starting' : (prevAgent === 'error' ? 'error' : (prevAgent === 'reconnecting' ? 'reconnecting' : 'offline')));
 
     let details = 'Offline';
     if (backendRes.online && agentRes.online) {
@@ -338,11 +357,12 @@ class ServiceManager extends EventEmitter {
       backendPid: this.backendPid,
       localAgentPid: this.localAgentPid,
       lastHealthCheck: new Date().toISOString(),
-      details,
+      details: redactSensitive(details),
       wakeWord: agentRes.wakeWord || null
     };
 
-    if (prevBackend !== newBackend || prevAgent !== newAgent) {
+    const newWakeWord = JSON.stringify(this.status.wakeWord);
+    if (prevBackend !== newBackend || prevAgent !== newAgent || prevWakeWord !== newWakeWord) {
       this.emit('status-change', { ...this.status });
     }
 
@@ -399,9 +419,14 @@ class ServiceManager extends EventEmitter {
       child.stdout.on('data', (d) => {
         const text = d.toString();
         if (text.includes('Application startup complete') || text.includes('Uvicorn running on')) {
-          this.status.backend = 'online';
-          this.status.details = 'Connected to JARVIS Core';
-          this.emit('status-change', { ...this.status });
+          this.checkBackendHealth().then((h) => {
+            if (h.online) {
+              this.status.backend = 'online';
+              this.status.details = 'Connected to JARVIS Core';
+              this.backendCrashCount = 0;
+              this.emit('status-change', { ...this.status });
+            }
+          }).catch(() => {});
         }
       });
 
@@ -418,16 +443,31 @@ class ServiceManager extends EventEmitter {
         this.backendPid = null;
         this.status.backendPid = null;
         if (!this.isShuttingDown) {
-          const detail = this.backendStderrLog.join('').trim() || `Process exited with code ${code}`;
+          const rawDetail = this.backendStderrLog.join('').trim() || `Process exited with code ${code}`;
+          const detail = redactSensitive(rawDetail);
           this.status.backend = code === 0 ? 'offline' : 'error';
           this.status.details = detail;
           this.emit('status-change', { ...this.status });
+
+          if (code !== 0 && this.backendCrashCount < this.maxCrashRestarts) {
+            this.backendCrashCount++;
+            const backoffMs = Math.min(1000 * Math.pow(2, this.backendCrashCount - 1), 5000);
+            this.status.backend = 'reconnecting';
+            this.status.details = `FastAPI backend crashed (${code}). Auto-recovery attempt ${this.backendCrashCount}/${this.maxCrashRestarts} in ${backoffMs}ms...`;
+            this.emit('status-change', { ...this.status });
+            clearTimeout(this.backendRestartTimer);
+            this.backendRestartTimer = setTimeout(() => {
+              if (!this.isShuttingDown) {
+                this.startBackend({ waitForReady: false }).catch(() => {});
+              }
+            }, backoffMs);
+          }
         }
       });
 
       child.on('error', (err) => {
         this.status.backend = 'error';
-        this.status.details = `Spawn failure: ${err.message}`;
+        this.status.details = `Spawn failure: ${redactSensitive(err.message)}`;
         this.emit('status-change', { ...this.status });
       });
 
@@ -438,7 +478,7 @@ class ServiceManager extends EventEmitter {
       return { started: true, pid: child.pid };
     } catch (err) {
       this.status.backend = 'error';
-      this.status.details = err.message;
+      this.status.details = redactSensitive(err.message);
       this.emit('status-change', { ...this.status });
       throw err;
     }
@@ -450,7 +490,8 @@ class ServiceManager extends EventEmitter {
 
     while (Date.now() - startTime < timeoutMs) {
       if (!this.backendProcess && this.status.backend === 'error') {
-        const detail = this.backendStderrLog.join('').trim() || this.status.details || 'Backend exited before becoming healthy';
+        const rawDetail = this.backendStderrLog.join('').trim() || this.status.details || 'Backend exited before becoming healthy';
+        const detail = redactSensitive(rawDetail);
         throw new Error(`FastAPI backend failed to start: ${detail}`);
       }
 
@@ -458,6 +499,7 @@ class ServiceManager extends EventEmitter {
       if (health.online) {
         this.status.backend = 'online';
         this.status.details = 'Connected to JARVIS Core';
+        this.backendCrashCount = 0;
         this.emit('status-change', { ...this.status });
         return { started: true, pid: this.backendPid, ready: true };
       }
@@ -465,7 +507,8 @@ class ServiceManager extends EventEmitter {
       await new Promise((r) => setTimeout(r, pollInterval));
     }
 
-    const detail = this.backendStderrLog.join('').trim() || 'Health check timed out';
+    const rawDetail = this.backendStderrLog.join('').trim() || 'Health check timed out';
+    const detail = redactSensitive(rawDetail);
     this.status.backend = 'error';
     this.status.details = `Readiness timeout (${timeoutMs}ms): ${detail}`;
     this.emit('status-change', { ...this.status });
@@ -522,8 +565,13 @@ class ServiceManager extends EventEmitter {
       child.stdout.on('data', (d) => {
         const text = d.toString();
         if (text.includes('is ONLINE') || text.includes('Local agent') || text.includes('Running on')) {
-          this.status.localAgent = 'online';
-          this.emit('status-change', { ...this.status });
+          this.checkLocalAgentHealth().then((h) => {
+            if (h.online) {
+              this.status.localAgent = 'online';
+              this.localAgentCrashCount = 0;
+              this.emit('status-change', { ...this.status });
+            }
+          }).catch(() => {});
         }
       });
 
@@ -540,9 +588,23 @@ class ServiceManager extends EventEmitter {
         this.localAgentPid = null;
         this.status.localAgentPid = null;
         if (!this.isShuttingDown) {
-          const detail = this.localAgentStderrLog.join('').trim() || `Process exited with code ${code}`;
+          const rawDetail = this.localAgentStderrLog.join('').trim() || `Process exited with code ${code}`;
+          const detail = redactSensitive(rawDetail);
           this.status.localAgent = code === 0 ? 'offline' : 'error';
           this.emit('status-change', { ...this.status });
+
+          if (code !== 0 && this.localAgentCrashCount < this.maxCrashRestarts) {
+            this.localAgentCrashCount++;
+            const backoffMs = Math.min(1000 * Math.pow(2, this.localAgentCrashCount - 1), 5000);
+            this.status.localAgent = 'reconnecting';
+            this.emit('status-change', { ...this.status });
+            clearTimeout(this.localAgentRestartTimer);
+            this.localAgentRestartTimer = setTimeout(() => {
+              if (!this.isShuttingDown) {
+                this.startLocalAgent({ waitForReady: false }).catch(() => {});
+              }
+            }, backoffMs);
+          }
         }
       });
 
@@ -569,13 +631,15 @@ class ServiceManager extends EventEmitter {
 
     while (Date.now() - startTime < timeoutMs) {
       if (!this.localAgentProcess && this.status.localAgent === 'error') {
-        const detail = this.localAgentStderrLog.join('').trim() || 'Local agent exited before becoming healthy';
+        const rawDetail = this.localAgentStderrLog.join('').trim() || 'Local agent exited before becoming healthy';
+        const detail = redactSensitive(rawDetail);
         throw new Error(`Windows Local Agent failed to start: ${detail}`);
       }
 
       const health = await this.checkLocalAgentHealth();
       if (health.online) {
         this.status.localAgent = 'online';
+        this.localAgentCrashCount = 0;
         this.emit('status-change', { ...this.status });
         return { started: true, pid: this.localAgentPid, ready: true };
       }
@@ -583,7 +647,8 @@ class ServiceManager extends EventEmitter {
       await new Promise((r) => setTimeout(r, pollInterval));
     }
 
-    const detail = this.localAgentStderrLog.join('').trim() || 'Health check timed out';
+    const rawDetail = this.localAgentStderrLog.join('').trim() || 'Health check timed out';
+    const detail = redactSensitive(rawDetail);
     this.status.localAgent = 'error';
     this.emit('status-change', { ...this.status });
     throw new Error(`Windows Local Agent did not become ready within ${timeoutMs}ms. Details: ${detail}`);
@@ -616,6 +681,8 @@ class ServiceManager extends EventEmitter {
   async shutdownAll() {
     this.isShuttingDown = true;
     this.stopPolling();
+    clearTimeout(this.backendRestartTimer);
+    clearTimeout(this.localAgentRestartTimer);
 
     const killPid = (pid) => {
       return new Promise((resolve) => {

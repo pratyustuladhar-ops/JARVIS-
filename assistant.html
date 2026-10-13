@@ -1401,19 +1401,27 @@
         }).catch(() => {});
       }
 
-      // If enabled by default or saved preference, start
-      if (wakeController.isEnabled()) {
+      // In desktop mode, Local Agent Python process handles wake word detection via openWakeWord.
+      // Do not run the browser WebSpeech recognizer in Electron desktop mode as it has no Google Speech API keys.
+      const isDesktop = !!(window.jarvisDesktop && window.jarvisDesktop.isDesktop);
+      if (!isDesktop && wakeController.isEnabled()) {
         wakeController.enable().catch(() => {});
-      } else {
+      } else if (!isDesktop) {
         updateWakeWordUI(WakeWordState.DISABLED);
       }
     }
 
     window.toggleWakeWordMode = async function() {
+      const isDesktop = !!(window.jarvisDesktop && window.jarvisDesktop.isDesktop);
       let targetEnabled = true;
-      if (wakeController) {
+
+      if (!isDesktop && wakeController) {
         targetEnabled = !wakeController.isEnabled();
         await wakeController.toggle();
+      } else {
+        const currentLabel = document.getElementById('top-wake-word-label');
+        const currentlyOn = currentLabel && (currentLabel.innerText.includes('READY') || currentLabel.innerText.includes('RECONNECTING'));
+        targetEnabled = !currentlyOn;
       }
 
       // Notify Local Agent directly
@@ -1429,9 +1437,11 @@
         });
         const data = await res.json();
         if (data && data.wake_word_detector) {
-          updateTruthfulWakeWordUI(data.wake_word_detector);
+          updateTruthfulWakeWordUI(data.wake_word_detector, true);
         }
-      } catch (e) {}
+      } catch (e) {
+        updateTruthfulWakeWordUI(null, false);
+      }
 
       // Notify backend service
       if (window.jarvisApi && window.jarvisApi.toggleWakeWord) {
@@ -1439,11 +1449,28 @@
       }
     };
 
-    function updateTruthfulWakeWordUI(ww) {
-      if (!ww) return;
-      if (ww.status === 'MICROPHONE_ERROR' || ww.microphone_state === 'NO_MICROPHONE' || ww.engine_ready === false) {
+    function updateTruthfulWakeWordUI(ww, isAgentOnline = true) {
+      if (!isAgentOnline) {
+        updateWakeWordUI(WakeWordState.DISABLED);
+        return;
+      }
+      if (!ww) {
+        updateWakeWordUI(WakeWordState.DISABLED);
+        return;
+      }
+      const st = typeof ww === 'string' ? ww : (ww.status || '');
+      const mic = (ww && ww.microphone_state) || '';
+      const engineReady = ww && typeof ww.engine_ready === 'boolean' ? ww.engine_ready : null;
+
+      if (st === 'DISABLED' || st === 'OFF' || ww.enabled === false) {
+        updateWakeWordUI(WakeWordState.DISABLED);
+      } else if (st === 'NO_MICROPHONE' || mic === 'NO_MICROPHONE' || st === 'MICROPHONE_ERROR') {
         updateWakeWordUI('MIC_ERROR');
-      } else if (ww.running || ww.status === 'ACTIVE') {
+      } else if (st === 'ERROR' || engineReady === false) {
+        updateWakeWordUI(WakeWordState.ERROR);
+      } else if (st === 'STARTING' || st === 'RECONNECTING' || mic === 'RECONNECTING') {
+        updateWakeWordUI(WakeWordState.RESTARTING);
+      } else if (st === 'ACTIVE' || st === 'READY' || (ww.running && engineReady !== false)) {
         updateWakeWordUI(WakeWordState.LISTENING_FOR_WAKE_WORD);
       } else {
         updateWakeWordUI(WakeWordState.DISABLED);
@@ -1491,10 +1518,6 @@
         const data = await res.json();
         isOnline = !!(data && data.status === 'ONLINE');
 
-        if (data && data.wake_word_detector) {
-          updateTruthfulWakeWordUI(data.wake_word_detector);
-        }
-
         if (badge) {
           if (isOnline) {
             badge.className = "inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] bg-primary/10 text-primary border border-primary/30";
@@ -1504,12 +1527,19 @@
             badge.innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-outline/40"></span> OFFLINE`;
           }
         }
+
+        if (data && data.wake_word_detector) {
+          updateTruthfulWakeWordUI(data.wake_word_detector, isOnline);
+        } else {
+          updateTruthfulWakeWordUI(null, isOnline);
+        }
       } catch(e) {
         const badge = document.getElementById('local-agent-status-badge');
         if (badge) {
           badge.className = "inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] bg-outline/10 text-outline border border-outline/30";
           badge.innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-outline/40"></span> OFFLINE`;
         }
+        updateTruthfulWakeWordUI(null, false);
       }
     }
 
@@ -1574,15 +1604,10 @@
         window.jarvisDesktop.getServiceStatus().then((status) => {
           if (status) {
             updateBackendStatusUI(status.backend === 'online');
-          }
-        });
-
-        window.jarvisDesktop.onServiceStatusChanged((status) => {
-          if (status) {
-            updateBackendStatusUI(status.backend === 'online');
+            const isAgentOnline = status.localAgent === 'online';
             const localAgentBadge = document.getElementById('local-agent-status-badge');
             if (localAgentBadge) {
-              if (status.localAgent === 'online') {
+              if (isAgentOnline) {
                 localAgentBadge.className = "inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] bg-primary/10 text-primary border border-primary/30";
                 localAgentBadge.innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-primary animate-pulse"></span> ONLINE`;
               } else {
@@ -1590,6 +1615,25 @@
                 localAgentBadge.innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-outline/40"></span> OFFLINE`;
               }
             }
+            updateTruthfulWakeWordUI(status.wakeWord, isAgentOnline);
+          }
+        });
+
+        window.jarvisDesktop.onServiceStatusChanged((status) => {
+          if (status) {
+            updateBackendStatusUI(status.backend === 'online');
+            const isAgentOnline = status.localAgent === 'online';
+            const localAgentBadge = document.getElementById('local-agent-status-badge');
+            if (localAgentBadge) {
+              if (isAgentOnline) {
+                localAgentBadge.className = "inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] bg-primary/10 text-primary border border-primary/30";
+                localAgentBadge.innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-primary animate-pulse"></span> ONLINE`;
+              } else {
+                localAgentBadge.className = "inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] bg-outline/10 text-outline border border-outline/30";
+                localAgentBadge.innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-outline/40"></span> OFFLINE`;
+              }
+            }
+            updateTruthfulWakeWordUI(status.wakeWord, isAgentOnline);
           }
         });
       } else {
